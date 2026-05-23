@@ -1390,3 +1390,73 @@ CSA Listener – Teams Meeting Integration (ZIP)
 
 If you want the “next level” after this: I can add a Graph change-notification hook (webhook) so the listener automatically ingests a transcript as soon as it’s generated post-meeting—matching the “app receives notifications, then fetches transcript” pattern described in the Graph transcripts overview. 
 
+Absolutely — “next level” here means no more manual runs: you register a Microsoft Graph webhook subscription, Graph calls your HTTPS notification endpoint, and your service automatically downloads the transcript (VTT) and streams it into the CSA Listener. 
+What “next level” adds (architecture)
+
+Graph subscription (webhook) so you get notified when a transcript is created for a meeting, instead of polling.  
+
+Webhook receiver with validation handshake — Graph will call your endpoint with a validationToken, and your service must echo it back as plain text.  
+
+Security hardening for the webhook endpoint (don’t leave it “effectively anonymous”): validate clientState using a secret (HMAC) so random callers can’t inject fake notifications.  
+
+Auto-ingestion pipeline: on notification, download the transcript content (VTT) and push each cue into your listener session over /listener/ws.  
+
+
+⚠️ Practical note on access: even with the right Graph permissions, transcript access can still be blocked by Teams transcript sharing policy / access constraints, sometimes requiring policy changes or ensuring the identity has appropriate meeting access. 
+
+
+
+What’s in the ZIP I generated
+
+This pack includes: 
+POST /graph/notifications 
+
+Handles validationToken handshake (echo) 
+
+Accepts notification batches and triggers async transcript ingestion  
+
+Subscription CLI: clients/teams_transcript_subscribe.py 
+
+create / renew / delete a transcript subscription 
+
+Uses client-credentials (tenant/client/secret) for app-only calls 
+
+Transcript ingestion pipeline 
+
+downloads transcript VTT and parses cues 
+
+streams cues into listener via WebSocket 
+
+Security switch: GRAPH_CLIENT_STATE 
+
+if set, the webhook validates notifications via an HMAC-derived clientState (defence-in-depth against spoofing).  
+
+
+
+How to run it (high-level)
+
+Deploy the service somewhere with a public HTTPS endpoint (Graph requires an HTTPS-secured notification URL).  
+
+Start the listener server (uvicorn ...) 
+
+Create a subscription: 
+
+set GRAPH_NOTIFICATION_URL=https:///graph/notifications 
+
+run python clients/teams_transcript_subscribe.py create 
+
+Graph calls your endpoint to validate (validationToken handshake).  
+
+When a meeting transcript is generated, Graph notifies you, and your pipeline auto-ingests it (VTT → cues → listener).  
+
+
+
+Download the ZIP (whole project)
+
+Teams webhooks “next level” project ZIP 
+
+
+One extra “enterprise-ready” reminder
+
+If you hit 403/access denied when downloading transcript content, it’s often not a pure Graph permission issue — it can be driven by Teams transcript sharing/access policy constraints. 
+If you want, the next increment after this is adding a persistent subscription store + automatic renewal loop (so you don’t need to re-run renew manually) — the pattern is the same as the internal webhook subscription approach already used for calendar events + validation handshake. 
