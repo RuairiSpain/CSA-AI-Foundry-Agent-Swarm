@@ -582,4 +582,102 @@ If you want, tell me which target UX you want first:
 
 (B) “3 suggestion cards” (questions / risks / solution directions) refreshed every ~30 seconds. 
 
+✅ Added an auto‑mode switcher that changes conversation mode (consultative/executive/technical) and persona (director_vp/tech_lead/graduate) based on live conversation cues, with anti‑flap lockout and manual override protection. 
+Download
+
+CSA Listener Agent Swarm — AutoMode 
+
+
+What’s in this upgrade
+
+1) Auto-mode switching (based on cues)
+
+The listener now runs a lightweight “style router” on each transcript update: 
+Deterministic cue matcher (fast, no extra latency) Uses keyword cues to infer: 
+
+Executive when the conversation turns to budget, ROI, sponsor, timeline, strategy, procurement 
+
+Technical when it turns to VNet, Private Endpoint, APIM, AKS, RBAC/Entra, latency, DR (RTO/RPO), IaC, observability 
+
+Otherwise stays Consultative 
+
+Optional LLM refinement (higher precision) If enabled, a small classifier prompt can override the deterministic guess when it is medium/high confidence. 
+
+2) Anti-flapping lockout
+
+To avoid the mode bouncing every few seconds, there is a lockout timer: 
+LISTENER_AUTO_LOCK_SECONDS (default 20s) 
+
+Once an auto-switch happens, the system will not change mode/persona again until the lock expires. 
+3) Manual selections are respected
+
+If you manually set: 
+mode or 
+
+persona 
+
+…auto-switching will not override it. 
+We track this in the session: 
+mode_source: default | auto | manual 
+
+persona_source: default | auto | manual 
+
+4) Visibility: you can see why it switched
+
+When an auto-switch happens, the returned guidance card includes:
+"_style_switch": {<ctmzNwLn>  "mode": "...",<ctmzNwLn>  "persona": "...",<ctmzNwLn>  "confidence": "...",<ctmzNwLn>  "cues": ["...","..."]<ctmzNwLn>}<ctmzNwLn>
+So the CSA sees why the assistant moved into “executive” or “technical”. 
+
+
+New controls (WebSocket + MCP)
+
+WebSocket
+
+Enable/disable auto switching
+{ "type": "set", "session_id": "...", "auto_mode": true, "auto_persona": true }<ctmzNwLn>
+Disable:
+{ "type": "set", "session_id": "...", "auto_mode": false, "auto_persona": false }<ctmzNwLn>
+Manual override still works
+{ "type": "set", "session_id": "...", "mode": "technical" }<ctmzNwLn>{ "type": "set", "session_id": "...", "persona": "director_vp" }<ctmzNwLn>
+MCP Tools
+
+Added: 
+listener.set_auto(session_id, auto_mode?, auto_persona?) 
+
+Existing: 
+listener.set_mode 
+
+listener.set_persona 
+
+
+
+Environment knobs
+
+In .env.example: 
+LISTENER_AUTO_LOCK_SECONDS=20 
+
+LISTENER_AUTO_LLM=true 
+
+set to false to use only deterministic cues 
+
+
+
+What changed in the code
+
+Key files: 
+listener/engine.py 
+
+adds _maybe_auto_style() cue router + lockout + LLM refinement 
+
+listener/state.py 
+
+stores auto_mode, auto_persona, mode_source, persona_source, last_style_change_ts 
+
+listener/tools.py + config/tools.yaml 
+
+adds listener.set_auto 
+
+
+
+If you want the next polish step: I can make the router topic-aware (e.g., “security/compliance” → executive-but-risk, “architecture deep dive” → technical, “requirements discovery” → consultative) using the same DEEP pipeline signals you already generate.
 
