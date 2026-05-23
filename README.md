@@ -335,4 +335,96 @@ produces exec-ready outputs, 
 
 and supports Foundry/Copilot/MCP usage patterns consistently. 
 
+Added the Diagram Lint Verifier as a new agent and as a callable MCP tool, and wired it into the enterprise orchestration pipeline so every swarm run produces linted (validated + corrected) Mermaid diagrams. 
+Download the upgraded ZIP (Diagrams + Lint)
+
+CSA_Agent_Swarm_Enterprise_PowerUpgrade_Diagrams_Lint.zip 
+
+
+What you get in this “lint” upgrade
+
+1) New agent: diagram_lint_verifier
+
+File: agents/diagram_lint_verifier.md 
+
+Role: checks Mermaid output for: 
+
+correct fenced blocks 
+
+readability + line limits 
+
+trust boundaries 
+
+broken syntax / overly long labels 
+
+and platform warnings (e.g., Azure DevOps wiki Mermaid wrapper differences)  
+
+2) New MCP tool: diagram.lint
+
+Tool: diagram.lint 
+
+Input: { diagrams: string } 
+
+Output: issues + corrected diagrams 
+
+3) Orchestration updated (now enterprise-grade “diagram QA”)
+
+Pipeline is now: 
+Plan → Specialists → Principal review → Verifier → Diagrams → Diagram Lint → Report 
+That means the report writer always receives linted/corrected diagrams, and it will embed them into customer-ready outputs. 
+
+
+Why linting matters (grounded)
+
+Mermaid is widely used for code-based diagrams in Markdown workflows, and modular diagrams are recommended over huge ones.  
+
+Some platforms (notably Azure DevOps wiki) have Mermaid syntax limitations and may need alternate wrappers — so the linter flags this and outputs an ADO-friendly wrapper suggestion.  
+
+
+
+Where the changes are in the ZIP
+
+Code
+
+*//swarm/core.py 
+
+adds the diagram_linter stage into EnterpriseOrchestrator 
+
+*//swarm/tools.py 
+
+adds diagram_lint() tool 
+
+adds a diagram_lint_verifier Agent in the main swarm_run() flow 
+
+Config
+
+config/tools.yaml 
+
+registers diagram.lint 
+
+Docs
+
+docs/diagrams/mermaid-guide.md (Mermaid usage + platform caveats)  
+
+docs/diagrams/mermaid-lint-rules.md (the lint contract/rules) 
+
+
+
+How to use it
+
+A) Full run (diagrams auto-linted)
+
+Call MCP: 
+swarm.run 
+
+provide task (and optional scenario) 
+
+B) Lint diagrams only
+
+Call MCP: 
+diagram.lint 
+
+pass the Mermaid text you want checked 
+
+
 
