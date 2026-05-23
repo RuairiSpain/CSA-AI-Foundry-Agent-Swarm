@@ -426,5 +426,160 @@ diagram.lint 
 
 pass the Mermaid text you want checked 
 
+✅ Implemented. I’ve produced a CSA Listener Agent pack that adds a live-call assist capability to your swarm, with two ingestion paths so it works for Teams, phone, and in-person (as long as you can provide audio→text or text chunks). 
+Download
+
+CSA Listener Agent Swarm (zip) 
+
+
+What’s implemented (and how it maps to your goal)
+
+1) Real-time “listener” runtime (low-friction)
+
+A) WebSocket streaming endpoint (smoothest UX)
+
+ws://:/listener/ws 
+
+You stream transcript chunks (JSON messages) 
+
+The server returns CSA guidance cards after each chunk: 
+
+key_insight 
+
+suggested_question 
+
+solution_hint 
+
+critical_gap 
+
+plus an extracted object (goal/pain/constraints/current state) 
+
+This gives the “live guidance” experience you described with minimal typing. 
+B) MCP tools (for environments that can only call tools)
+
+Tools included in config/tools.yaml: 
+listener.start 
+
+listener.ingest 
+
+listener.state 
+
+listener.export 
+
+listener.reset 
+
+So any client (Copilot for VS Code, GitHub tooling, a script, etc.) can feed chunks and get guidance. 
+
+
+2) “Temporary transcript” / privacy-friendly model
+
+I designed the listener as a session-scoped store that you can reset/terminate at will, mirroring the idea that Teams Copilot can operate “only during the meeting” using a temporary transcript that is deleted after the meeting ends.  That’s the right mental model for sensitive customer calls. 
+
+
+3) Flexible audio input strategy
+
+This pack does not claim it can magically capture audio from every meeting platform (that depends on device permissions / meeting platform APIs). Instead it supports: 
+✅ Any source that can produce text chunks 
+
+✅ Microphone-based transcription client (provided) 
+
+✅ Extensible path for telephony / external feeds (via custom audio stream ingestion) 
+
+This aligns with: 
+Azure Speech offering real-time transcription with intermediate results (ideal for live assist).  
+
+Speech SDK supporting custom audio input streams (useful if later you wire in telephony audio feeds).  
+
+
+
+What’s inside the ZIP (key files)
+
+Each of your three root folders contains the listener implementation: 
+Server + MCP
+
+*//server/app.py 
+
+Adds /listener/ws WebSocket endpoint 
+
+Keeps /mcp JSON-RPC endpoint 
+
+Listener engine (the “agent”)
+
+*//listener/engine.py 
+
+Single fast model call per chunk (low latency) 
+
+Produces strict JSON guidance output 
+
+Merges extracted facts into session memory 
+
+Session memory
+
+*//listener/state.py 
+
+Stores transcript + structured facts per session 
+
+MCP tool wrappers
+
+*//listener/tools.py 
+
+Implements the listener.* tools 
+
+Client (optional)
+
+*/clients/mic_listener.py 
+
+Uses Azure Speech SDK to transcribe microphone and stream chunks to /listener/ws 
+
+
+
+How to run it (quick)
+
+1) Start server (example: AI-Foundry folder)
+cd AI-Foundry<ctmzNwLn>python -m venv .venv && source .venv/bin/activate<ctmzNwLn>pip install -r requirements.txt<ctmzNwLn>cp .env.example .env<ctmzNwLn>python -m uvicorn AI_Foundry.server.app:app --host 127.0.0.1 --port 8001<ctmzNwLn>
+2) Stream transcript chunks via WebSocket (lowest friction)
+
+Send messages like:
+{ "session_id": "optional" }<ctmzNwLn>{ "session_id": "...", "text": "We need to deploy globally with strict data residency.", "speaker": "customer", "is_final": true }<ctmzNwLn>
+You’ll receive:
+{<ctmzNwLn>  "type": "guidance",<ctmzNwLn>  "key_insight": "...",<ctmzNwLn>  "suggested_question": "...",<ctmzNwLn>  "solution_hint": "...",<ctmzNwLn>  "critical_gap": "...",<ctmzNwLn>  "extracted": {...}<ctmzNwLn>}<ctmzNwLn>
+3) Or run the microphone client (optional)
+
+Set Speech env vars in .env: 
+SPEECH_KEY 
+
+SPEECH_REGION 
+
+Then:
+python clients/mic_listener.py<ctmzNwLn>
+This uses Azure Speech real-time transcription behaviour (intermediate results) to provide continuous guidance. 
+
+
+Current limitations (being transparent)
+
+Capturing Teams audio directly is not implemented in this pack. Teams audio capture is a platform permission/API question. 
+
+The implementation is channel-agnostic by design: it works best when you can supply either: 
+
+live transcript (ideal), or 
+
+microphone capture (provided), or 
+
+a telephony stream routed into a custom audio stream pipeline (future extension; supported by Speech SDK concepts).  
+
+
+
+Next “best” upgrade (if you want it in the next step)
+
+If you confirm this direction, the next improvement is to re-introduce your earlier multi-role swarm (listener + discovery coach + solution architect + gap detector + whisper), but with a latency-aware router: 
+fast mode (single call) during active speech 
+
+deep mode (multi-agent) during pauses / topic changes 
+
+That gives you the smooth “live assist” feel without spamming the CSA. 
+If you want, tell me which target UX you want first: 
+(A) single on-screen “guidance card” that updates every ~10 seconds, or 
+
+(B) “3 suggestion cards” (questions / risks / solution directions) refreshed every ~30 seconds. 
 
 
