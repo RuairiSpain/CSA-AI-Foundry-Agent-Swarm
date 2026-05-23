@@ -680,4 +680,366 @@ adds listener.set_auto 
 
 
 If you want the next polish step: I can make the router topic-aware (e.g., “security/compliance” → executive-but-risk, “architecture deep dive” → technical, “requirements discovery” → consultative) using the same DEEP pipeline signals you already generate.
+Brilliant — I’ve implemented the topic-aware router so the listener now auto-switches mode (consultative / executive / technical) based on the current conversation topic, not just keywords, while still respecting your lockout and manual overrides. 
+✅ Download: Topic-aware router build
 
+CSA_Listener_Agent_Swarm_TopicAware_Router.zip 
+
+
+What changed (high signal)
+
+1) New “Topic” layer drives the mode
+
+Each guidance card now carries: 
+topic (e.g., security_compliance, architecture_networking, cost_finops) 
+
+topic_confidence 
+
+topic_source (default | auto | manual) 
+
+and the mode is chosen primarily via topic → mode mapping. 
+
+This aligns with real facilitation guidance that explicitly talks about using tone like consultative / executive / technical depending on the scenario and audience. 
+Topic → Mode mapping implemented
+
+Executive mode when topic is: 
+
+security_compliance, governance_risk, cost_finops, delivery_next_steps 
+
+Technical mode when topic is: 
+
+architecture_networking, operations_observability, data_ai 
+
+Consultative mode when topic is: 
+
+requirements_discovery 
+
+
+
+2) Topic detection uses both conversation cues and DEEP pipeline signals
+
+The topic detector looks at: 
+the recent transcript window (last ~25 lines) 
+
+the structured extracted facts (facts.constraints, facts.current_state, etc.) 
+
+So if the conversation implicitly moves into compliance (e.g., it shows up in constraints), the router can still switch even if the latest utterance doesn’t contain the cue. 
+
+
+3) Anti-flap lockout + manual override still enforced
+
+LISTENER_AUTO_LOCK_SECONDS (default 20s) prevents switching too frequently 
+
+If the CSA manually sets mode/persona, auto will not override those. 
+
+
+
+4) Visibility: “why it switched” metadata
+
+When a switch happens, the returned card includes:
+"_style_switch": {<ctmzNwLn>  "topic": "...",<ctmzNwLn>  "mode": "...",<ctmzNwLn>  "persona": "...",<ctmzNwLn>  "confidence": "...",<ctmzNwLn>  "cues": ["..."]<ctmzNwLn>}<ctmzNwLn>
+So the CSA can instantly see why the assistant changed behaviour. 
+
+
+New/updated controls
+
+WebSocket: enable/disable topic auto-routing
+
+You can now toggle topic auto-routing alongside mode/persona:
+{ "type": "set", "session_id": "...", "auto_mode": true, "auto_persona": true, "auto_topic": true }<ctmzNwLn>
+Disable:
+{ "type": "set", "session_id": "...", "auto_mode": false, "auto_persona": false, "auto_topic": false }<ctmzNwLn>
+Manual mode is still:
+{ "type": "set", "session_id": "...", "mode": "technical" }<ctmzNwLn>
+--- 
+MCP tool added/extended
+
+listener.set_auto(session_id, auto_mode?, auto_persona?, auto_topic?) 
+
+
+What’s in the ZIP (where to look)
+
+listener/engine.py 
+
+Topic cues dictionary + topic scoring 
+
+Topic → mode mapping 
+
+Uses both transcript + extracted facts 
+
+Optional LLM refinement via TOPIC_STYLE_CLASSIFIER_SYSTEM 
+
+listener/prompts.py 
+
+Adds TOPIC_STYLE_CLASSIFIER_SYSTEM which returns {topic, mode, persona, confidence, cues} 
+
+listener/state.py 
+
+Adds topic, topic_confidence, topic_source, auto_topic 
+
+clients/mic_listener.py 
+
+Prints topic and displays auto-switch reason 
+
+auto on|off toggles all three (mode/persona/topic) 
+
+
+
+Why “delivery_next_steps” is a useful topic
+
+The router treats terms like VBD, workshop, pilot, PoC, scope, milestone as “delivery next steps”, which reliably indicates it’s time to switch to an executive/next-steps posture (clear decisions, ownership, timeline). This aligns with scoping and delivery guidance patterns found in FY26-VBD Execution Playbook. 
+
+
+Next (if you want to keep going)
+
+One very high-impact enhancement is to add “topic-specific card layout” (same card, different sections), e.g.: 
+Security topic → “Risk / Control / Ask / Next step” 
+
+Networking topic → “Constraint / Option A/B / Ask / Trade-off” 
+
+FinOps topic → “Cost driver / Guardrail / Ask / Next step” 
+
+Say: “Add topic-specific card formats” and I’ll implement it cleanly on top of this build.
+✅ Done — I’ve added topic-specific card formats on top of your topic-aware router. 
+Download
+
+Topic-specific cards pack 
+
+
+What you now get
+
+Every guidance response still includes your “universal” fields: 
+key_insight 
+
+suggested_question 
+
+solution_hint 
+
+critical_gap 
+
+extracted 
+
+…and now also includes a UI-friendly, topic-specific payload:
+"_card": {<ctmzNwLn>  "schema": "csa.card.<topic>.v1",<ctmzNwLn>  "title": "...",<ctmzNwLn>  "topic": "...",<ctmzNwLn>  "sections": { ... }<ctmzNwLn>}<ctmzNwLn>
+This structure is designed to render different layouts per topic while keeping the existing card fields intact. The topic choices align with the kind of discovery categories you’ve already captured in CSA Customer Copilot Prompts (e.g., security/compliance, cost, monitoring/logging, data, etc.). 
+
+
+Topic-specific formats implemented (schemas)
+
+Below are the stable schemas and the section keys each contains (all generated automatically from the existing extracted + _deep data where available): 
+csa.card.security_compliance.v1
+
+Sections: risk, controls, ask, next_step 
+csa.card.governance_risk.v1
+
+Sections: ownership, guardrails, ask, next_step 
+csa.card.cost_finops.v1
+
+Sections: cost_driver, guardrail, ask, next_step 
+csa.card.architecture_networking.v1
+
+Sections: constraint, options, tradeoff, ask 
+csa.card.operations_observability.v1
+
+Sections: signal, slo, instrumentation, ask 
+csa.card.data_ai.v1
+
+Sections: data_sources, retrieval, evaluation, ask 
+csa.card.delivery_next_steps.v1
+
+Sections: decision, owner, date, next_step 
+csa.card.requirements_discovery.v1
+
+Sections: goal, pain, constraints, ask 
+
+
+How the sections are populated (no hallucination)
+
+The formatter does not invent content. It only rearranges: 
+extracted.customer_goal / pain_points / constraints / current_state 
+
+_deep.hypotheses (where present) 
+
+_deep.gap (where present) 
+
+existing core fields (key_insight, suggested_question, solution_hint, critical_gap) 
+
+So the format becomes “what the CSA needs to see” per topic, without changing your underlying guidance. 
+
+
+Where it lives in the code
+
+In this pack, the work is in: 
+listener/engine.py 
+
+Adds CARD_FORMATS mapping 
+
+Adds _apply_card_format(guidance, state) 
+
+Injects _card into every guidance response after FAST/DEEP generation 
+
+Keeps original output fields unchanged 
+
+Docs updated: 
+skills/listener.md and agents/csa_listener.md explain _card and schemas, grounded in CSA Customer Copilot Prompts.  
+
+
+
+Why this is consistent with your internal CSA approach
+
+Your own CSA Customer Copilot Prompts already organises questions into pillars (security/compliance, cost optimisation, monitoring/logging, data, etc.). These topic-specific cards essentially turn those pillar buckets into live, on-call card layouts. 
+
+
+If you want one more “UX upgrade”: I can also add topic-specific talk-track templates so the “talk-track” output mirrors the _card.sections (e.g., security card talk-track becomes: risk → control → ask → next step).
+
+✅ Done — I’ve added topic-specific card formats on top of your topic-aware router. 
+Download
+
+Topic-specific cards pack 
+
+
+What you now get
+
+Every guidance response still includes your “universal” fields: 
+key_insight 
+
+suggested_question 
+
+solution_hint 
+
+critical_gap 
+
+extracted 
+
+…and now also includes a UI-friendly, topic-specific payload:
+"_card": {<ctmzNwLn>  "schema": "csa.card.<topic>.v1",<ctmzNwLn>  "title": "...",<ctmzNwLn>  "topic": "...",<ctmzNwLn>  "sections": { ... }<ctmzNwLn>}<ctmzNwLn>
+This structure is designed to render different layouts per topic while keeping the existing card fields intact. The topic choices align with the kind of discovery categories you’ve already captured in CSA Customer Copilot Prompts (e.g., security/compliance, cost, monitoring/logging, data, etc.). 
+
+
+Topic-specific formats implemented (schemas)
+
+Below are the stable schemas and the section keys each contains (all generated automatically from the existing extracted + _deep data where available): 
+csa.card.security_compliance.v1
+
+Sections: risk, controls, ask, next_step 
+csa.card.governance_risk.v1
+
+Sections: ownership, guardrails, ask, next_step 
+csa.card.cost_finops.v1
+
+Sections: cost_driver, guardrail, ask, next_step 
+csa.card.architecture_networking.v1
+
+Sections: constraint, options, tradeoff, ask 
+csa.card.operations_observability.v1
+
+Sections: signal, slo, instrumentation, ask 
+csa.card.data_ai.v1
+
+Sections: data_sources, retrieval, evaluation, ask 
+csa.card.delivery_next_steps.v1
+
+Sections: decision, owner, date, next_step 
+csa.card.requirements_discovery.v1
+
+Sections: goal, pain, constraints, ask 
+
+
+How the sections are populated (no hallucination)
+
+The formatter does not invent content. It only rearranges: 
+extracted.customer_goal / pain_points / constraints / current_state 
+
+_deep.hypotheses (where present) 
+
+_deep.gap (where present) 
+
+existing core fields (key_insight, suggested_question, solution_hint, critical_gap) 
+
+So the format becomes “what the CSA needs to see” per topic, without changing your underlying guidance. 
+
+
+Where it lives in the code
+
+In this pack, the work is in: 
+listener/engine.py 
+
+Adds CARD_FORMATS mapping 
+
+Adds _apply_card_format(guidance, state) 
+
+Injects _card into every guidance response after FAST/DEEP generation 
+
+Keeps original output fields unchanged 
+
+Docs updated: 
+skills/listener.md and agents/csa_listener.md explain _card and schemas, grounded in CSA Customer Copilot Prompts.  
+
+
+
+Why this is consistent with your internal CSA approach
+
+Your own CSA Customer Copilot Prompts already organises questions into pillars (security/compliance, cost optimisation, monitoring/logging, data, etc.). These topic-specific cards essentially turn those pillar buckets into live, on-call card layouts. 
+
+
+If you want one more “UX upgrade”: I can also add topic-specific talk-track templates so the “talk-track” output mirrors the _card.sections (e.g., security card talk-track becomes: risk → control → ask → next step).
+✅ Added topic-specific talk-track templates that mirror each card’s _card.sections (so the script you say out loud follows the same structure as the UI card). 
+Download
+
+CSA Listener – Topic-Specific Talk-Track Templates (ZIP) 
+
+
+What changed
+
+1) Talk-track is now template-driven by default
+
+When you call listener.talktrack (or WebSocket {type:"talktrack"}), the engine: 
+reads the card’s topic 
+
+reads the card’s _card.sections 
+
+emits a 4–7 line script that follows the topic’s section order (e.g., Security: risk → controls → ask → next step) 
+
+This keeps the talk-track stable and predictable (no tone drift), while staying aligned to the CSA discovery categories you already use (security/compliance, cost optimisation, monitoring/logging, data, etc.) from your internal prompt guide. 
+2) Optional LLM talk-track remains available (off by default)
+
+If you want the model to generate the talk track instead of templates: 
+set LISTENER_TALKTRACK_LLM=true 
+
+Default in .env.example is false (templates). 
+
+
+Template behaviours by topic (what the CSA gets)
+
+These are the built-in talk-track patterns (verbatim-style): 
+security_compliance: Risk check → Current controls → Key question → Next step 
+
+architecture_networking: Constraint → Options → Trade-off → Confirm question 
+
+cost_finops: Cost driver → Guardrail → Key question → Next step 
+
+operations_observability: Operational signal → SLO/constraint → Instrumentation ideas → Key question 
+
+data_ai: Data sources → Retrieval/RAG → Evaluation gap → Key question 
+
+delivery_next_steps: Decision → Owner (optional) → Date (optional) → Next step 
+
+requirements_discovery: Goal → Pain → Constraints → Key question 
+
+All lines are built directly from the card’s _card.sections (or fall back to the standard key_insight/suggested_question/solution_hint fields if sections are missing). 
+
+
+How to use (same APIs)
+
+WebSocket
+
+Send:
+{ "type": "talktrack", "session_id": "<id>" }<ctmzNwLn>
+MCP Tool
+
+Call: 
+listener.talktrack(session_id, card_id?, mode?, persona?) 
+
+
+
+If you want the next UX bump: I can add a “talk-track style dial” (e.g., more direct, more consultative, more technical) that tweaks the templates without switching back to LLM generation.
