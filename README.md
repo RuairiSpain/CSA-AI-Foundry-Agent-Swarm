@@ -1084,3 +1084,309 @@ or MCP: listener.talktrack(...) 
 …and you should see the talk track reflect more dynamic phrasing versus the fixed template structure. 
 If you want, I can also add a “hard switch” mode (no fallback to templates) so you can force failures to surface during testing.
 
+Here’s a clean, CSA‑level integration blueprint showing how your Listener Agent (from the ZIP) plugs into Azure Speech SDK for real-time conversation capture. 
+I’ll keep it practical and mapped to your project (WebSocket + listener engine). 
+
+
+🔷 1. Architecture (what you already have vs Speech SDK)
+
+You now have a 3-layer pipeline:
+[Microphone]<ctmzNwLn>     ↓<ctmzNwLn>[Azure Speech SDK]<ctmzNwLn>     ↓ (partial + final text events)<ctmzNwLn>[Listener WebSocket (/listener/ws)]<ctmzNwLn>     ↓<ctmzNwLn>[Listener Engine → cards + talk-tracks]<ctmzNwLn>
+Key insight
+
+Speech SDK = audio → text 
+
+Listener = text → structured intelligence (cards + talk-track) 
+
+
+
+🔷 2. Speech SDK integration model
+
+Azure Speech SDK gives you two key event types: 
+recognizing → partial (live typing) 
+
+recognized → final sentence ✅ 
+
+These are event-driven, continuous streams. 
+✅ You already used them correctly in your mic client. 
+
+
+🔷 3. How your project integrates (actual flow)
+
+Step 1 — Start Speech SDK recognizer
+speech_config = speechsdk.SpeechConfig(<ctmzNwLn>    subscription=SPEECH_KEY,<ctmzNwLn>    region=SPEECH_REGION<ctmzNwLn>)<ctmzNwLn><ctmzNwLn>audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)<ctmzNwLn><ctmzNwLn>recognizer = speechsdk.SpeechRecognizer(<ctmzNwLn>    speech_config=speech_config,<ctmzNwLn>    audio_config=audio_config<ctmzNwLn>)<ctmzNwLn>
+👉 This creates a continuous recognizer (streaming mic input).
+
+👉 For long-running conversations, you must use continuous mode. 
+
+
+Step 2 — Hook into streaming events
+def on_recognizing(evt):<ctmzNwLn>    text = evt.result.text<ctmzNwLn>    if text:<ctmzNwLn>        send_to_listener(text, is_final=False)<ctmzNwLn><ctmzNwLn>def on_recognized(evt):<ctmzNwLn>    text = evt.result.text<ctmzNwLn>    if text:<ctmzNwLn>        send_to_listener(text, is_final=True)<ctmzNwLn>
+👉 This is the critical integration seam
+
+👉 You convert speech → structured listener input 
+
+
+Step 3 — Push into Listener WebSocket
+
+Your project uses:
+{<ctmzNwLn>  "session_id": "...",<ctmzNwLn>  "text": "...",<ctmzNwLn>  "speaker": "customer",<ctmzNwLn>  "is_final": true|false<ctmzNwLn>}<ctmzNwLn>
+Example Python bridge
+async def send_to_listener(text, is_final):<ctmzNwLn>    await ws.send(json.dumps({<ctmzNwLn>        "session_id": session_id,<ctmzNwLn>        "text": text,<ctmzNwLn>        "speaker": "customer",<ctmzNwLn>        "is_final": is_final<ctmzNwLn>    }))<ctmzNwLn>
+👉 This feeds your FAST + DEEP routing engine
+
+
+
+🔷 4. Why the two event types matter (important)
+
+Azure Speech distinguishes:
+Event
+Purpose
+How Listener uses it
+recognizing
+live speech fragments
+FAST guidance (real-time hints)
+recognized
+complete utterance
+triggers DEEP analysis
+This aligns perfectly with your architecture: 
+FAST = low latency reaction 
+
+DEEP = structured reasoning 
+
+👉 This is a natural fit, not a workaround. 
+
+
+🔷 5. Continuous recognition loop
+
+Start the stream:
+recognizer.start_continuous_recognition()<ctmzNwLn>
+Stop when finished:
+recognizer.stop_continuous_recognition()<ctmzNwLn>
+👉 Continuous recognition is required for multi‑utterance conversations. 
+
+
+🔷 6. End-to-end real-time behaviour
+
+When someone speaks: 
+User talks 
+
+Speech SDK emits: 
+
+partial → recognizing 
+
+final → recognized 
+
+Client sends chunk → WebSocket 
+
+Listener classifies: 
+
+topic 
+
+persona 
+
+mode 
+
+Listener returns: 
+
+card 
+
+talk-track (LLM or template) 
+
+👉 This is effectively a live CSA co-pilot 
+
+
+🔷 7. Advanced pattern (for enterprise scenarios)
+
+✅ Option A — Browser → Backend → Azure Speech
+
+Browser sends audio via WebSocket 
+
+Backend uses Speech SDK 
+
+Keeps keys secure 
+
+👉 Recommended for customer environments 
+
+
+✅ Option B — Direct SDK (your current mic client)
+
+Fastest setup 
+
+Perfect for demos / internal tools 
+
+
+
+✅ Option C — Push Stream (high scale / multi-source)
+
+Audio chunks → push stream → SDK 
+
+Used for: 
+
+call centre streams 
+
+Teams integration 
+
+recording playback 
+
+
+
+🔷 8. Key engineering considerations
+
+Latency tuning
+
+Partial events → near real-time 
+
+Final events → delay from silence detection 
+
+👉 Trade-off: responsiveness vs accuracy 
+
+
+Audio formats
+
+Speech SDK uses GStreamer internally for conversion  
+
+If streaming from browser → may need conversion (webm → PCM) 
+
+
+
+Session design (important for you)
+
+Use your existing:
+session_id<ctmzNwLn>
+- maps 1:1 to conversation 
+enables: 
+
+history rewind 
+
+card pinning 
+
+talk-track reuse 
+
+
+
+🔷 9. Minimal working integration (put it together)
+async with websockets.connect(LISTENER_WS) as ws:<ctmzNwLn><ctmzNwLn>    session = await ws.recv()<ctmzNwLn>    session_id = json.loads(session)["session_id"]<ctmzNwLn><ctmzNwLn>    def send(text, final):<ctmzNwLn>        asyncio.create_task(ws.send(json.dumps({<ctmzNwLn>            "session_id": session_id,<ctmzNwLn>            "text": text,<ctmzNwLn>            "speaker": "customer",<ctmzNwLn>            "is_final": final<ctmzNwLn>        })))<ctmzNwLn><ctmzNwLn>    recognizer.recognizing.connect(lambda e: send(e.result.text, False))<ctmzNwLn>    recognizer.recognized.connect(lambda e: send(e.result.text, True))<ctmzNwLn><ctmzNwLn>    recognizer.start_continuous_recognition()<ctmzNwLn>
+---
+
+🔷 10. What this unlocks (CSA perspective)
+
+With this integration, you now have: 
+✅ Live customer conversation ingestion ✅ Real-time architecture guidance ✅ Topic-aware coaching (security, data, cost, etc.) ✅ LLM-generated talk-tracks mid-meeting 
+👉 This is essentially: 
+
+“Teams Copilot for solution architects, but fully customisable.”
+
+
+
+If you want next upgrade
+
+I can extend this into: 
+👉 Teams meeting integration (Graph + audio stream → listener agent) 👉 or call centre / transcript ingestion (push stream + diarisation)
+Below is the Teams meeting integration approach I recommend for your CSA Listener, followed by the ZIP of the updated project. 
+
+
+1) Two viable integration patterns for Teams meetings
+
+Pattern A (Recommended): Post‑meeting transcript ingestion via Microsoft Graph
+
+Microsoft supports fetching Teams meeting transcripts and recordings after a meeting (or call) ends using Microsoft Graph APIs. These transcript/recording APIs are described as post‑meeting and metered. 
+Why this is the best fit for your CSA Listener 
+Your listener is “meeting intelligence” (cards + talk-tracks). It doesn’t need raw media frames to be useful. 
+
+You avoid the complexity and operational overhead of real‑time media bots. 
+
+You stay aligned with Microsoft’s supported post‑meeting transcript access model.  
+
+What you fetch and in what format 
+Transcripts can be downloaded as VTT (and often also available as DOCX depending on the UX path), and Teams stores transcripts in OneDrive or SharePoint depending on meeting type (private vs channel).  
+
+Graph transcript content can be retrieved as VTT (WebVTT).  
+
+High-level flow 
+Ensure transcription was enabled/started in the meeting (otherwise no transcript exists).  
+
+After the meeting ends, call Graph to: 
+
+list available transcripts for the meeting 
+
+download transcript content (VTT)  
+
+Parse VTT cues into text chunks and feed them into your listener over /listener/ws. (This is exactly what the project update below does.) 
+
+Common enterprise “gotcha”: transcript access policy Even with Graph permissions, access may still be blocked unless the tenant transcript sharing policy allows it (or the agent is made a co-organiser, etc.). There’s an internal example of this exact issue (permissions OK, but transcript content still inaccessible until policy / sharing is addressed). 
+
+
+Pattern B (Advanced): Real‑time meeting audio via Teams/Graph calling bots
+
+Microsoft Graph Cloud Communications + Teams Real‑time Media Platform can allow bots to join calls/meetings and receive raw media streams. 
+However, two important constraints show up in Microsoft guidance: 
+Restrictions on recording/persisting media content when using Cloud Communications APIs.  
+
+Teams Real‑time Media docs explicitly say these bots are for specialised scenarios and are not recommended for “AI agent” meeting scenarios, pointing instead to meeting transcripts for meeting intelligence.  
+
+So if your goal is “CSA meeting assistant”, Pattern A (transcripts) is the pragmatic and aligned approach. 
+
+
+2) How the updated project integrates with Teams (what I added)
+
+This updated project adds a post‑meeting Teams transcript ingestion client: 
+clients/teams_transcript_ingest.py 
+
+Uses Microsoft Graph to list transcripts for a Teams online meeting 
+
+Downloads the transcript as VTT 
+
+Parses the VTT into cues (utterances) 
+
+Streams each cue into the Listener WebSocket /listener/ws as is_final=True text chunks 
+
+Finally requests a talk-track from the listener (and since you wanted LLM talk-tracks, the project defaults LISTENER_TALKTRACK_LLM=true).  
+
+It also includes: 
+teams/graph.py (Graph auth + transcript list/download) 
+
+teams/vtt.py (simple WebVTT cue parser) 
+
+
+Note: The Graph APIs in the docs are “post meeting”: you fetch transcripts after the meeting/call ends. 
+
+
+
+3) What you’ll configure (minimal)
+
+You’ll set these environment variables (already in .env.example): 
+Graph app auth (for transcript fetch) 
+
+AZURE_TENANT_ID 
+
+AZURE_CLIENT_ID 
+
+AZURE_CLIENT_SECRET 
+
+Which meeting transcript to fetch 
+
+TEAMS_ONLINE_MEETING_ID 
+
+TEAMS_TRANSCRIPT_ID (optional; if omitted, the client picks the first transcript found) 
+
+Listener WebSocket 
+
+LISTENER_WS (defaults to ws://127.0.0.1:8001/listener/ws) 
+
+And run: 
+listener server 
+
+then python clients/teams_transcript_ingest.py 
+
+(Again: transcript availability depends on transcription being enabled and meeting having ended.) 
+
+
+4) ZIP: full updated project (Teams meeting integration + LLM talk-tracks)
+
+Here’s the full ZIP of the project with the Teams transcript ingestion integration included: 
+CSA Listener – Teams Meeting Integration (ZIP) 
+
+
+If you want the “next level” after this: I can add a Graph change-notification hook (webhook) so the listener automatically ingests a transcript as soon as it’s generated post-meeting—matching the “app receives notifications, then fetches transcript” pattern described in the Graph transcripts overview. 
+
