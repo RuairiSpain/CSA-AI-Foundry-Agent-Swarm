@@ -1043,3 +1043,44 @@ listener.talktrack(session_id, card_id?, mode?, persona?) 
 
 
 If you want the next UX bump: I can add a “talk-track style dial” (e.g., more direct, more consultative, more technical) that tweaks the templates without switching back to LLM generation.
+
+To switch from template talk-tracks to LLM-generated talk-tracks, you just need to flip the environment flag the listener checks. 
+✅ Enable LLM talk-tracks
+
+Option A — .env / local run
+
+In your .env (or .env.example → .env), set:
+LISTENER_TALKTRACK_LLM=true<ctmzNwLn>
+That’s it — when listener.talktrack is called, the engine will now use the LLM path first (and only fall back to templates if the LLM path can’t return a valid JSON payload). 
+Option B — container / App Service / ACA / AKS
+
+Set the environment variable in your runtime configuration: 
+App Service / Container Apps: add an app setting LISTENER_TALKTRACK_LLM=true 
+
+Docker: -e LISTENER_TALKTRACK_LLM=true 
+
+Kubernetes: set in env: for the deployment 
+
+Example (Docker):
+docker run -e LISTENER_TALKTRACK_LLM=true ...<ctmzNwLn>
+
+
+
+What changes in behaviour
+
+With LISTENER_TALKTRACK_LLM=true, listener.talktrack uses the model prompt (TALKTRACK_SYSTEM) to generate {"talk_track":[...], "one_liner":"..."}.  
+
+If the model response isn’t valid JSON (or fails), it falls back to the deterministic templates.  
+
+
+
+Quick sanity check (no code changes)
+
+After setting the env var, call: 
+WebSocket: { "type": "talktrack", "session_id": "..." } 
+
+or MCP: listener.talktrack(...) 
+
+…and you should see the talk track reflect more dynamic phrasing versus the fixed template structure. 
+If you want, I can also add a “hard switch” mode (no fallback to templates) so you can force failures to surface during testing.
+
