@@ -1,1462 +1,385 @@
-
-AI-Foundry/ 
-
-Copilot-VSCode/ 
-
-Copilot-GitHub/ 
-
-Each root contains: 
-an MCP JSON-RPC server (POST /mcp) implementing the standard MCP method shape (initialize, tools/list, tools/call, plus resources/* and prompts/*)  
-
-a multi-agent swarm (planner + specialists + verifier) 
-
-skills markdown files placed in the correct folders (skills/, agents/) 
-
-a config/tools.yaml defining MCP tools and a prompts/ template for quick start 
-
-✅ Download the ZIP
-
-CSA_Agent_Swarm_MCP.zip 
+Here is a clean, consolidated, GitHub‑ready README for your project. I’ve merged your material into a single, coherent, enterprise-grade document aligned to how you typically position solutions with customers (clear architecture, value, and execution). 
 
 
-What I built (and how it maps to your Foundry + Copilot pattern)
+🧠 CSA Customer Call Copilot (C3 Copilot)
 
-1) MCP server + tool dispatch (per root folder)
-
-This follows the same conceptual architecture you already documented: Copilot UX → MCP → Foundry (Foundry as “brain”), where MCP exposes tools via JSON-RPC (tools/list, tools/call). 
-2) CSA “agent swarm”
-
-Each root includes a swarm runner that executes: 
-Planner agent → produces a concise execution plan 
-
-Specialists (scenario-specific) 
-
-Verifier agent → checks gaps/mistakes + rewrites more concisely (your requested “best quality” verification loop) 
-
-3) Model routing: strong mid-priced primary + best-quality verifier
-
-In .env.example (inside each root folder), defaults are: 
-PRIMARY_MODEL=gpt-5-mini (strong “mini” class as a cost/quality balance — model name appears in your Foundry debugging notes)  
-
-VERIFIER_MODEL=gpt-4.1 (high capability model name appears in Foundry materials and labs)  
+An AI‑powered assistant for Cloud Solution Architects (CSAs) that listens to customer conversations and delivers real‑time guidance, discovery prompts, and solution recommendations. 
 
 
-You can swap these to whatever deployments you actually have in your Foundry project; the code routes by role (primary vs verifier) rather than hardcoding one model. 
+📌 Overview
+
+CSA Customer Call Copilot (C3 Copilot) is an Azure AI Foundry-based multi-agent system designed to assist CSAs during live customer interactions (Teams calls, workshops, or calls with transcripts). 
+It transforms conversation streams into actionable intelligence: 
+Suggested open-ended discovery questions 
+
+Solution architectures and Azure opportunities 
+
+Risk identification (security, cost, governance, reliability) 
+
+Executive-ready talk tracks and next-step recommendations 
 
 
 
-Folder-by-folder contents (exactly aligned to your request)
-
-✅ AI-Foundry/
-
-Focus: Azure AI Foundry features — models, agents, tools, evaluation, tracing/observability, publishing patterns. This aligns with the Foundry toolchain and “move intelligence into Foundry” pattern you’ve been capturing. 
-Includes: 
-docs/foundry-feature-map.md (CSA checklist) 
-
-agents/foundry_specialist.md 
-
-scenario foundry_feature_tour 
-
-Also includes a Foundry SDK wrapper using the AIProjectClient → get_openai_client() → responses.create(...) call shape shown in Foundry SDK guidance. 
-
-
-✅ Copilot-VSCode/
-
-Focus: Copilot in VS Code + MCP 
-examples/vscode/.vscode/mcp.json provided (correct location) 
-
-docs/vscode-workshop.md runbook 
-
-scenario copilot_vscode_workshop 
-
-The config style and file location match VS Code’s MCP config reference (.vscode/mcp.json, servers key). 
+🎯 Key Value
+Capability
+Outcome
+Real-time call guidance
+Stronger discovery and positioning
+Multi-agent reasoning
+Higher-quality, consistent architecture advice
+Topic-aware coaching
+Adaptive conversation style (technical / executive / consultative)
+Enterprise guardrails
+Designs always include security, networking, cost and governance
+Automated talk-tracks
+Faster CSA responses and sharper messaging
 
 
-✅ Copilot-GitHub/
+🏗️ Architecture Overview
 
-Focus: Copilot in GitHub workflows 
-examples/github/.github/copilot/mcp.json provided (correct location) 
-
-.github/workflows/ci.yml for basic CI sanity checks 
-
-docs/github-pr-swarm.md 
-
-scenario copilot_github_pr_swarm 
-
-This is designed for PR/Repo hygiene workflows (PR description, reviewer checklist, verification pass). 
+The system follows a modular architecture aligned to Microsoft’s Copilot + Foundry pattern:
+Audio Input (Teams / Mic / Transcript)<ctmzNwLn>        ↓<ctmzNwLn>Azure Speech SDK (optional)<ctmzNwLn>        ↓<ctmzNwLn>Listener Agent (WebSocket / MCP)<ctmzNwLn>        ↓<ctmzNwLn>AI Foundry Endpoint<ctmzNwLn>        ↓<ctmzNwLn>Enterprise Agent Swarm<ctmzNwLn>        ↓<ctmzNwLn>Guidance Cards + Talk Tracks<ctmzNwLn>
+Core Concept
 
 
-How to run (quick)
+Copilot UX → MCP Server → AI Foundry (multi-agent “brain”)
 
-Each root is self-contained. Example for AI-Foundry:
-cd AI-Foundry<ctmzNwLn>python -m venv .venv && source .venv/bin/activate<ctmzNwLn>pip install -r requirements.txt<ctmzNwLn>cp .env.example .env<ctmzNwLn>python -m uvicorn AI_Foundry.server.app:app --host 127.0.0.1 --port 8001<ctmzNwLn>
-Then call MCP: 
+
+
+🔩 Core Components
+
+1. Listener Agent (Real-Time Engine)
+
+Responsible for ingesting conversation data and generating live guidance. 
+Supports: 
+WebSocket streaming (/listener/ws) 
+
+MCP tools (JSON-RPC) 
+
+Outputs per interaction: 
+Key insight 
+
+Suggested question 
+
+Solution hint 
+
+Critical gap 
+
+Structured extracted facts 
+
+
+
+2. MCP Server (Integration Layer)
+
+Implements the Model Context Protocol (MCP): 
 initialize 
 
 tools/list 
 
-tools/call → swarm.run 
+tools/call 
 
-Those method names and payload shapes follow MCP’s published tool calling spec. 
+resources/* 
 
+prompts/* 
 
-One important note (so you don’t get surprised)
+Enables integration with: 
+Copilot in VS Code 
 
-This ZIP gives you a working scaffold that’s aligned to: 
-your internal “Foundry + Copilot via MCP” approach  
+Copilot in GitHub 
 
-the standard MCP message types for tools/resources/prompts  
+Custom clients 
 
-the Foundry SDK’s AIProjectClient access pattern  
 
-…but it does not assume any particular Foundry project or model deployments exist. You wire those by setting FOUNDRY_PROJECT_ENDPOINT and model env vars in .env. 
 
-Absolutely — I’ve done a full enterprise-grade gap review of the swarm artefacts (agents, tools, orchestration, code scaffolding, skills/docs) and then upgraded the swarm to close the key gaps that typically break “mission‑critical” customer work. 
-✅ Updated ZIP (enterprise-hardened)
+3. Enterprise Agent Swarm
 
-Here’s the upgraded pack with all changes applied: CSA_Agent_Swarm_Enterprise_Foundry.zip 
+A structured, multi-agent system:
+Planner → Specialists → Principal Review → Verifier → Diagram Lint → Report<ctmzNwLn>
+Agent Types
 
+AI Factory Pillar Agents 
+Model steward 
 
-1) What I reviewed (and what was missing for mission-critical enterprise)
+Knowledge/toolsmith 
 
-For large enterprise / regulated / multinational customers it needed explicit coverage of: 
-A) Missing cross-cutting enterprise roles (biggest gap)
+Customisation engineer 
 
-The original “AI Factory pillars” are commonly summarised as Models, Knowledge & Tools, Customisation, Orchestration, Observability, Trust. For mission-critical solutions, you also need specialists for: 
-Network security / secure API exposure 
+Orchestration conductor 
 
-Reliability / Resilience (HA/DR, runbooks) 
+Observability SRE 
 
-FinOps (cost controls, routing, budgets) 
+Trust guardian 
 
-Data governance / compliance 
+Enterprise Specialists 
+Security & network architect 
 
-DevSecOps / platform engineering 
+Reliability & resilience 
 
-Threat modelling / red teaming 
+FinOps cost optimisation 
 
-Diagnostics / debugging 
+Data governance 
 
-Principal CSA + CSAM review 
+DevSecOps platform 
 
-Professional report writing 
+Threat modelling (red team) 
 
-These weren’t consistently present as first-class agents with responsibilities + outputs. 
-B) Orchestration lacked enterprise stage gates
+Diagnostics debugger 
 
-Previously the flow was “specialists → verifier”. For enterprise delivery, you need: 
-Principal review gate (risk, simplification, story, exec alignment) 
+Principal CSA reviewer 
 
-Verifier gate (correctness + concision + missing controls) 
+Professional report writer 
 
-Report gate (audience‑tailored, customer-ready deliverable) 
 
-C) Tooling gaps for real customer operations
 
-You needed explicit tools for: 
-Debug triage (Azure/Foundry/Copilot issues) 
+4. Topic-Aware Listener Intelligence
 
-Security review punchlist 
+The system dynamically classifies conversations and adapts behaviour. 
+Topics
 
-Report generation per persona 
+Security & compliance 
 
-And a single “run enterprise swarm” tool that always includes enterprise controls. 
+Architecture & networking 
 
-D) Skills/docs lacked “enterprise bar”
+Cost / FinOps 
 
-The operating rules needed to enforce “always include identity/network/observability/cost/resilience/governance”. 
+Observability / operations 
 
+Data & AI 
 
-2) What I added to close those gaps (and why it helps)
+Requirements discovery 
 
-✅ A) Added enterprise specialist agents (as skills files)
+Delivery / next steps 
 
-Across all three roots, I added first-class agent skill files under /agents/ including: 
-Core AI Factory pillar agents (kept + tightened)
+Modes (auto-switched)
 
-factory_architect.md 
+Consultative → discovery 
 
-model_steward.md 
+Technical → architecture deep dive 
 
-knowledge_toolsmith.md 
+Executive → decisions, ROI, next steps 
 
-customization_engineer.md 
 
-orchestration_conductor.md 
 
-observability_sre.md 
+🎴 Guidance Cards (Real-Time UX)
 
-trust_guardian.md 
+Each interaction produces a structured response:
+{<ctmzNwLn>  "key_insight": "...",<ctmzNwLn>  "suggested_question": "...",<ctmzNwLn>  "solution_hint": "...",<ctmzNwLn>  "critical_gap": "...",<ctmzNwLn>  "_card": {<ctmzNwLn>    "schema": "csa.card.security_compliance.v1",<ctmzNwLn>    "sections": {<ctmzNwLn>      "risk": "...",<ctmzNwLn>      "controls": "...",<ctmzNwLn>      "ask": "...",<ctmzNwLn>      "next_step": "..."<ctmzNwLn>    }<ctmzNwLn>  }<ctmzNwLn>}<ctmzNwLn>
+Topic-Specific Card Formats
+Topic
+Sections
+Security
+Risk → Controls → Ask → Next step
+Networking
+Constraint → Options → Trade-off → Ask
+FinOps
+Cost driver → Guardrail → Ask → Next step
+Observability
+Signal → SLO → Instrumentation → Ask
+Data/AI
+Data → Retrieval → Evaluation → Ask
+Delivery
+Decision → Owner → Date → Next step
+Discovery
+Goal → Pain → Constraints → Ask
 
-(These map directly to the Agent Factory pillars described in internal Foundry content. ) 
-Enterprise cross-cutting agents (NEW)
 
-security_network_architect.md (VNets, Private Link, APIM/WAF patterns, enterprise hardening) 
+🗣️ Talk Track Generation
 
-diagnostics_debugger.md (Azure config + agent quality debugging) 
+Two modes: 
+Template-based (default)
 
-reliability_resilience.md (HA/DR, RTO/RPO, runbooks) 
+Deterministic, low latency 
 
-finops_cost.md (routing/caching/budgets/quota planning) 
+Mirrors card structure 
 
-data_governance.md (governance + safe grounding) 
+LLM-generated (optional)
 
-devsecops_platform.md (CI/CD, IaC, policy-as-code) 
+Enable:
+LISTENER_TALKTRACK_LLM=true<ctmzNwLn>
+Returns:
+{<ctmzNwLn>  "talk_track": [...],<ctmzNwLn>  "one_liner": "..."<ctmzNwLn>}<ctmzNwLn>
+--- 
+🔄 Real-Time Processing Model
+Stage
+Behaviour
+FAST
+Immediate guidance from partial transcripts
+DEEP
+Structured reasoning on finalised speech
+AUTO-MODE
+Adjusts style/persona/topic
 
-threat_model_redteam.md (prompt injection + red teaming) 
 
-principal_csa_csam_reviewer.md (exec critique + customer narrative) 
+🔐 Enterprise Design Principles
 
-professional_report_writer.md (multi-audience deliverable) 
+Every output enforces: 
+Identity & access (RBAC / Entra ID) 
 
-These are exactly the roles you described, plus the additional ones enterprise customers reliably require. 
+Networking (VNet, Private Link) 
 
+Observability (logging, tracing, evals) 
 
-✅ B) Upgraded orchestration to an enterprise delivery pipeline
+Cost controls (routing, caching, quotas) 
 
-I implemented a true enterprise orchestrator: 
+Resilience (HA/DR, RTO/RPO) 
 
-Plan → Specialists → Principal review → Verifier → Report
+Governance & compliance 
 
-This is now a reusable pattern in code: 
-swarm/core.py contains EnterpriseOrchestrator 
+Security threat modelling 
 
-swarm/tools.py wires scenarios into that orchestrator 
 
-Why this matters: Enterprise engagements fail less on “missing info” and more on “missing controls, risks, and narrative”. This pipeline bakes those gates in. 
 
+🔧 MCP Tools
 
-✅ C) Added enterprise MCP tools (tool registry)
-
-In config/tools.yaml I added/expanded tools so MCP clients can call these directly: 
-swarm.run → runs the full enterprise orchestrator 
-
-foundry.ask → single Foundry call 
-
-debug.triage → produces a troubleshooting checklist + verifier pass 
-
-security.review → produces a security punchlist (verifier model) 
-
-report.generate → audience-specific report generator 
-
-These tools are implemented in: 
-swarm/tools.py 
-
-So your swarm can be used as: 
-Copilot UX → MCP → Swarm tools 
-
-and it consistently returns enterprise-grade outputs. 
-
-
-
-✅ D) Hardened operating rules + docs for enterprise
-
-I updated and expanded: 
-skills/CLAUDE.md → “enterprise bar” rules (identity/network/obs/cost/resilience/governance always present) 
-
-docs/ai-factory-components.md → pillar mapping + enterprise extensions 
-
-docs/enterprise-checklists.md → practical checklists for delivery quality 
-
-This removes ambiguity and prevents “nice but incomplete” answers. 
-
-
-3) What’s inside the upgraded ZIP (quick orientation)
-
-It keeps your requested three-root structure: 
-AI-Foundry/
-
-Focus: Foundry + enterprise architecture 
-
-Scenario: ai_factory_blueprint (recommended) 
-
-Copilot-VSCode/
-
-Focus: VS Code Copilot + MCP + guardrails 
-
-Includes .vscode/mcp.json example 
-
-Copilot-GitHub/
-
-Focus: PR workflows + CI basics + enterprise controls 
-
-Includes .github/copilot/mcp.json example + CI compilation check 
-
-
-
-4) Enterprise gaps I intentionally covered (the “big 10”)
-
-This version explicitly covers the things that typically bite in production: 
-Private networking / egress controls / DNS implications 
-
-Secure API exposure patterns (APIM/WAF/front door/app gateway) 
-
-Identity patterns (MI/OBO, RBAC/PIM) 
-
-Observability (trace + eval + runbooks) 
-
-Reliability (multi-region, RTO/RPO, failover) 
-
-FinOps (routing, caching, budgets, quota/capacity planning) 
-
-Governance & compliance (data classification / safe grounding) 
-
-Threat modelling (prompt injection / tool abuse) 
-
-Diagnostics (Azure config + agent quality issues) 
-
-Customer comms (principal review + report writer outputs per persona) 
-
-
-
-5) How to use it immediately (no extra setup)
-
-Run the MCP server in one folder (example AI-Foundry):
-cd AI-Foundry<ctmzNwLn>python -m venv .venv && source .venv/bin/activate<ctmzNwLn>pip install -r requirements.txt<ctmzNwLn>cp .env.example .env<ctmzNwLn>python -m uvicorn AI_Foundry.server.app:app --host 127.0.0.1 --port 8001<ctmzNwLn>
-Then MCP-call: 
-tools/call → swarm.run 
-
-scenario: ai_factory_blueprint 
-
-task: your customer request 
-
-
-
-✅ Deliverable
-
-You now have an enterprise-ready CSA agent swarm that: 
-generates better architectures, 
-
-catches risks, 
-
-debugs problems, 
-
-produces exec-ready outputs, 
-
-and supports Foundry/Copilot/MCP usage patterns consistently. 
-
-Added the Diagram Lint Verifier as a new agent and as a callable MCP tool, and wired it into the enterprise orchestration pipeline so every swarm run produces linted (validated + corrected) Mermaid diagrams. 
-Download the upgraded ZIP (Diagrams + Lint)
-
-CSA_Agent_Swarm_Enterprise_PowerUpgrade_Diagrams_Lint.zip 
-
-
-What you get in this “lint” upgrade
-
-1) New agent: diagram_lint_verifier
-
-File: agents/diagram_lint_verifier.md 
-
-Role: checks Mermaid output for: 
-
-correct fenced blocks 
-
-readability + line limits 
-
-trust boundaries 
-
-broken syntax / overly long labels 
-
-and platform warnings (e.g., Azure DevOps wiki Mermaid wrapper differences)  
-
-2) New MCP tool: diagram.lint
-
-Tool: diagram.lint 
-
-Input: { diagrams: string } 
-
-Output: issues + corrected diagrams 
-
-3) Orchestration updated (now enterprise-grade “diagram QA”)
-
-Pipeline is now: 
-Plan → Specialists → Principal review → Verifier → Diagrams → Diagram Lint → Report 
-That means the report writer always receives linted/corrected diagrams, and it will embed them into customer-ready outputs. 
-
-
-Why linting matters (grounded)
-
-Mermaid is widely used for code-based diagrams in Markdown workflows, and modular diagrams are recommended over huge ones.  
-
-Some platforms (notably Azure DevOps wiki) have Mermaid syntax limitations and may need alternate wrappers — so the linter flags this and outputs an ADO-friendly wrapper suggestion.  
-
-
-
-Where the changes are in the ZIP
-
-Code
-
-*//swarm/core.py 
-
-adds the diagram_linter stage into EnterpriseOrchestrator 
-
-*//swarm/tools.py 
-
-adds diagram_lint() tool 
-
-adds a diagram_lint_verifier Agent in the main swarm_run() flow 
-
-Config
-
-config/tools.yaml 
-
-registers diagram.lint 
-
-Docs
-
-docs/diagrams/mermaid-guide.md (Mermaid usage + platform caveats)  
-
-docs/diagrams/mermaid-lint-rules.md (the lint contract/rules) 
-
-
-
-How to use it
-
-A) Full run (diagrams auto-linted)
-
-Call MCP: 
+Available via JSON-RPC: 
 swarm.run 
 
-provide task (and optional scenario) 
+foundry.ask 
 
-B) Lint diagrams only
+debug.triage 
 
-Call MCP: 
+security.review 
+
+report.generate 
+
 diagram.lint 
 
-pass the Mermaid text you want checked 
+Listener Tools
 
-✅ Implemented. I’ve produced a CSA Listener Agent pack that adds a live-call assist capability to your swarm, with two ingestion paths so it works for Teams, phone, and in-person (as long as you can provide audio→text or text chunks). 
-Download
-
-CSA Listener Agent Swarm (zip) 
-
-
-What’s implemented (and how it maps to your goal)
-
-1) Real-time “listener” runtime (low-friction)
-
-A) WebSocket streaming endpoint (smoothest UX)
-
-ws://:/listener/ws 
-
-You stream transcript chunks (JSON messages) 
-
-The server returns CSA guidance cards after each chunk: 
-
-key_insight 
-
-suggested_question 
-
-solution_hint 
-
-critical_gap 
-
-plus an extracted object (goal/pain/constraints/current state) 
-
-This gives the “live guidance” experience you described with minimal typing. 
-B) MCP tools (for environments that can only call tools)
-
-Tools included in config/tools.yaml: 
 listener.start 
 
 listener.ingest 
 
 listener.state 
 
-listener.export 
-
 listener.reset 
 
-So any client (Copilot for VS Code, GitHub tooling, a script, etc.) can feed chunks and get guidance. 
+listener.talktrack 
 
 
-2) “Temporary transcript” / privacy-friendly model
 
-I designed the listener as a session-scoped store that you can reset/terminate at will, mirroring the idea that Teams Copilot can operate “only during the meeting” using a temporary transcript that is deleted after the meeting ends.  That’s the right mental model for sensitive customer calls. 
+📂 Repository Structure
+AI-Foundry/<ctmzNwLn>Copilot-VSCode/<ctmzNwLn>Copilot-GitHub/<ctmzNwLn>
+Each root contains:
 
+MCP server (/mcp) 
 
-3) Flexible audio input strategy
+Multi-agent swarm 
 
-This pack does not claim it can magically capture audio from every meeting platform (that depends on device permissions / meeting platform APIs). Instead it supports: 
-✅ Any source that can produce text chunks 
+Skills (/skills, /agents) 
 
-✅ Microphone-based transcription client (provided) 
+Prompts (/prompts) 
 
-✅ Extensible path for telephony / external feeds (via custom audio stream ingestion) 
+Tool registry (tools.yaml) 
 
-This aligns with: 
-Azure Speech offering real-time transcription with intermediate results (ideal for live assist).  
+Environment config (.env.example) 
 
-Speech SDK supporting custom audio input streams (useful if later you wire in telephony audio feeds).  
 
 
+🚀 Getting Started
 
-What’s inside the ZIP (key files)
-
-Each of your three root folders contains the listener implementation: 
-Server + MCP
-
-*//server/app.py 
-
-Adds /listener/ws WebSocket endpoint 
-
-Keeps /mcp JSON-RPC endpoint 
-
-Listener engine (the “agent”)
-
-*//listener/engine.py 
-
-Single fast model call per chunk (low latency) 
-
-Produces strict JSON guidance output 
-
-Merges extracted facts into session memory 
-
-Session memory
-
-*//listener/state.py 
-
-Stores transcript + structured facts per session 
-
-MCP tool wrappers
-
-*//listener/tools.py 
-
-Implements the listener.* tools 
-
-Client (optional)
-
-*/clients/mic_listener.py 
-
-Uses Azure Speech SDK to transcribe microphone and stream chunks to /listener/ws 
-
-
-
-How to run it (quick)
-
-1) Start server (example: AI-Foundry folder)
-cd AI-Foundry<ctmzNwLn>python -m venv .venv && source .venv/bin/activate<ctmzNwLn>pip install -r requirements.txt<ctmzNwLn>cp .env.example .env<ctmzNwLn>python -m uvicorn AI_Foundry.server.app:app --host 127.0.0.1 --port 8001<ctmzNwLn>
-2) Stream transcript chunks via WebSocket (lowest friction)
-
-Send messages like:
-{ "session_id": "optional" }<ctmzNwLn>{ "session_id": "...", "text": "We need to deploy globally with strict data residency.", "speaker": "customer", "is_final": true }<ctmzNwLn>
-You’ll receive:
-{<ctmzNwLn>  "type": "guidance",<ctmzNwLn>  "key_insight": "...",<ctmzNwLn>  "suggested_question": "...",<ctmzNwLn>  "solution_hint": "...",<ctmzNwLn>  "critical_gap": "...",<ctmzNwLn>  "extracted": {...}<ctmzNwLn>}<ctmzNwLn>
-3) Or run the microphone client (optional)
-
-Set Speech env vars in .env: 
-SPEECH_KEY 
-
-SPEECH_REGION 
-
-Then:
-python clients/mic_listener.py<ctmzNwLn>
-This uses Azure Speech real-time transcription behaviour (intermediate results) to provide continuous guidance. 
-
-
-Current limitations (being transparent)
-
-Capturing Teams audio directly is not implemented in this pack. Teams audio capture is a platform permission/API question. 
-
-The implementation is channel-agnostic by design: it works best when you can supply either: 
-
-live transcript (ideal), or 
-
-microphone capture (provided), or 
-
-a telephony stream routed into a custom audio stream pipeline (future extension; supported by Speech SDK concepts).  
-
-
-
-Next “best” upgrade (if you want it in the next step)
-
-If you confirm this direction, the next improvement is to re-introduce your earlier multi-role swarm (listener + discovery coach + solution architect + gap detector + whisper), but with a latency-aware router: 
-fast mode (single call) during active speech 
-
-deep mode (multi-agent) during pauses / topic changes 
-
-That gives you the smooth “live assist” feel without spamming the CSA. 
-If you want, tell me which target UX you want first: 
-(A) single on-screen “guidance card” that updates every ~10 seconds, or 
-
-(B) “3 suggestion cards” (questions / risks / solution directions) refreshed every ~30 seconds. 
-
-✅ Added an auto‑mode switcher that changes conversation mode (consultative/executive/technical) and persona (director_vp/tech_lead/graduate) based on live conversation cues, with anti‑flap lockout and manual override protection. 
-Download
-
-CSA Listener Agent Swarm — AutoMode 
-
-
-What’s in this upgrade
-
-1) Auto-mode switching (based on cues)
-
-The listener now runs a lightweight “style router” on each transcript update: 
-Deterministic cue matcher (fast, no extra latency) Uses keyword cues to infer: 
-
-Executive when the conversation turns to budget, ROI, sponsor, timeline, strategy, procurement 
-
-Technical when it turns to VNet, Private Endpoint, APIM, AKS, RBAC/Entra, latency, DR (RTO/RPO), IaC, observability 
-
-Otherwise stays Consultative 
-
-Optional LLM refinement (higher precision) If enabled, a small classifier prompt can override the deterministic guess when it is medium/high confidence. 
-
-2) Anti-flapping lockout
-
-To avoid the mode bouncing every few seconds, there is a lockout timer: 
-LISTENER_AUTO_LOCK_SECONDS (default 20s) 
-
-Once an auto-switch happens, the system will not change mode/persona again until the lock expires. 
-3) Manual selections are respected
-
-If you manually set: 
-mode or 
-
-persona 
-
-…auto-switching will not override it. 
-We track this in the session: 
-mode_source: default | auto | manual 
-
-persona_source: default | auto | manual 
-
-4) Visibility: you can see why it switched
-
-When an auto-switch happens, the returned guidance card includes:
-"_style_switch": {<ctmzNwLn>  "mode": "...",<ctmzNwLn>  "persona": "...",<ctmzNwLn>  "confidence": "...",<ctmzNwLn>  "cues": ["...","..."]<ctmzNwLn>}<ctmzNwLn>
-So the CSA sees why the assistant moved into “executive” or “technical”. 
-
-
-New controls (WebSocket + MCP)
-
-WebSocket
-
-Enable/disable auto switching
-{ "type": "set", "session_id": "...", "auto_mode": true, "auto_persona": true }<ctmzNwLn>
-Disable:
-{ "type": "set", "session_id": "...", "auto_mode": false, "auto_persona": false }<ctmzNwLn>
-Manual override still works
-{ "type": "set", "session_id": "...", "mode": "technical" }<ctmzNwLn>{ "type": "set", "session_id": "...", "persona": "director_vp" }<ctmzNwLn>
-MCP Tools
-
-Added: 
-listener.set_auto(session_id, auto_mode?, auto_persona?) 
-
-Existing: 
-listener.set_mode 
-
-listener.set_persona 
-
-
-
-Environment knobs
-
-In .env.example: 
-LISTENER_AUTO_LOCK_SECONDS=20 
-
-LISTENER_AUTO_LLM=true 
-
-set to false to use only deterministic cues 
-
-
-
-What changed in the code
-
-Key files: 
-listener/engine.py 
-
-adds _maybe_auto_style() cue router + lockout + LLM refinement 
-
-listener/state.py 
-
-stores auto_mode, auto_persona, mode_source, persona_source, last_style_change_ts 
-
-listener/tools.py + config/tools.yaml 
-
-adds listener.set_auto 
-
-
-
-If you want the next polish step: I can make the router topic-aware (e.g., “security/compliance” → executive-but-risk, “architecture deep dive” → technical, “requirements discovery” → consultative) using the same DEEP pipeline signals you already generate.
-Brilliant — I’ve implemented the topic-aware router so the listener now auto-switches mode (consultative / executive / technical) based on the current conversation topic, not just keywords, while still respecting your lockout and manual overrides. 
-✅ Download: Topic-aware router build
-
-CSA_Listener_Agent_Swarm_TopicAware_Router.zip 
-
-
-What changed (high signal)
-
-1) New “Topic” layer drives the mode
-
-Each guidance card now carries: 
-topic (e.g., security_compliance, architecture_networking, cost_finops) 
-
-topic_confidence 
-
-topic_source (default | auto | manual) 
-
-and the mode is chosen primarily via topic → mode mapping. 
-
-This aligns with real facilitation guidance that explicitly talks about using tone like consultative / executive / technical depending on the scenario and audience. 
-Topic → Mode mapping implemented
-
-Executive mode when topic is: 
-
-security_compliance, governance_risk, cost_finops, delivery_next_steps 
-
-Technical mode when topic is: 
-
-architecture_networking, operations_observability, data_ai 
-
-Consultative mode when topic is: 
-
-requirements_discovery 
-
-
-
-2) Topic detection uses both conversation cues and DEEP pipeline signals
-
-The topic detector looks at: 
-the recent transcript window (last ~25 lines) 
-
-the structured extracted facts (facts.constraints, facts.current_state, etc.) 
-
-So if the conversation implicitly moves into compliance (e.g., it shows up in constraints), the router can still switch even if the latest utterance doesn’t contain the cue. 
-
-
-3) Anti-flap lockout + manual override still enforced
-
-LISTENER_AUTO_LOCK_SECONDS (default 20s) prevents switching too frequently 
-
-If the CSA manually sets mode/persona, auto will not override those. 
-
-
-
-4) Visibility: “why it switched” metadata
-
-When a switch happens, the returned card includes:
-"_style_switch": {<ctmzNwLn>  "topic": "...",<ctmzNwLn>  "mode": "...",<ctmzNwLn>  "persona": "...",<ctmzNwLn>  "confidence": "...",<ctmzNwLn>  "cues": ["..."]<ctmzNwLn>}<ctmzNwLn>
-So the CSA can instantly see why the assistant changed behaviour. 
-
-
-New/updated controls
-
-WebSocket: enable/disable topic auto-routing
-
-You can now toggle topic auto-routing alongside mode/persona:
-{ "type": "set", "session_id": "...", "auto_mode": true, "auto_persona": true, "auto_topic": true }<ctmzNwLn>
-Disable:
-{ "type": "set", "session_id": "...", "auto_mode": false, "auto_persona": false, "auto_topic": false }<ctmzNwLn>
-Manual mode is still:
-{ "type": "set", "session_id": "...", "mode": "technical" }<ctmzNwLn>
---- 
-MCP tool added/extended
-
-listener.set_auto(session_id, auto_mode?, auto_persona?, auto_topic?) 
-
-
-What’s in the ZIP (where to look)
-
-listener/engine.py 
-
-Topic cues dictionary + topic scoring 
-
-Topic → mode mapping 
-
-Uses both transcript + extracted facts 
-
-Optional LLM refinement via TOPIC_STYLE_CLASSIFIER_SYSTEM 
-
-listener/prompts.py 
-
-Adds TOPIC_STYLE_CLASSIFIER_SYSTEM which returns {topic, mode, persona, confidence, cues} 
-
-listener/state.py 
-
-Adds topic, topic_confidence, topic_source, auto_topic 
-
-clients/mic_listener.py 
-
-Prints topic and displays auto-switch reason 
-
-auto on|off toggles all three (mode/persona/topic) 
-
-
-
-Why “delivery_next_steps” is a useful topic
-
-The router treats terms like VBD, workshop, pilot, PoC, scope, milestone as “delivery next steps”, which reliably indicates it’s time to switch to an executive/next-steps posture (clear decisions, ownership, timeline). This aligns with scoping and delivery guidance patterns found in FY26-VBD Execution Playbook. 
-
-
-Next (if you want to keep going)
-
-One very high-impact enhancement is to add “topic-specific card layout” (same card, different sections), e.g.: 
-Security topic → “Risk / Control / Ask / Next step” 
-
-Networking topic → “Constraint / Option A/B / Ask / Trade-off” 
-
-FinOps topic → “Cost driver / Guardrail / Ask / Next step” 
-
-Say: “Add topic-specific card formats” and I’ll implement it cleanly on top of this build.
-✅ Done — I’ve added topic-specific card formats on top of your topic-aware router. 
-Download
-
-Topic-specific cards pack 
-
-
-What you now get
-
-Every guidance response still includes your “universal” fields: 
-key_insight 
-
-suggested_question 
-
-solution_hint 
-
-critical_gap 
-
-extracted 
-
-…and now also includes a UI-friendly, topic-specific payload:
-"_card": {<ctmzNwLn>  "schema": "csa.card.<topic>.v1",<ctmzNwLn>  "title": "...",<ctmzNwLn>  "topic": "...",<ctmzNwLn>  "sections": { ... }<ctmzNwLn>}<ctmzNwLn>
-This structure is designed to render different layouts per topic while keeping the existing card fields intact. The topic choices align with the kind of discovery categories you’ve already captured in CSA Customer Copilot Prompts (e.g., security/compliance, cost, monitoring/logging, data, etc.). 
-
-
-Topic-specific formats implemented (schemas)
-
-Below are the stable schemas and the section keys each contains (all generated automatically from the existing extracted + _deep data where available): 
-csa.card.security_compliance.v1
-
-Sections: risk, controls, ask, next_step 
-csa.card.governance_risk.v1
-
-Sections: ownership, guardrails, ask, next_step 
-csa.card.cost_finops.v1
-
-Sections: cost_driver, guardrail, ask, next_step 
-csa.card.architecture_networking.v1
-
-Sections: constraint, options, tradeoff, ask 
-csa.card.operations_observability.v1
-
-Sections: signal, slo, instrumentation, ask 
-csa.card.data_ai.v1
-
-Sections: data_sources, retrieval, evaluation, ask 
-csa.card.delivery_next_steps.v1
-
-Sections: decision, owner, date, next_step 
-csa.card.requirements_discovery.v1
-
-Sections: goal, pain, constraints, ask 
-
-
-How the sections are populated (no hallucination)
-
-The formatter does not invent content. It only rearranges: 
-extracted.customer_goal / pain_points / constraints / current_state 
-
-_deep.hypotheses (where present) 
-
-_deep.gap (where present) 
-
-existing core fields (key_insight, suggested_question, solution_hint, critical_gap) 
-
-So the format becomes “what the CSA needs to see” per topic, without changing your underlying guidance. 
-
-
-Where it lives in the code
-
-In this pack, the work is in: 
-listener/engine.py 
-
-Adds CARD_FORMATS mapping 
-
-Adds _apply_card_format(guidance, state) 
-
-Injects _card into every guidance response after FAST/DEEP generation 
-
-Keeps original output fields unchanged 
-
-Docs updated: 
-skills/listener.md and agents/csa_listener.md explain _card and schemas, grounded in CSA Customer Copilot Prompts.  
-
-
-
-Why this is consistent with your internal CSA approach
-
-Your own CSA Customer Copilot Prompts already organises questions into pillars (security/compliance, cost optimisation, monitoring/logging, data, etc.). These topic-specific cards essentially turn those pillar buckets into live, on-call card layouts. 
-
-
-If you want one more “UX upgrade”: I can also add topic-specific talk-track templates so the “talk-track” output mirrors the _card.sections (e.g., security card talk-track becomes: risk → control → ask → next step).
-
-✅ Done — I’ve added topic-specific card formats on top of your topic-aware router. 
-Download
-
-Topic-specific cards pack 
-
-
-What you now get
-
-Every guidance response still includes your “universal” fields: 
-key_insight 
-
-suggested_question 
-
-solution_hint 
-
-critical_gap 
-
-extracted 
-
-…and now also includes a UI-friendly, topic-specific payload:
-"_card": {<ctmzNwLn>  "schema": "csa.card.<topic>.v1",<ctmzNwLn>  "title": "...",<ctmzNwLn>  "topic": "...",<ctmzNwLn>  "sections": { ... }<ctmzNwLn>}<ctmzNwLn>
-This structure is designed to render different layouts per topic while keeping the existing card fields intact. The topic choices align with the kind of discovery categories you’ve already captured in CSA Customer Copilot Prompts (e.g., security/compliance, cost, monitoring/logging, data, etc.). 
-
-
-Topic-specific formats implemented (schemas)
-
-Below are the stable schemas and the section keys each contains (all generated automatically from the existing extracted + _deep data where available): 
-csa.card.security_compliance.v1
-
-Sections: risk, controls, ask, next_step 
-csa.card.governance_risk.v1
-
-Sections: ownership, guardrails, ask, next_step 
-csa.card.cost_finops.v1
-
-Sections: cost_driver, guardrail, ask, next_step 
-csa.card.architecture_networking.v1
-
-Sections: constraint, options, tradeoff, ask 
-csa.card.operations_observability.v1
-
-Sections: signal, slo, instrumentation, ask 
-csa.card.data_ai.v1
-
-Sections: data_sources, retrieval, evaluation, ask 
-csa.card.delivery_next_steps.v1
-
-Sections: decision, owner, date, next_step 
-csa.card.requirements_discovery.v1
-
-Sections: goal, pain, constraints, ask 
-
-
-How the sections are populated (no hallucination)
-
-The formatter does not invent content. It only rearranges: 
-extracted.customer_goal / pain_points / constraints / current_state 
-
-_deep.hypotheses (where present) 
-
-_deep.gap (where present) 
-
-existing core fields (key_insight, suggested_question, solution_hint, critical_gap) 
-
-So the format becomes “what the CSA needs to see” per topic, without changing your underlying guidance. 
-
-
-Where it lives in the code
-
-In this pack, the work is in: 
-listener/engine.py 
-
-Adds CARD_FORMATS mapping 
-
-Adds _apply_card_format(guidance, state) 
-
-Injects _card into every guidance response after FAST/DEEP generation 
-
-Keeps original output fields unchanged 
-
-Docs updated: 
-skills/listener.md and agents/csa_listener.md explain _card and schemas, grounded in CSA Customer Copilot Prompts.  
-
-
-
-Why this is consistent with your internal CSA approach
-
-Your own CSA Customer Copilot Prompts already organises questions into pillars (security/compliance, cost optimisation, monitoring/logging, data, etc.). These topic-specific cards essentially turn those pillar buckets into live, on-call card layouts. 
-
-
-If you want one more “UX upgrade”: I can also add topic-specific talk-track templates so the “talk-track” output mirrors the _card.sections (e.g., security card talk-track becomes: risk → control → ask → next step).
-✅ Added topic-specific talk-track templates that mirror each card’s _card.sections (so the script you say out loud follows the same structure as the UI card). 
-Download
-
-CSA Listener – Topic-Specific Talk-Track Templates (ZIP) 
-
-
-What changed
-
-1) Talk-track is now template-driven by default
-
-When you call listener.talktrack (or WebSocket {type:"talktrack"}), the engine: 
-reads the card’s topic 
-
-reads the card’s _card.sections 
-
-emits a 4–7 line script that follows the topic’s section order (e.g., Security: risk → controls → ask → next step) 
-
-This keeps the talk-track stable and predictable (no tone drift), while staying aligned to the CSA discovery categories you already use (security/compliance, cost optimisation, monitoring/logging, data, etc.) from your internal prompt guide. 
-2) Optional LLM talk-track remains available (off by default)
-
-If you want the model to generate the talk track instead of templates: 
-set LISTENER_TALKTRACK_LLM=true 
-
-Default in .env.example is false (templates). 
-
-
-Template behaviours by topic (what the CSA gets)
-
-These are the built-in talk-track patterns (verbatim-style): 
-security_compliance: Risk check → Current controls → Key question → Next step 
-
-architecture_networking: Constraint → Options → Trade-off → Confirm question 
-
-cost_finops: Cost driver → Guardrail → Key question → Next step 
-
-operations_observability: Operational signal → SLO/constraint → Instrumentation ideas → Key question 
-
-data_ai: Data sources → Retrieval/RAG → Evaluation gap → Key question 
-
-delivery_next_steps: Decision → Owner (optional) → Date (optional) → Next step 
-
-requirements_discovery: Goal → Pain → Constraints → Key question 
-
-All lines are built directly from the card’s _card.sections (or fall back to the standard key_insight/suggested_question/solution_hint fields if sections are missing). 
-
-
-How to use (same APIs)
-
-WebSocket
-
-Send:
-{ "type": "talktrack", "session_id": "<id>" }<ctmzNwLn>
-MCP Tool
-
-Call: 
-listener.talktrack(session_id, card_id?, mode?, persona?) 
-
-
-
-If you want the next UX bump: I can add a “talk-track style dial” (e.g., more direct, more consultative, more technical) that tweaks the templates without switching back to LLM generation.
-
-To switch from template talk-tracks to LLM-generated talk-tracks, you just need to flip the environment flag the listener checks. 
-✅ Enable LLM talk-tracks
-
-Option A — .env / local run
-
-In your .env (or .env.example → .env), set:
-LISTENER_TALKTRACK_LLM=true<ctmzNwLn>
-That’s it — when listener.talktrack is called, the engine will now use the LLM path first (and only fall back to templates if the LLM path can’t return a valid JSON payload). 
-Option B — container / App Service / ACA / AKS
-
-Set the environment variable in your runtime configuration: 
-App Service / Container Apps: add an app setting LISTENER_TALKTRACK_LLM=true 
-
-Docker: -e LISTENER_TALKTRACK_LLM=true 
-
-Kubernetes: set in env: for the deployment 
-
-Example (Docker):
-docker run -e LISTENER_TALKTRACK_LLM=true ...<ctmzNwLn>
-
-
-
-What changes in behaviour
-
-With LISTENER_TALKTRACK_LLM=true, listener.talktrack uses the model prompt (TALKTRACK_SYSTEM) to generate {"talk_track":[...], "one_liner":"..."}.  
-
-If the model response isn’t valid JSON (or fails), it falls back to the deterministic templates.  
-
-
-
-Quick sanity check (no code changes)
-
-After setting the env var, call: 
-WebSocket: { "type": "talktrack", "session_id": "..." } 
-
-or MCP: listener.talktrack(...) 
-
-…and you should see the talk track reflect more dynamic phrasing versus the fixed template structure. 
-If you want, I can also add a “hard switch” mode (no fallback to templates) so you can force failures to surface during testing.
-
-Here’s a clean, CSA‑level integration blueprint showing how your Listener Agent (from the ZIP) plugs into Azure Speech SDK for real-time conversation capture. 
-I’ll keep it practical and mapped to your project (WebSocket + listener engine). 
-
-
-🔷 1. Architecture (what you already have vs Speech SDK)
-
-You now have a 3-layer pipeline:
-[Microphone]<ctmzNwLn>     ↓<ctmzNwLn>[Azure Speech SDK]<ctmzNwLn>     ↓ (partial + final text events)<ctmzNwLn>[Listener WebSocket (/listener/ws)]<ctmzNwLn>     ↓<ctmzNwLn>[Listener Engine → cards + talk-tracks]<ctmzNwLn>
-Key insight
-
-Speech SDK = audio → text 
-
-Listener = text → structured intelligence (cards + talk-track) 
-
-
-
-🔷 2. Speech SDK integration model
-
-Azure Speech SDK gives you two key event types: 
-recognizing → partial (live typing) 
-
-recognized → final sentence ✅ 
-
-These are event-driven, continuous streams. 
-✅ You already used them correctly in your mic client. 
-
-
-🔷 3. How your project integrates (actual flow)
-
-Step 1 — Start Speech SDK recognizer
-speech_config = speechsdk.SpeechConfig(<ctmzNwLn>    subscription=SPEECH_KEY,<ctmzNwLn>    region=SPEECH_REGION<ctmzNwLn>)<ctmzNwLn><ctmzNwLn>audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)<ctmzNwLn><ctmzNwLn>recognizer = speechsdk.SpeechRecognizer(<ctmzNwLn>    speech_config=speech_config,<ctmzNwLn>    audio_config=audio_config<ctmzNwLn>)<ctmzNwLn>
-👉 This creates a continuous recognizer (streaming mic input).
-
-👉 For long-running conversations, you must use continuous mode. 
-
-
-Step 2 — Hook into streaming events
-def on_recognizing(evt):<ctmzNwLn>    text = evt.result.text<ctmzNwLn>    if text:<ctmzNwLn>        send_to_listener(text, is_final=False)<ctmzNwLn><ctmzNwLn>def on_recognized(evt):<ctmzNwLn>    text = evt.result.text<ctmzNwLn>    if text:<ctmzNwLn>        send_to_listener(text, is_final=True)<ctmzNwLn>
-👉 This is the critical integration seam
-
-👉 You convert speech → structured listener input 
-
-
-Step 3 — Push into Listener WebSocket
-
-Your project uses:
-{<ctmzNwLn>  "session_id": "...",<ctmzNwLn>  "text": "...",<ctmzNwLn>  "speaker": "customer",<ctmzNwLn>  "is_final": true|false<ctmzNwLn>}<ctmzNwLn>
-Example Python bridge
-async def send_to_listener(text, is_final):<ctmzNwLn>    await ws.send(json.dumps({<ctmzNwLn>        "session_id": session_id,<ctmzNwLn>        "text": text,<ctmzNwLn>        "speaker": "customer",<ctmzNwLn>        "is_final": is_final<ctmzNwLn>    }))<ctmzNwLn>
-👉 This feeds your FAST + DEEP routing engine
-
-
-
-🔷 4. Why the two event types matter (important)
-
-Azure Speech distinguishes:
-Event
-Purpose
-How Listener uses it
-recognizing
-live speech fragments
-FAST guidance (real-time hints)
-recognized
-complete utterance
-triggers DEEP analysis
-This aligns perfectly with your architecture: 
-FAST = low latency reaction 
-
-DEEP = structured reasoning 
-
-👉 This is a natural fit, not a workaround. 
-
-
-🔷 5. Continuous recognition loop
-
-Start the stream:
-recognizer.start_continuous_recognition()<ctmzNwLn>
-Stop when finished:
-recognizer.stop_continuous_recognition()<ctmzNwLn>
-👉 Continuous recognition is required for multi‑utterance conversations. 
-
-
-🔷 6. End-to-end real-time behaviour
-
-When someone speaks: 
-User talks 
-
-Speech SDK emits: 
-
-partial → recognizing 
-
-final → recognized 
-
-Client sends chunk → WebSocket 
-
-Listener classifies: 
-
-topic 
-
-persona 
-
-mode 
-
-Listener returns: 
-
-card 
-
-talk-track (LLM or template) 
-
-👉 This is effectively a live CSA co-pilot 
-
-
-🔷 7. Advanced pattern (for enterprise scenarios)
-
-✅ Option A — Browser → Backend → Azure Speech
-
-Browser sends audio via WebSocket 
-
-Backend uses Speech SDK 
-
-Keeps keys secure 
-
-👉 Recommended for customer environments 
-
-
-✅ Option B — Direct SDK (your current mic client)
-
-Fastest setup 
-
-Perfect for demos / internal tools 
-
-
-
-✅ Option C — Push Stream (high scale / multi-source)
-
-Audio chunks → push stream → SDK 
-
-Used for: 
-
-call centre streams 
-
-Teams integration 
-
-recording playback 
-
-
-
-🔷 8. Key engineering considerations
-
-Latency tuning
-
-Partial events → near real-time 
-
-Final events → delay from silence detection 
-
-👉 Trade-off: responsiveness vs accuracy 
-
-
-Audio formats
-
-Speech SDK uses GStreamer internally for conversion  
-
-If streaming from browser → may need conversion (webm → PCM) 
-
-
-
-Session design (important for you)
-
-Use your existing:
-session_id<ctmzNwLn>
-- maps 1:1 to conversation 
-enables: 
-
-history rewind 
-
-card pinning 
-
-talk-track reuse 
-
-
-
-🔷 9. Minimal working integration (put it together)
-async with websockets.connect(LISTENER_WS) as ws:<ctmzNwLn><ctmzNwLn>    session = await ws.recv()<ctmzNwLn>    session_id = json.loads(session)["session_id"]<ctmzNwLn><ctmzNwLn>    def send(text, final):<ctmzNwLn>        asyncio.create_task(ws.send(json.dumps({<ctmzNwLn>            "session_id": session_id,<ctmzNwLn>            "text": text,<ctmzNwLn>            "speaker": "customer",<ctmzNwLn>            "is_final": final<ctmzNwLn>        })))<ctmzNwLn><ctmzNwLn>    recognizer.recognizing.connect(lambda e: send(e.result.text, False))<ctmzNwLn>    recognizer.recognized.connect(lambda e: send(e.result.text, True))<ctmzNwLn><ctmzNwLn>    recognizer.start_continuous_recognition()<ctmzNwLn>
+1. Run the server
+cd AI-Foundry<ctmzNwLn>python -m venv .venv<ctmzNwLn>source .venv/bin/activate<ctmzNwLn>pip install -r requirements.txt<ctmzNwLn>cp .env.example .env<ctmzNwLn>python -m uvicorn AI_Foundry.server.app:app --host 127.0.0.1 --port 8001<ctmzNwLn>
 ---
 
-🔷 10. What this unlocks (CSA perspective)
+2. Start streaming transcript
 
-With this integration, you now have: 
-✅ Live customer conversation ingestion ✅ Real-time architecture guidance ✅ Topic-aware coaching (security, data, cost, etc.) ✅ LLM-generated talk-tracks mid-meeting 
-👉 This is essentially: 
+WebSocket:
+{<ctmzNwLn>  "session_id": "...",<ctmzNwLn>  "text": "Customer requires global deployment with strict data residency.",<ctmzNwLn>  "speaker": "customer",<ctmzNwLn>  "is_final": true<ctmzNwLn>}<ctmzNwLn>
+--- 
+3. Run swarm (batch mode)
+tools/call → swarm.run<ctmzNwLn>
+---
 
-“Teams Copilot for solution architects, but fully customisable.”
+🎤 Audio Input Options
+Source
+Supported
+Microphone (Speech SDK)
+✅
+Teams transcripts (Graph API)
+✅
+Post-meeting VTT ingestion
+✅
+Real-time Teams media bot
+⚠️ advanced only
 
 
+🔗 Teams Integration
 
-If you want next upgrade
+Recommended Pattern: Post-meeting transcripts
 
-I can extend this into: 
-👉 Teams meeting integration (Graph + audio stream → listener agent) 👉 or call centre / transcript ingestion (push stream + diarisation)
-Below is the Teams meeting integration approach I recommend for your CSA Listener, followed by the ZIP of the updated project. 
+Fetch transcript via Microsoft Graph 
 
+Parse VTT 
 
-1) Two viable integration patterns for Teams meetings
+Stream into Listener 
 
-Pattern A (Recommended): Post‑meeting transcript ingestion via Microsoft Graph
+Generate insights and talk-track 
 
-Microsoft supports fetching Teams meeting transcripts and recordings after a meeting (or call) ends using Microsoft Graph APIs. These transcript/recording APIs are described as post‑meeting and metered. 
-Why this is the best fit for your CSA Listener 
-Your listener is “meeting intelligence” (cards + talk-tracks). It doesn’t need raw media frames to be useful. 
 
-You avoid the complexity and operational overhead of real‑time media bots. 
 
-You stay aligned with Microsoft’s supported post‑meeting transcript access model.  
+📊 Diagram Generation & Linting
 
-What you fetch and in what format 
-Transcripts can be downloaded as VTT (and often also available as DOCX depending on the UX path), and Teams stores transcripts in OneDrive or SharePoint depending on meeting type (private vs channel).  
+All Mermaid diagrams are: 
+Generated during swarm execution 
 
-Graph transcript content can be retrieved as VTT (WebVTT).  
+Validated via diagram.lint 
 
-High-level flow 
-Ensure transcription was enabled/started in the meeting (otherwise no transcript exists).  
+Corrected before report output 
 
-After the meeting ends, call Graph to: 
 
-list available transcripts for the meeting 
 
-download transcript content (VTT)  
+🧪 Example Use Cases
 
-Parse VTT cues into text chunks and feed them into your listener over /listener/ws. (This is exactly what the project update below does.) 
+Customer discovery calls 
 
-Common enterprise “gotcha”: transcript access policy Even with Graph permissions, access may still be blocked unless the tenant transcript sharing policy allows it (or the agent is made a co-organiser, etc.). There’s an internal example of this exact issue (permissions OK, but transcript content still inaccessible until policy / sharing is addressed). 
+Architecture workshops 
 
+Executive briefings 
 
-Pattern B (Advanced): Real‑time meeting audio via Teams/Graph calling bots
+Pre-sales solution design 
 
-Microsoft Graph Cloud Communications + Teams Real‑time Media Platform can allow bots to join calls/meetings and receive raw media streams. 
-However, two important constraints show up in Microsoft guidance: 
-Restrictions on recording/persisting media content when using Cloud Communications APIs.  
+Follow-up report generation 
 
-Teams Real‑time Media docs explicitly say these bots are for specialised scenarios and are not recommended for “AI agent” meeting scenarios, pointing instead to meeting transcripts for meeting intelligence.  
 
-So if your goal is “CSA meeting assistant”, Pattern A (transcripts) is the pragmatic and aligned approach. 
 
+⚠️ Limitations
 
-2) How the updated project integrates with Teams (what I added)
+No direct real-time Teams audio capture (requires specific APIs) 
 
-This updated project adds a post‑meeting Teams transcript ingestion client: 
-clients/teams_transcript_ingest.py 
+Requires transcript or audio-to-text input 
 
-Uses Microsoft Graph to list transcripts for a Teams online meeting 
+Foundry models must be configured via environment variables 
 
-Downloads the transcript as VTT 
 
-Parses the VTT into cues (utterances) 
 
-Streams each cue into the Listener WebSocket /listener/ws as is_final=True text chunks 
+🔮 Roadmap (Next Enhancements)
 
-Finally requests a talk-track from the listener (and since you wanted LLM talk-tracks, the project defaults LISTENER_TALKTRACK_LLM=true).  
+Latency-aware multi-agent routing 
 
-It also includes: 
-teams/graph.py (Graph auth + transcript list/download) 
+Topic-aware talk-track tuning 
 
-teams/vtt.py (simple WebVTT cue parser) 
+Teams live integration via Graph subscriptions 
 
+Persistent session memory and learning 
 
-Note: The Graph APIs in the docs are “post meeting”: you fetch transcripts after the meeting/call ends. 
+Multi-language support 
 
 
 
-3) What you’ll configure (minimal)
+✅ Summary
 
-You’ll set these environment variables (already in .env.example): 
-Graph app auth (for transcript fetch) 
+C3 Copilot provides: 
+✅ Real-time customer call intelligence ✅ Enterprise-grade architecture reasoning ✅ Guided discovery and positioning ✅ Consistent CSA best practices ✅ Tight integration with Microsoft Copilot ecosystem 
 
-AZURE_TENANT_ID 
 
-AZURE_CLIENT_ID 
+👤 Author
 
-AZURE_CLIENT_SECRET 
+Cloud Solution Architecture – Cloud & AI Microsoft 
 
-Which meeting transcript to fetch 
 
-TEAMS_ONLINE_MEETING_ID 
+💡 Positioning (CSA Narrative)
 
-TEAMS_TRANSCRIPT_ID (optional; if omitted, the client picks the first transcript found) 
 
-Listener WebSocket 
+“This solution acts as a real-time CSA co-pilot—combining Azure AI Foundry, Copilot extensibility, and multi-agent reasoning to drive higher-quality customer outcomes during live engagements.”
 
-LISTENER_WS (defaults to ws://127.0.0.1:8001/listener/ws) 
-
-And run: 
-listener server 
-
-then python clients/teams_transcript_ingest.py 
-
-(Again: transcript availability depends on transcription being enabled and meeting having ended.) 
-
-
-4) ZIP: full updated project (Teams meeting integration + LLM talk-tracks)
-
-Here’s the full ZIP of the project with the Teams transcript ingestion integration included: 
-CSA Listener – Teams Meeting Integration (ZIP) 
-
-
-If you want the “next level” after this: I can add a Graph change-notification hook (webhook) so the listener automatically ingests a transcript as soon as it’s generated post-meeting—matching the “app receives notifications, then fetches transcript” pattern described in the Graph transcripts overview. 
-
-Absolutely — “next level” here means no more manual runs: you register a Microsoft Graph webhook subscription, Graph calls your HTTPS notification endpoint, and your service automatically downloads the transcript (VTT) and streams it into the CSA Listener. 
-What “next level” adds (architecture)
-
-Graph subscription (webhook) so you get notified when a transcript is created for a meeting, instead of polling.  
-
-Webhook receiver with validation handshake — Graph will call your endpoint with a validationToken, and your service must echo it back as plain text.  
-
-Security hardening for the webhook endpoint (don’t leave it “effectively anonymous”): validate clientState using a secret (HMAC) so random callers can’t inject fake notifications.  
-
-Auto-ingestion pipeline: on notification, download the transcript content (VTT) and push each cue into your listener session over /listener/ws.  
-
-
-⚠️ Practical note on access: even with the right Graph permissions, transcript access can still be blocked by Teams transcript sharing policy / access constraints, sometimes requiring policy changes or ensuring the identity has appropriate meeting access. 
-
-
-
-What’s in the ZIP I generated
-
-This pack includes: 
-POST /graph/notifications 
-
-Handles validationToken handshake (echo) 
-
-Accepts notification batches and triggers async transcript ingestion  
-
-Subscription CLI: clients/teams_transcript_subscribe.py 
-
-create / renew / delete a transcript subscription 
-
-Uses client-credentials (tenant/client/secret) for app-only calls 
-
-Transcript ingestion pipeline 
-
-downloads transcript VTT and parses cues 
-
-streams cues into listener via WebSocket 
-
-Security switch: GRAPH_CLIENT_STATE 
-
-if set, the webhook validates notifications via an HMAC-derived clientState (defence-in-depth against spoofing).  
-
-
-
-How to run it (high-level)
-
-Deploy the service somewhere with a public HTTPS endpoint (Graph requires an HTTPS-secured notification URL).  
-
-Start the listener server (uvicorn ...) 
-
-Create a subscription: 
-
-set GRAPH_NOTIFICATION_URL=https:///graph/notifications 
-
-run python clients/teams_transcript_subscribe.py create 
-
-Graph calls your endpoint to validate (validationToken handshake).  
-
-When a meeting transcript is generated, Graph notifies you, and your pipeline auto-ingests it (VTT → cues → listener).  
-
-
-
-Download the ZIP (whole project)
-
-Teams webhooks “next level” project ZIP 
-
-
-One extra “enterprise-ready” reminder
-
-If you hit 403/access denied when downloading transcript content, it’s often not a pure Graph permission issue — it can be driven by Teams transcript sharing/access policy constraints. 
-If you want, the next increment after this is adding a persistent subscription store + automatic renewal loop (so you don’t need to re-run renew manually) — the pattern is the same as the internal webhook subscription approach already used for calendar events + validation handshake. 
