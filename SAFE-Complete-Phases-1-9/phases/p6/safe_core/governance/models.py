@@ -35,7 +35,7 @@ class ComplianceLevel(str, Enum):
 class GovernancePolicy:
     """Organization governance policy"""
     name: str
-    compliance_level: ComplianceLevel
+    compliance_level: ComplianceLevel = ComplianceLevel.STANDARD
     require_approval: bool = True
     approval_threshold: int = 1  # Number of approvers needed
     max_monthly_cost_usd: float = 10000.0

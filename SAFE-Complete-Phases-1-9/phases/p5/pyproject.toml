@@ -23,5 +23,5 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --cov=safe_core --cov-report=html"
+asyncio_mode = "auto"
 
