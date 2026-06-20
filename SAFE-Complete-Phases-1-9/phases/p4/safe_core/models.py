@@ -30,7 +30,7 @@ class RouteDefinition:
     name: str
     pattern: RoutePattern
     agents: Dict[str, Agent]
-    description: str
+    description: str = ""
     timeout_seconds: int = 120
     per_agent_timeout_seconds: int = 60
     csa_email: str = ""

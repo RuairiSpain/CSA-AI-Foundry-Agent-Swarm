@@ -119,7 +119,7 @@ class {{ class_name }}Route:
         
         context = {
             "route_name": route_def.name,
-            "class_name": route_def.name.replace("-", "_").title(),
+            "class_name": "".join(w.capitalize() for w in route_def.name.replace("-", "_").split("_")),
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
