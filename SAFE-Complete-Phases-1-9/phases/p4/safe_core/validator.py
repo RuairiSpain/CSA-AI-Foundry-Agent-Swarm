@@ -92,10 +92,41 @@ class ContractValidator:
     
     @staticmethod
     def validate_no_cycles(agents: Dict[str, Agent]) -> List[ValidationError]:
-        """Validate no circular dependencies"""
-        # In a real implementation, would build DAG and check for cycles
-        # For now, just check basic structure
+        """Validate no circular dependencies using depth-first search."""
         errors = []
-        
+
+        # Map agent names back to their dict keys for dependency resolution
+        name_to_key = {agent.name: key for key, agent in agents.items()}
+
+        # Build adjacency: key -> list of dependency keys (skip unknown deps)
+        graph: Dict[str, List[str]] = {
+            key: [name_to_key[dep] for dep in agent.dependencies if dep in name_to_key]
+            for key, agent in agents.items()
+        }
+
+        visited: set = set()
+        in_stack: set = set()
+
+        def dfs(node: str) -> None:
+            visited.add(node)
+            in_stack.add(node)
+            for neighbour in graph.get(node, []):
+                if neighbour in in_stack:
+                    errors.append(ValidationError(
+                        error_type="circular_dependency",
+                        message=f"Circular dependency: '{node}' -> '{neighbour}' forms a cycle",
+                        suggested_solutions=[
+                            f"Remove the dependency of '{node}' on '{neighbour}'",
+                            "Restructure agent dependencies to eliminate the cycle",
+                        ],
+                    ))
+                elif neighbour not in visited:
+                    dfs(neighbour)
+            in_stack.discard(node)
+
+        for key in agents:
+            if key not in visited:
+                dfs(key)
+
         return errors
 

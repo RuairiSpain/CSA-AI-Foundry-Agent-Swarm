@@ -94,6 +94,32 @@ class TestContractValidator:
         critical_errors = [e for e in errors if e.error_type in ["contract_mismatch", "missing_agent"]]
         assert len(critical_errors) == 0
 
+    def test_validate_no_cycles_detects_cycle(self):
+        """Cycle detection catches A -> B -> A"""
+        agent_a = Agent(
+            name="agent-a", category="processor", version="1.0",
+            input_schema={}, output_schema={}, dependencies=["agent-b"],
+        )
+        agent_b = Agent(
+            name="agent-b", category="processor", version="1.0",
+            input_schema={}, output_schema={}, dependencies=["agent-a"],
+        )
+        errors = ContractValidator.validate_no_cycles({"agent_a": agent_a, "agent_b": agent_b})
+        assert any(e.error_type == "circular_dependency" for e in errors)
+
+    def test_validate_no_cycles_clean(self):
+        """Acyclic dependencies produce no cycle errors"""
+        agent_a = Agent(
+            name="agent-a", category="processor", version="1.0",
+            input_schema={}, output_schema={}, dependencies=[],
+        )
+        agent_b = Agent(
+            name="agent-b", category="processor", version="1.0",
+            input_schema={}, output_schema={}, dependencies=["agent-a"],
+        )
+        errors = ContractValidator.validate_no_cycles({"agent_a": agent_a, "agent_b": agent_b})
+        assert not any(e.error_type == "circular_dependency" for e in errors)
+
 
 class TestCodeGenerator:
     """Tests for code generation"""
