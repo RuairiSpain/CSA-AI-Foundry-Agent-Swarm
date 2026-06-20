@@ -24,3 +24,6 @@ htmlcov/
 .vscode/
 .idea/
 *.swp
+
+# Claude Code session worktrees (ephemeral)
+.claude/worktrees/
