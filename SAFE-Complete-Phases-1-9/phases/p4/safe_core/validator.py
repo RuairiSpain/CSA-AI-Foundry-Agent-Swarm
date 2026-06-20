@@ -61,7 +61,6 @@ class ContractValidator:
         errors = []
         
         if pattern == RoutePattern.SUPERVISOR_MANAGER:
-            # Supervisor output must match specialist inputs
             supervisor = agents.get("supervisor")
             if not supervisor:
                 errors.append(ValidationError(
@@ -69,14 +68,12 @@ class ContractValidator:
                     message="Supervisor agent is required for supervisor-manager pattern"
                 ))
                 return errors
-            
+
             supervisor_output = supervisor.output_schema.get("properties", {})
-            
+
             for key, specialist in agents.items():
                 if key.startswith("specialist_"):
                     specialist_input = specialist.input_schema.get("properties", {})
-                    
-                    # Check if supervisor outputs match specialist inputs
                     for input_field in specialist_input:
                         if input_field not in supervisor_output:
                             errors.append(ValidationError(
@@ -87,7 +84,107 @@ class ContractValidator:
                                     f"Select different specialist that doesn't require '{input_field}'"
                                 ]
                             ))
-        
+
+        elif pattern == RoutePattern.FAN_OUT_FAN_IN:
+            processor_keys = [k for k in agents if k.startswith("processor_")]
+            if not processor_keys:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="At least one processor_* agent is required for fan-out/fan-in pattern",
+                    suggested_solutions=["Add processor agents with keys processor_0, processor_1, …"]
+                ))
+
+            aggregator = agents.get("aggregator")
+            if not aggregator:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="An 'aggregator' agent is required for fan-out/fan-in pattern",
+                    suggested_solutions=["Add an aggregator agent with key 'aggregator'"]
+                ))
+            else:
+                agg_input_props = aggregator.input_schema.get("properties", {})
+                if "results" not in agg_input_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Aggregator '{aggregator.name}' must accept a 'results' field in its input schema",
+                        suggested_solutions=["Choose an aggregator that expects a 'results' array input"]
+                    ))
+
+        elif pattern == RoutePattern.MAP_REDUCE:
+            for role in ("splitter", "mapper", "reducer"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for map-reduce pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+            splitter = agents.get("splitter")
+            if splitter:
+                splitter_output_props = splitter.output_schema.get("properties", {})
+                if "chunks" not in splitter_output_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Splitter '{splitter.name}' must output a 'chunks' field",
+                        suggested_solutions=["Choose a splitter whose output schema includes 'chunks'"]
+                    ))
+
+            mapper = agents.get("mapper")
+            if mapper:
+                mapper_input_props = mapper.input_schema.get("properties", {})
+                mapper_output_props = mapper.output_schema.get("properties", {})
+                if "data_chunk" not in mapper_input_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Mapper '{mapper.name}' must accept a 'data_chunk' input field",
+                        suggested_solutions=["Choose a mapper whose input schema includes 'data_chunk'"]
+                    ))
+                if "mapped_result" not in mapper_output_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Mapper '{mapper.name}' must output a 'mapped_result' field",
+                        suggested_solutions=["Choose a mapper whose output schema includes 'mapped_result'"]
+                    ))
+
+            reducer = agents.get("reducer")
+            if reducer:
+                reducer_input_props = reducer.input_schema.get("properties", {})
+                if "mapped_results" not in reducer_input_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Reducer '{reducer.name}' must accept a 'mapped_results' input field",
+                        suggested_solutions=["Choose a reducer whose input schema includes 'mapped_results'"]
+                    ))
+
+        elif pattern == RoutePattern.SEQUENTIAL_PIPELINE:
+            stage_keys = sorted(k for k in agents if k.startswith("stage_"))
+            if len(stage_keys) < 2:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="Sequential-pipeline pattern requires at least 2 stage_* agents",
+                    suggested_solutions=["Add agents with keys stage_0, stage_1, …"]
+                ))
+
+            # Check each adjacent pair: stage[i] output must cover stage[i+1] required inputs
+            for i in range(len(stage_keys) - 1):
+                current = agents[stage_keys[i]]
+                nxt = agents[stage_keys[i + 1]]
+                current_output_props = current.output_schema.get("properties", {})
+                next_required = nxt.input_schema.get("required", [])
+                for field in next_required:
+                    if field not in current_output_props:
+                        errors.append(ValidationError(
+                            error_type="contract_mismatch",
+                            message=(
+                                f"Stage '{current.name}' does not output '{field}' "
+                                f"required by next stage '{nxt.name}'"
+                            ),
+                            suggested_solutions=[
+                                f"Update '{current.name}' to output '{field}'",
+                                f"Choose a different agent for stage {i + 1} that doesn't require '{field}'"
+                            ]
+                        ))
+
         return errors
     
     @staticmethod

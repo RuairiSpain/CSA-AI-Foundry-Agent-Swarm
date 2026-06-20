@@ -1,5 +1,6 @@
 """Comprehensive tests for Phase 4: Route Writer Agent"""
 
+import json
 import pytest
 import asyncio
 from safe_core.models import RoutePattern, Agent, RouteDefinition, ValidationError
@@ -326,6 +327,361 @@ class TestPhase4Integration:
         # Verify metadata
         assert "supervisor-manager" in generated.metadata["pattern"]
         assert len(generated.metadata["agents"]) == 4
+
+class TestFanOutFanIn:
+    """Tests for fan-out/fan-in pattern"""
+
+    def _make_route(self, catalog: AgentCatalog, name: str = "parallel-doc-processor") -> RouteDefinition:
+        return RouteDefinition(
+            name=name,
+            pattern=RoutePattern.FAN_OUT_FAN_IN,
+            agents={
+                "processor_0": catalog.get_agent("document-processor"),
+                "processor_1": catalog.get_agent("text-enricher"),
+                "aggregator": catalog.get_agent("fan-in-aggregator"),
+            },
+            description="Parallel document processing",
+            timeout_seconds=120,
+            per_agent_timeout_seconds=60,
+        )
+
+    def test_generate_fan_out_fan_in(self):
+        """Generate fan-out/fan-in route code"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+
+        assert "class ParallelDocProcessorRoute:" in generated.route_code
+        assert "asyncio.gather" in generated.route_code
+        assert "processor_0" in generated.route_code
+        assert "processor_1" in generated.route_code
+        assert "aggregator" in generated.route_code
+        assert "_validate_input" in generated.route_code
+        assert "_validate_output" in generated.route_code
+
+    def test_fan_out_fan_in_has_partial_failure_handling(self):
+        """Generated code handles partial processor failures gracefully"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+
+        assert "return_exceptions=True" in generated.route_code
+        assert "isinstance(result, Exception)" in generated.route_code
+
+    def test_fan_out_fan_in_validation_passes(self):
+        """Valid fan-out/fan-in route has no contract errors"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        errors = ContractValidator.validate_route(route_def)
+        critical = [e for e in errors if e.error_type in ["contract_mismatch", "missing_agent"]]
+        assert len(critical) == 0
+
+    def test_fan_out_fan_in_missing_aggregator(self):
+        """Missing aggregator produces a missing_agent error"""
+        catalog = AgentCatalog()
+        route_def = RouteDefinition(
+            name="bad-fan-out",
+            pattern=RoutePattern.FAN_OUT_FAN_IN,
+            agents={
+                "processor_0": catalog.get_agent("document-processor"),
+            },
+        )
+        errors = ContractValidator.validate_agent_contracts(route_def.pattern, route_def.agents)
+        assert any(e.error_type == "missing_agent" and "aggregator" in e.message for e in errors)
+
+    def test_fan_out_fan_in_missing_processor(self):
+        """No processor_* agents produces a missing_agent error"""
+        catalog = AgentCatalog()
+        route_def = RouteDefinition(
+            name="bad-fan-out",
+            pattern=RoutePattern.FAN_OUT_FAN_IN,
+            agents={
+                "aggregator": catalog.get_agent("fan-in-aggregator"),
+            },
+        )
+        errors = ContractValidator.validate_agent_contracts(route_def.pattern, route_def.agents)
+        assert any(e.error_type == "missing_agent" and "processor" in e.message.lower() for e in errors)
+
+    def test_fan_out_test_data_json(self):
+        """Generated test data is valid JSON suited for the pattern"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+        data = json.loads(generated.test_data_json)
+        assert isinstance(data, list)
+        assert len(data) > 0
+
+
+class TestMapReduce:
+    """Tests for map-reduce pattern"""
+
+    def _make_route(self, catalog: AgentCatalog, name: str = "batch-transform") -> RouteDefinition:
+        return RouteDefinition(
+            name=name,
+            pattern=RoutePattern.MAP_REDUCE,
+            agents={
+                "splitter": catalog.get_agent("batch-splitter"),
+                "mapper": catalog.get_agent("data-mapper"),
+                "reducer": catalog.get_agent("data-reducer"),
+            },
+            description="Batch data transformation",
+            timeout_seconds=180,
+            per_agent_timeout_seconds=60,
+        )
+
+    def test_generate_map_reduce(self):
+        """Generate map-reduce route code"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+
+        assert "class BatchTransformRoute:" in generated.route_code
+        assert "asyncio.gather" in generated.route_code
+        assert "splitter" in generated.route_code
+        assert "mapper" in generated.route_code
+        assert "reducer" in generated.route_code
+        assert "_validate_input" in generated.route_code
+        assert "_validate_output" in generated.route_code
+
+    def test_map_reduce_chunks_referenced(self):
+        """Generated code uses 'chunks' from splitter output"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+        assert '"chunks"' in generated.route_code or "'chunks'" in generated.route_code or "chunks" in generated.route_code
+
+    def test_map_reduce_validation_passes(self):
+        """Valid map-reduce route has no contract errors"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        errors = ContractValidator.validate_route(route_def)
+        critical = [e for e in errors if e.error_type in ["contract_mismatch", "missing_agent"]]
+        assert len(critical) == 0
+
+    def test_map_reduce_missing_splitter(self):
+        """Missing splitter produces a missing_agent error"""
+        catalog = AgentCatalog()
+        route_def = RouteDefinition(
+            name="bad-mr",
+            pattern=RoutePattern.MAP_REDUCE,
+            agents={
+                "mapper": catalog.get_agent("data-mapper"),
+                "reducer": catalog.get_agent("data-reducer"),
+            },
+        )
+        errors = ContractValidator.validate_agent_contracts(route_def.pattern, route_def.agents)
+        assert any(e.error_type == "missing_agent" and "splitter" in e.message for e in errors)
+
+    def test_map_reduce_missing_reducer(self):
+        """Missing reducer produces a missing_agent error"""
+        catalog = AgentCatalog()
+        route_def = RouteDefinition(
+            name="bad-mr",
+            pattern=RoutePattern.MAP_REDUCE,
+            agents={
+                "splitter": catalog.get_agent("batch-splitter"),
+                "mapper": catalog.get_agent("data-mapper"),
+            },
+        )
+        errors = ContractValidator.validate_agent_contracts(route_def.pattern, route_def.agents)
+        assert any(e.error_type == "missing_agent" and "reducer" in e.message for e in errors)
+
+    def test_map_reduce_test_data_json(self):
+        """Generated test data is valid JSON suited for the pattern"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+        data = json.loads(generated.test_data_json)
+        assert isinstance(data, list)
+        assert len(data) > 0
+
+
+class TestSequentialPipeline:
+    """Tests for sequential-pipeline pattern"""
+
+    def _make_route(self, catalog: AgentCatalog, name: str = "doc-enrich-pipeline") -> RouteDefinition:
+        return RouteDefinition(
+            name=name,
+            pattern=RoutePattern.SEQUENTIAL_PIPELINE,
+            agents={
+                "stage_0": catalog.get_agent("document-processor"),
+                "stage_1": catalog.get_agent("text-enricher"),
+                "stage_2": catalog.get_agent("data-formatter"),
+            },
+            description="Document enrichment pipeline",
+            timeout_seconds=180,
+            per_agent_timeout_seconds=60,
+        )
+
+    def test_generate_sequential_pipeline(self):
+        """Generate sequential-pipeline route code"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+
+        assert "class DocEnrichPipelineRoute:" in generated.route_code
+        assert "stage_0" in generated.route_code
+        assert "stage_1" in generated.route_code
+        assert "stage_2" in generated.route_code
+        assert "_validate_input" in generated.route_code
+        assert "_validate_output" in generated.route_code
+
+    def test_sequential_pipeline_no_asyncio_gather(self):
+        """Sequential pipeline does not use parallel gather (it's sequential)"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+        assert "asyncio.gather" not in generated.route_code
+
+    def test_sequential_pipeline_stage_chaining(self):
+        """Generated code chains stage output into next stage input via 'data' variable"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+        assert "data = await self.stage_0.invoke(data)" in generated.route_code or \
+               "data = await self.stage_0" in generated.route_code
+
+    def test_sequential_pipeline_validation_too_few_stages(self):
+        """Single stage produces a missing_agent error"""
+        catalog = AgentCatalog()
+        route_def = RouteDefinition(
+            name="bad-pipeline",
+            pattern=RoutePattern.SEQUENTIAL_PIPELINE,
+            agents={
+                "stage_0": catalog.get_agent("document-processor"),
+            },
+        )
+        errors = ContractValidator.validate_agent_contracts(route_def.pattern, route_def.agents)
+        assert any(e.error_type == "missing_agent" and "stage" in e.message.lower() for e in errors)
+
+    def test_sequential_pipeline_test_data_json(self):
+        """Generated test data is valid JSON suited for the pattern"""
+        catalog = AgentCatalog()
+        route_def = self._make_route(catalog)
+        generated = RouteCodeGenerator.generate(route_def)
+        data = json.loads(generated.test_data_json)
+        assert isinstance(data, list)
+        assert len(data) > 0
+
+
+# P2 integration tests
+class TestP2Integration:
+    """End-to-end integration tests for all four patterns"""
+
+    def test_all_patterns_generate_valid_files(self, tmp_path):
+        """All four patterns produce saveable output files"""
+        catalog = AgentCatalog()
+
+        routes = [
+            RouteDefinition(
+                name="sup-mgr-route",
+                pattern=RoutePattern.SUPERVISOR_MANAGER,
+                agents={
+                    "supervisor": catalog.get_agent("loan-supervisor-router"),
+                    "specialist_0": catalog.get_agent("loan-specialist-mortgage"),
+                    "aggregator": catalog.get_agent("standard-aggregator"),
+                },
+            ),
+            RouteDefinition(
+                name="fan-out-route",
+                pattern=RoutePattern.FAN_OUT_FAN_IN,
+                agents={
+                    "processor_0": catalog.get_agent("document-processor"),
+                    "processor_1": catalog.get_agent("text-enricher"),
+                    "aggregator": catalog.get_agent("fan-in-aggregator"),
+                },
+            ),
+            RouteDefinition(
+                name="map-reduce-route",
+                pattern=RoutePattern.MAP_REDUCE,
+                agents={
+                    "splitter": catalog.get_agent("batch-splitter"),
+                    "mapper": catalog.get_agent("data-mapper"),
+                    "reducer": catalog.get_agent("data-reducer"),
+                },
+            ),
+            RouteDefinition(
+                name="pipeline-route",
+                pattern=RoutePattern.SEQUENTIAL_PIPELINE,
+                agents={
+                    "stage_0": catalog.get_agent("document-processor"),
+                    "stage_1": catalog.get_agent("data-formatter"),
+                },
+            ),
+        ]
+
+        for route_def in routes:
+            generated = RouteCodeGenerator.generate(route_def)
+            route_dir = tmp_path / route_def.name
+            generated.save_to_disk(str(route_dir))
+
+            assert (route_dir / "route.py").exists(), f"{route_def.name}: route.py missing"
+            assert (route_dir / "requirements.txt").exists(), f"{route_def.name}: requirements.txt missing"
+            assert (route_dir / "config.yaml").exists(), f"{route_def.name}: config.yaml missing"
+            assert (route_dir / "test_data.json").exists(), f"{route_def.name}: test_data.json missing"
+
+    def test_all_patterns_metadata_correct(self):
+        """Generated metadata contains correct pattern name"""
+        catalog = AgentCatalog()
+
+        cases = [
+            (RoutePattern.SUPERVISOR_MANAGER, "supervisor-manager", {
+                "supervisor": catalog.get_agent("loan-supervisor-router"),
+                "specialist_0": catalog.get_agent("loan-specialist-mortgage"),
+                "aggregator": catalog.get_agent("standard-aggregator"),
+            }),
+            (RoutePattern.FAN_OUT_FAN_IN, "fan-out-fan-in", {
+                "processor_0": catalog.get_agent("document-processor"),
+                "aggregator": catalog.get_agent("fan-in-aggregator"),
+            }),
+            (RoutePattern.MAP_REDUCE, "map-reduce", {
+                "splitter": catalog.get_agent("batch-splitter"),
+                "mapper": catalog.get_agent("data-mapper"),
+                "reducer": catalog.get_agent("data-reducer"),
+            }),
+            (RoutePattern.SEQUENTIAL_PIPELINE, "sequential-pipeline", {
+                "stage_0": catalog.get_agent("document-processor"),
+                "stage_1": catalog.get_agent("data-formatter"),
+            }),
+        ]
+
+        for pattern, expected_pattern_str, agents in cases:
+            route_def = RouteDefinition(name="test", pattern=pattern, agents=agents)
+            generated = RouteCodeGenerator.generate(route_def)
+            assert expected_pattern_str in generated.metadata["pattern"], \
+                f"Expected '{expected_pattern_str}' in metadata for {pattern}"
+
+    def test_all_patterns_config_yaml_correct(self):
+        """Config yaml includes pattern name for all four patterns"""
+        catalog = AgentCatalog()
+
+        cases = [
+            (RoutePattern.SUPERVISOR_MANAGER, "supervisor-manager", {
+                "supervisor": catalog.get_agent("loan-supervisor-router"),
+                "specialist_0": catalog.get_agent("loan-specialist-mortgage"),
+                "aggregator": catalog.get_agent("standard-aggregator"),
+            }),
+            (RoutePattern.FAN_OUT_FAN_IN, "fan-out-fan-in", {
+                "processor_0": catalog.get_agent("document-processor"),
+                "aggregator": catalog.get_agent("fan-in-aggregator"),
+            }),
+            (RoutePattern.MAP_REDUCE, "map-reduce", {
+                "splitter": catalog.get_agent("batch-splitter"),
+                "mapper": catalog.get_agent("data-mapper"),
+                "reducer": catalog.get_agent("data-reducer"),
+            }),
+            (RoutePattern.SEQUENTIAL_PIPELINE, "sequential-pipeline", {
+                "stage_0": catalog.get_agent("document-processor"),
+                "stage_1": catalog.get_agent("data-formatter"),
+            }),
+        ]
+
+        for pattern, expected_pattern_str, agents in cases:
+            route_def = RouteDefinition(name="test", pattern=pattern, agents=agents)
+            generated = RouteCodeGenerator.generate(route_def)
+            assert expected_pattern_str in generated.config_yaml, \
+                f"Expected '{expected_pattern_str}' in config.yaml for {pattern}"
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
