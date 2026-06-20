@@ -1,0 +1,105 @@
+name: Empty Agent Template
+version: 1.0
+category: template
+description: |
+  Blank template for creating custom agents from scratch.
+  Copy this entire directory to start building your own agent.
+  
+  All sections marked with [EDIT] show what needs customization.
+  Remove markers after editing.
+
+contract:
+  inputs:
+    - name: input_param_1
+      type: object
+      required: true
+      description: "[EDIT] Describe your first input parameter"
+      schema:
+        type: object
+        required_fields: [field1, field2]
+        field_definitions:
+          field1:
+            type: string
+            max_length: 500
+            description: "[EDIT] First field description"
+          field2:
+            type: number
+            minimum: 0
+            description: "[EDIT] Second field description"
+  
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: "[EDIT] Describe your output structure"
+      schema:
+        type: object
+        required_fields: [status, data]
+        field_definitions:
+          status:
+            type: string
+            enum: [success, error, partial]
+            description: Operation status
+          data:
+            type: object
+            description: "[EDIT] Result data structure"
+          metadata:
+            type: object
+            description: "[EDIT] Optional metadata about result"
+          error_message:
+            type: string
+            description: Error details if status is error
+
+metadata:
+  author: "[EDIT] Your name or team"
+  source:
+    repository: internal
+    license: MIT
+  
+  dependencies: []
+  
+  requirements:
+    python: ">=3.11"
+    packages: []
+      # [EDIT] Add your dependencies here:
+      # Example:
+      # - anthropic >= 0.20.0
+      # - pydantic >= 2.0.0
+      # - requests >= 2.28.0
+  
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - "[EDIT] Primary use case 1"
+    - "[EDIT] Primary use case 2"
+    - "[EDIT] Primary use case 3"
+  
+  example:
+    input:
+      input_param_1:
+        field1: "[EDIT] Example input value"
+        field2: 42
+    
+    output:
+      result:
+        status: success
+        data:
+          key: "[EDIT] Example output"
+        metadata:
+          processing_time_ms: 1234
+  
+  limitations:
+    - "[EDIT] Known limitation 1"
+    - "[EDIT] Known limitation 2"
+    - "[EDIT] Edge cases or restrictions"
+  
+  related_agents:
+    - empty-agent
+
+tags:
+  - custom
+  - template
+  - blank
+
+pattern_roles: []

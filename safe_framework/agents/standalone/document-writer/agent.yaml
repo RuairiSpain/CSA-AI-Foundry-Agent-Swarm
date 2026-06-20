@@ -1,0 +1,158 @@
+name: Document Writer
+version: 1.0
+category: generation
+description: |
+  Generates formatted Word documents (.docx) from structured data.
+  
+  Takes input data (title, sections, metadata) and produces a 
+  professional Word document with formatting, styles, and structure.
+  
+  Perfect for: reports, contracts, proposals, formatted outputs.
+
+contract:
+  inputs:
+    - name: document_data
+      type: object
+      required: true
+      description: Data for document generation
+      schema:
+        type: object
+        required_fields: [title, sections]
+        field_definitions:
+          title:
+            type: string
+            max_length: 500
+            description: Document title/heading
+          author:
+            type: string
+            description: Author name (optional)
+          subject:
+            type: string
+            description: Document subject (optional)
+          sections:
+            type: array
+            items:
+              type: object
+              required_fields: [heading, content]
+              field_definitions:
+                heading:
+                  type: string
+                  max_length: 200
+                  description: Section heading
+                content:
+                  type: string
+                  description: Section body text (Markdown or plain text)
+                style:
+                  type: string
+                  enum: [normal, highlight, note, code]
+                  description: Section visual style
+                include_page_break:
+                  type: boolean
+                  description: Insert page break before section
+  
+  outputs:
+    - name: document
+      type: object
+      required: true
+      description: Generated Word document
+      schema:
+        type: object
+        required_fields: [filename, content_base64, size_bytes]
+        field_definitions:
+          filename:
+            type: string
+            description: Suggested filename (e.g., "Report_2026.docx")
+          content_base64:
+            type: string
+            description: Base64-encoded .docx file content
+          size_bytes:
+            type: integer
+            description: File size in bytes
+          page_count:
+            type: integer
+            description: Number of pages generated
+          metadata:
+            type: object
+            description: Document metadata
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  
+  dependencies: []
+  
+  requirements:
+    python: ">=3.11"
+    packages:
+      - python-docx >= 0.8.10
+      - pandas >= 1.0
+  
+  timeout_seconds: 120
+
+documentation:
+  use_cases:
+    - Creating professional client reports
+    - Generating contract documents
+    - Producing formatted analysis results
+    - Building document templates
+    - Exporting formatted data
+  
+  example:
+    input:
+      document_data:
+        title: "Q2 2026 Business Report"
+        author: "Analytics Team"
+        subject: "Quarterly Performance Review"
+        sections:
+          - heading: "Executive Summary"
+            content: "Key findings and highlights from Q2 2026 operations."
+            style: "highlight"
+            include_page_break: false
+          - heading: "Financial Results"
+            content: "Revenue increased 15% YoY. Operating costs down 8%."
+            style: "normal"
+            include_page_break: true
+          - heading: "Recommendations"
+            content: |
+              1. Expand marketing efforts in EU
+              2. Optimize supply chain
+              3. Invest in R&D
+            style: "note"
+            include_page_break: false
+    
+    output:
+      document:
+        filename: "Q2_2026_Business_Report.docx"
+        content_base64: "UEsDBBQACAAIAOX..."
+        size_bytes: 45621
+        page_count: 5
+        metadata:
+          created_at: "2026-06-20T10:30:00Z"
+          sections_count: 3
+  
+  limitations:
+    - Maximum 100 sections per document
+    - 50MB max output file size
+    - Requires structured section data
+    - Limited to basic formatting (styles, page breaks)
+    - Base64 encoded output (requires decoding)
+  
+  related_agents:
+    - presenter-html
+    - presenter-markdown
+    - presenter-word
+
+tags:
+  - document
+  - word
+  - generation
+  - export
+  - formatting
+  - docx
+
+pattern_roles:
+  - pattern: sequential-pipeline
+    placeholder: presenter
+    description: Formats pipeline results as Word document

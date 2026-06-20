@@ -1,0 +1,54 @@
+name: Research Agent
+version: 1.0
+category: processing
+description: |
+  Multi-step research and synthesis
+
+contract:
+  inputs:
+    - name: input_param
+      type: object
+      required: true
+      description: Input data
+      schema:
+        type: object
+        required_fields: [field1]
+        field_definitions:
+          field1:
+            type: string
+            description: Field description
+  
+  outputs:
+    - name: output_param
+      type: object
+      required: true
+      description: Output data
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Use case 1
+    - Use case 2
+  example:
+    input: {field1: "example"}
+    output: {result: "example"}
+  limitations:
+    - Limitation 1
+
+tags:
+  - processing
+
+pattern_roles: []

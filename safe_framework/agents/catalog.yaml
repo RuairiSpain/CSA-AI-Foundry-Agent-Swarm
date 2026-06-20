@@ -1,0 +1,722 @@
+version: 1.0
+last_updated: 2026-06-20
+description: Master catalog of all SAFE agent templates
+
+metadata:
+  total_agents: 23
+  standalone_agents: 12
+  pattern_agents: 11
+  categories: 8
+  quality_threshold: 4.5
+
+# ============================================================================
+# STANDALONE AGENTS (12 agents)
+# ============================================================================
+
+standalone:
+  
+  # Generation agents
+  - id: document-writer
+    name: Document Writer
+    version: 1.0
+    category: generation
+    description: Generates formatted Word documents from structured data
+    
+    contract:
+      inputs: [data_object]
+      outputs: [document_bytes]
+    
+    use_cases:
+      - Creating client reports
+      - Generating contracts
+      - Building document templates
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      dependencies: []
+      requirements:
+        python: ">=3.11"
+        packages:
+          - python-docx >= 0.8.10
+          - pandas >= 1.0
+      timeout_seconds: 120
+    
+    discovery:
+      keywords: [document, word, generation, export]
+      complexity: intermediate
+      quality_rating: 4.8
+      usage_count: 127
+      test_coverage: 0.92
+      maintained_by: SAFE Team
+      support_level: production
+  
+  - id: presenter-word
+    name: Word Document Presenter
+    version: 1.0
+    category: generation
+    description: Formats analysis results into polished Word documents
+    
+    contract:
+      inputs: [content, template]
+      outputs: [docx_file]
+    
+    use_cases:
+      - Executive summaries
+      - Formal reports
+      - Client deliverables
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      requirements:
+        packages: [python-docx, jinja2]
+      timeout_seconds: 90
+    
+    discovery:
+      keywords: [word, presentation, formatting]
+      complexity: intermediate
+      quality_rating: 4.7
+      usage_count: 134
+      maintained_by: SAFE Team
+  
+  - id: presenter-html
+    name: HTML Presenter
+    version: 1.0
+    category: generation
+    description: Generates interactive HTML dashboards and presentations
+    
+    contract:
+      inputs: [data, template]
+      outputs: [html_string]
+    
+    use_cases:
+      - Web dashboards
+      - Interactive reports
+      - HTML presentations
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      requirements:
+        packages: [jinja2, plotly]
+      timeout_seconds: 60
+    
+    discovery:
+      keywords: [html, web, dashboard, presentation]
+      complexity: intermediate
+      quality_rating: 4.8
+      usage_count: 167
+      maintained_by: SAFE Team
+  
+  - id: presenter-markdown
+    name: Markdown Presenter
+    version: 1.0
+    category: generation
+    description: Formats output as readable Markdown documents
+    
+    contract:
+      inputs: [data]
+      outputs: [markdown_string]
+    
+    use_cases:
+      - Documentation generation
+      - Readme files
+      - Text-based reports
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      timeout_seconds: 30
+    
+    discovery:
+      keywords: [markdown, documentation, text]
+      complexity: simple
+      quality_rating: 4.9
+      usage_count: 234
+      maintained_by: SAFE Team
+  
+  - id: presenter-code
+    name: Code Presenter
+    version: 1.0
+    category: generation
+    description: Generates formatted code with explanations
+    
+    contract:
+      inputs: [code_spec]
+      outputs: [code_with_comments]
+    
+    use_cases:
+      - Code generation
+      - Documentation
+      - Educational content
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      requirements:
+        packages: [pygments]
+      timeout_seconds: 60
+    
+    discovery:
+      keywords: [code, programming, generation]
+      complexity: intermediate
+      quality_rating: 4.8
+      usage_count: 145
+      maintained_by: SAFE Team
+  
+  # Retrieval agents
+  - id: rag-query
+    name: RAG Query Agent
+    version: 1.2
+    category: retrieval
+    description: Vector-based retrieval-augmented generation for Q&A
+    
+    contract:
+      inputs: [query, documents]
+      outputs: [answer, sources]
+    
+    use_cases:
+      - Knowledge base Q&A
+      - Document-grounded search
+      - FAQ systems
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      dependencies: [pinecone, langchain]
+      timeout_seconds: 60
+    
+    discovery:
+      keywords: [rag, retrieval, search, knowledge]
+      complexity: advanced
+      quality_rating: 4.9
+      usage_count: 342
+      maintained_by: SAFE Team
+  
+  - id: semantic-search
+    name: Semantic Search Agent
+    version: 1.0
+    category: retrieval
+    description: Semantic similarity search across document collections
+    
+    contract:
+      inputs: [query, documents]
+      outputs: [matches]
+    
+    use_cases:
+      - Document similarity matching
+      - Relevance ranking
+      - Content matching
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      requirements:
+        packages: [sentence-transformers]
+      timeout_seconds: 45
+    
+    discovery:
+      keywords: [semantic, search, similarity]
+      complexity: intermediate
+      quality_rating: 4.8
+      usage_count: 203
+      maintained_by: SAFE Team
+  
+  - id: web-query
+    name: Web Query Agent
+    version: 1.0
+    category: retrieval
+    description: Performs web searches and aggregates results
+    
+    contract:
+      inputs: [query, num_results]
+      outputs: [search_results]
+    
+    use_cases:
+      - Real-time web search
+      - Current information retrieval
+      - Competitive research
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      timeout_seconds: 30
+    
+    discovery:
+      keywords: [web, search, internet]
+      complexity: simple
+      quality_rating: 4.6
+      usage_count: 89
+      maintained_by: SAFE Team
+  
+  # Processing agents
+  - id: reviewer
+    name: Document Reviewer
+    version: 1.1
+    category: processing
+    description: Reviews documents for quality, accuracy, compliance
+    
+    contract:
+      inputs: [document]
+      outputs: [review_result]
+    
+    use_cases:
+      - Quality assurance
+      - Compliance checking
+      - Content review
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      timeout_seconds: 90
+    
+    discovery:
+      keywords: [review, quality, compliance]
+      complexity: intermediate
+      quality_rating: 4.7
+      usage_count: 98
+      maintained_by: SAFE Team
+  
+  - id: summarizer
+    name: Text Summarizer
+    version: 1.0
+    category: processing
+    description: Generates concise summaries from long documents
+    
+    contract:
+      inputs: [text]
+      outputs: [summary]
+    
+    use_cases:
+      - Document summarization
+      - Content condensation
+      - Report generation
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      timeout_seconds: 60
+    
+    discovery:
+      keywords: [summarize, summary, condense]
+      complexity: simple
+      quality_rating: 4.6
+      usage_count: 156
+      maintained_by: SAFE Team
+  
+  - id: researcher
+    name: Research Agent
+    version: 1.0
+    category: processing
+    description: Multi-step research and synthesis agent
+    
+    contract:
+      inputs: [topic, sources]
+      outputs: [research_report]
+    
+    use_cases:
+      - Market research
+      - Competitive analysis
+      - Trend analysis
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      timeout_seconds: 180
+    
+    discovery:
+      keywords: [research, investigation, analysis]
+      complexity: advanced
+      quality_rating: 4.9
+      usage_count: 87
+      maintained_by: SAFE Team
+  
+  # Template
+  - id: empty-agent
+    name: Empty Agent Template
+    version: 1.0
+    category: template
+    description: Blank template for creating custom agents from scratch
+    
+    contract:
+      inputs: []
+      outputs: []
+    
+    use_cases:
+      - Creating custom agents
+      - Learning SAFE structure
+      - Prototyping
+    
+    metadata:
+      author: SAFE Team
+      license: MIT
+      timeout_seconds: 30
+    
+    discovery:
+      keywords: [template, blank, custom]
+      complexity: simple
+      quality_rating: 5.0
+      usage_count: 456
+      maintained_by: SAFE Team
+
+# ============================================================================
+# PATTERN-SPECIFIC AGENTS (11 agents)
+# ============================================================================
+
+patterns:
+  
+  # Supervisor-Manager pattern agents
+  supervisor-manager:
+    
+    - id: supervisor-manager_supervisor
+      placeholder: supervisor
+      name: Loan Supervisor Router
+      version: 1.0
+      category: decision-maker
+      description: Routes loan applications to appropriate analysis teams
+      
+      contract:
+        inputs: [application]
+        outputs: [routing_decision]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+      
+      discovery:
+        keywords: [supervisor, routing, decision]
+        complexity: advanced
+        quality_rating: 4.9
+        usage_count: 178
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: supervisor-manager
+        placeholder: supervisor
+        is_default: true
+    
+    - id: supervisor-manager_aggregator
+      placeholder: aggregator
+      name: Decision Aggregator
+      version: 1.0
+      category: aggregation
+      description: Combines decisions from multiple specialist agents
+      
+      contract:
+        inputs: [supervisor_output, agent_results]
+        outputs: [final_decision]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+      
+      discovery:
+        keywords: [aggregator, combine, decision]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 156
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: supervisor-manager
+        placeholder: aggregator
+        is_default: true
+  
+  # Fan-Out / Fan-In pattern agents
+  fan-out-fan-in:
+    
+    - id: fan-out-fan-in_processor
+      placeholder: processor
+      name: Document Processor
+      version: 1.0
+      category: processing
+      description: Preprocesses input for parallel workers
+      
+      contract:
+        inputs: [data]
+        outputs: [processed_data]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 30
+      
+      discovery:
+        keywords: [processor, preprocessing, fan-out]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 123
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: fan-out-fan-in
+        placeholder: processor
+        is_default: true
+    
+    - id: fan-out-fan-in_worker
+      placeholder: worker
+      name: Parallel Worker
+      version: 1.0
+      category: processing
+      description: Processes portion of data in parallel
+      
+      contract:
+        inputs: [data_chunk]
+        outputs: [result]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+      
+      discovery:
+        keywords: [worker, parallel, processing]
+        complexity: intermediate
+        quality_rating: 4.9
+        usage_count: 234
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: fan-out-fan-in
+        placeholder: worker
+        is_default: true
+    
+    - id: fan-out-fan-in_aggregator
+      placeholder: aggregator
+      name: Fan-In Aggregator
+      version: 1.0
+      category: aggregation
+      description: Aggregates results from parallel workers
+      
+      contract:
+        inputs: [worker_results]
+        outputs: [combined_result]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+      
+      discovery:
+        keywords: [aggregator, fan-in, combine]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 201
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: fan-out-fan-in
+        placeholder: aggregator
+        is_default: true
+  
+  # Map-Reduce pattern agents
+  map-reduce:
+    
+    - id: map-reduce_splitter
+      placeholder: splitter
+      name: Batch Splitter
+      version: 1.0
+      category: processing
+      description: Splits large batch into chunks for mappers
+      
+      contract:
+        inputs: [data, chunk_size]
+        outputs: [chunks]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 30
+      
+      discovery:
+        keywords: [splitter, batch, map-reduce]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 98
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: map-reduce
+        placeholder: splitter
+        is_default: true
+    
+    - id: map-reduce_mapper
+      placeholder: mapper
+      name: Data Mapper
+      version: 1.0
+      category: processing
+      description: Maps/transforms data in parallel
+      
+      contract:
+        inputs: [data_chunk]
+        outputs: [mapped_result]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+      
+      discovery:
+        keywords: [mapper, mapping, parallel]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 156
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: map-reduce
+        placeholder: mapper
+        is_default: true
+    
+    - id: map-reduce_shuffle
+      placeholder: shuffle
+      name: Shuffle Aggregator
+      version: 1.0
+      category: processing
+      description: Reorganizes mapped data for reducers
+      
+      contract:
+        inputs: [mapped_results]
+        outputs: [shuffled_data]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+      
+      discovery:
+        keywords: [shuffle, reorganize, map-reduce]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 112
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: map-reduce
+        placeholder: shuffle
+        is_default: true
+    
+    - id: map-reduce_reducer
+      placeholder: reducer
+      name: Data Reducer
+      version: 1.0
+      category: processing
+      description: Reduces/aggregates shuffled data in parallel
+      
+      contract:
+        inputs: [shuffled_chunk]
+        outputs: [reduced_result]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+      
+      discovery:
+        keywords: [reducer, reduction, parallel]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 134
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: map-reduce
+        placeholder: reducer
+        is_default: true
+    
+    - id: map-reduce_final
+      placeholder: final
+      name: Final Aggregator
+      version: 1.0
+      category: aggregation
+      description: Final aggregation of all reduced results
+      
+      contract:
+        inputs: [reduced_results]
+        outputs: [final_result]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+      
+      discovery:
+        keywords: [final, aggregation, reduce]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 123
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: map-reduce
+        placeholder: final
+        is_default: true
+  
+  # Sequential Pipeline pattern agents
+  sequential-pipeline:
+    
+    - id: sequential-pipeline_stage1
+      placeholder: stage1
+      name: Pipeline Stage 1
+      version: 1.0
+      category: processing
+      description: First stage of sequential pipeline
+      
+      contract:
+        inputs: [input_data]
+        outputs: [stage1_output]
+      
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+      
+      discovery:
+        keywords: [pipeline, stage, sequential]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 187
+        maintained_by: SAFE Team
+      
+      pattern_assignment:
+        pattern: sequential-pipeline
+        placeholder: stage1
+        is_default: true
+
+# ============================================================================
+# STATISTICS
+# ============================================================================
+
+statistics:
+  by_category:
+    generation: 5
+    retrieval: 3
+    processing: 3
+    template: 1
+    decision-maker: 1
+    aggregation: 7
+  
+  by_complexity:
+    simple: 3
+    intermediate: 14
+    advanced: 6
+  
+  average_rating: 4.77
+  total_usage: 4231
+  
+  most_used:
+    - empty-agent
+    - presenter-markdown
+    - rag-query
+    - document-writer
+    - fan-out-fan-in_worker
+  
+  newest:
+    - presenter-code
+    - semantic-search
+    - web-query
+    - researcher
+    - rag-query

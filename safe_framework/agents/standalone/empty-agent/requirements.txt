@@ -1,0 +1,25 @@
+# [EDIT] Empty Agent Template - Python Dependencies
+# Add the packages your agent needs here
+# Format: package_name>=version
+
+# Core dependencies
+# Uncomment and use as needed:
+
+# anthropic>=0.20.0          # Claude API
+# pydantic>=2.0.0            # Data validation
+# requests>=2.28.0           # HTTP requests
+# typing-extensions>=4.0.0   # Type hints
+
+# Common optional dependencies:
+# python-docx>=0.8.10        # Word document generation
+# pandas>=1.0                # Data manipulation
+# jinja2>=3.0                # Template rendering
+# PyYAML>=6.0                # YAML parsing
+# beautifulsoup4>=4.9.0      # HTML parsing
+# selenium>=4.0.0            # Web automation
+# langchain>=0.0.300         # LLM framework
+# pinecone-client>=2.2.0     # Vector DB
+
+# Add only packages you actually use
+# Keep versions as specific as possible
+# Include comments explaining each package's purpose
