@@ -25,10 +25,12 @@ class AgentCatalog:
             },
             output_schema={
                 "type": "object",
-                "required": ["loan_type", "specialist"],
+                "required": ["loan_type", "specialist", "amount", "credit_score"],
                 "properties": {
                     "loan_type": {"type": "string"},
-                    "specialist": {"type": "string"}
+                    "specialist": {"type": "string"},
+                    "amount": {"type": "number"},
+                    "credit_score": {"type": "integer"}
                 }
             }
         ),
