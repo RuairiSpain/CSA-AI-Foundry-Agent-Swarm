@@ -197,23 +197,27 @@ class RouteInterviewer:
         for i, agent in enumerate(recommended, 1):
             print(f"  {i}. {agent.name} (⭐{'⭐'*(5-i)})")
         
+        if not recommended:
+            print(f"  (no agents found for category '{category}' — type a name to search)")
+
         while True:
             search = input(f"\nSearch agent name or press Enter for recommendation: ").strip()
-            
+
             if not search:
-                # Use first recommendation
-                selected = recommended[0] if recommended else None
+                if recommended:
+                    selected = recommended[0]
+                else:
+                    print(f"No agents available in category '{category}'. Enter a name to search.")
+                    continue
             else:
-                # Search
                 results = self.catalog.search_by_name(search)
                 if not results:
                     print(f"No agents found matching '{search}'")
                     continue
-                
+
                 if len(results) == 1:
                     selected = results[0]
                 else:
-                    # Multiple matches
                     for i, agent in enumerate(results[:5], 1):
                         print(f"  {i}. {agent.name}")
                     choice = input("Select (1-5): ")
@@ -222,10 +226,9 @@ class RouteInterviewer:
                     except (ValueError, IndexError):
                         print("Invalid choice")
                         continue
-            
-            if selected:
-                print(f"✓ Selected: {selected.name}")
-                return selected
+
+            print(f"✓ Selected: {selected.name}")
+            return selected
     
     async def _ask_logic(self, pattern: RoutePattern, agents: Dict[str, Agent]) -> tuple:
         """Ask about route logic configuration"""

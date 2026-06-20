@@ -1,148 +1,46 @@
-"""Agent catalog - provides access to available agents"""
+"""Agent catalog — loads from catalog.yaml in this package directory."""
 
-import json
-from typing import List, Optional, Dict, Any
+import yaml
+from pathlib import Path
+from typing import List, Optional
 from .models import Agent
 
-class AgentCatalog:
-    """Catalog of available agents"""
-    
-    # Hardcoded catalog (in production, would load from YAML)
-    AGENTS = {
-        "loan-supervisor-router": Agent(
-            name="loan-supervisor-router",
-            category="supervisor",
-            version="1.0",
-            description="Routes loan applications to specialists",
-            input_schema={
-                "type": "object",
-                "required": ["amount", "loan_type", "credit_score"],
-                "properties": {
-                    "amount": {"type": "number"},
-                    "loan_type": {"type": "string"},
-                    "credit_score": {"type": "integer"}
-                }
-            },
-            output_schema={
-                "type": "object",
-                "required": ["loan_type", "specialist", "amount", "credit_score"],
-                "properties": {
-                    "loan_type": {"type": "string"},
-                    "specialist": {"type": "string"},
-                    "amount": {"type": "number"},
-                    "credit_score": {"type": "integer"}
-                }
-            }
-        ),
-        "loan-specialist-mortgage": Agent(
-            name="loan-specialist-mortgage",
-            category="specialist",
-            version="1.0",
-            description="Analyzes mortgage loan applications",
-            input_schema={
-                "type": "object",
-                "required": ["amount", "credit_score"],
-                "properties": {
-                    "amount": {"type": "number"},
-                    "credit_score": {"type": "integer"}
-                }
-            },
-            output_schema={
-                "type": "object",
-                "required": ["decision", "confidence"],
-                "properties": {
-                    "decision": {"type": "string"},
-                    "confidence": {"type": "number"}
-                }
-            }
-        ),
-        "loan-specialist-auto": Agent(
-            name="loan-specialist-auto",
-            category="specialist",
-            version="1.0",
-            description="Analyzes auto loan applications",
-            input_schema={
-                "type": "object",
-                "required": ["amount", "credit_score"],
-                "properties": {
-                    "amount": {"type": "number"},
-                    "credit_score": {"type": "integer"}
-                }
-            },
-            output_schema={
-                "type": "object",
-                "required": ["decision", "confidence"],
-                "properties": {
-                    "decision": {"type": "string"},
-                    "confidence": {"type": "number"}
-                }
-            }
-        ),
-        "loan-specialist-personal": Agent(
-            name="loan-specialist-personal",
-            category="specialist",
-            version="1.0",
-            description="Analyzes personal loan applications",
-            input_schema={
-                "type": "object",
-                "required": ["amount", "credit_score"],
-                "properties": {
-                    "amount": {"type": "number"},
-                    "credit_score": {"type": "integer"}
-                }
-            },
-            output_schema={
-                "type": "object",
-                "required": ["decision", "confidence"],
-                "properties": {
-                    "decision": {"type": "string"},
-                    "confidence": {"type": "number"}
-                }
-            }
-        ),
-        "standard-aggregator": Agent(
-            name="standard-aggregator",
-            category="aggregator",
-            version="1.0",
-            description="Combines decisions from multiple specialists",
-            input_schema={
-                "type": "object",
-                "required": ["decisions"],
-                "properties": {
-                    "decisions": {"type": "array"}
-                }
-            },
-            output_schema={
-                "type": "object",
-                "required": ["final_decision", "confidence"],
-                "properties": {
-                    "final_decision": {"type": "string"},
-                    "confidence": {"type": "number"}
-                }
-            }
-        ),
-    }
-    
-    def search_by_name(self, query: str) -> List[Agent]:
-        """Search agents by name"""
-        query = query.lower()
-        return [
-            agent for agent in self.AGENTS.values()
-            if query in agent.name.lower()
-        ]
-    
-    def search_by_category(self, category: str) -> List[Agent]:
-        """Search agents by category"""
-        return [
-            agent for agent in self.AGENTS.values()
-            if agent.category == category
-        ]
-    
-    def get_agent(self, name: str) -> Optional[Agent]:
-        """Get agent by name"""
-        return self.AGENTS.get(name)
-    
-    def list_all(self) -> List[Agent]:
-        """List all agents"""
-        return list(self.AGENTS.values())
+_CATALOG_PATH = Path(__file__).parent / "catalog.yaml"
 
+
+def _load_catalog() -> dict[str, Agent]:
+    with open(_CATALOG_PATH, "r") as f:
+        data = yaml.safe_load(f)
+
+    agents: dict[str, Agent] = {}
+    for entry in data.get("agents", []):
+        agent = Agent(
+            name=entry["name"],
+            category=entry["category"],
+            version=str(entry.get("version", "1.0")),
+            description=entry.get("description", ""),
+            input_schema=entry.get("input_schema", {}),
+            output_schema=entry.get("output_schema", {}),
+        )
+        agents[agent.name] = agent
+    return agents
+
+
+class AgentCatalog:
+    """Catalog of available agents, loaded from catalog.yaml."""
+
+    def __init__(self) -> None:
+        self._agents: dict[str, Agent] = _load_catalog()
+
+    def search_by_name(self, query: str) -> List[Agent]:
+        query = query.lower()
+        return [a for a in self._agents.values() if query in a.name.lower()]
+
+    def search_by_category(self, category: str) -> List[Agent]:
+        return [a for a in self._agents.values() if a.category == category]
+
+    def get_agent(self, name: str) -> Optional[Agent]:
+        return self._agents.get(name)
+
+    def list_all(self) -> List[Agent]:
+        return list(self._agents.values())

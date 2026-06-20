@@ -40,8 +40,40 @@ class TestAgentCatalog:
         """List all agents"""
         catalog = AgentCatalog()
         agents = catalog.list_all()
-        
+
         assert len(agents) > 0
+
+    # P1 catalog-unification tests ──────────────────────────────────────────
+
+    def test_all_interview_categories_present(self):
+        """Every category the interview searches for has at least one agent."""
+        catalog = AgentCatalog()
+        required = ["supervisor", "specialist", "aggregator", "processor", "splitter", "mapper", "reducer"]
+        for cat in required:
+            results = catalog.search_by_category(cat)
+            assert len(results) > 0, f"No agents found for category '{cat}'"
+
+    def test_non_loan_agents_present(self):
+        """Catalog contains non-loan agents for each pattern-specific role."""
+        catalog = AgentCatalog()
+        non_loan = {
+            "processor": "document-processor",
+            "splitter": "batch-splitter",
+            "mapper": "data-mapper",
+            "reducer": "data-reducer",
+            "aggregator": "fan-in-aggregator",
+        }
+        for cat, name in non_loan.items():
+            agent = catalog.get_agent(name)
+            assert agent is not None, f"Expected agent '{name}' not found"
+            assert agent.category == cat
+
+    def test_catalog_agents_have_schemas(self):
+        """Every agent loaded from YAML has non-empty input and output schemas."""
+        catalog = AgentCatalog()
+        for agent in catalog.list_all():
+            assert agent.input_schema, f"{agent.name} has empty input_schema"
+            assert agent.output_schema, f"{agent.name} has empty output_schema"
 
 
 class TestContractValidator:
