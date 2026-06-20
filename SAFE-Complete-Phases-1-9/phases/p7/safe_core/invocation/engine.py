@@ -29,6 +29,7 @@ class ExecutionResult:
     route_name: str
     route_version: str
     status: ExecutionStatus
+    input_data: Dict[str, Any] = field(default_factory=dict)
     output_data: Dict[str, Any] = field(default_factory=dict)
     execution_time_ms: float = 0.0
     errors: List[str] = field(default_factory=list)
