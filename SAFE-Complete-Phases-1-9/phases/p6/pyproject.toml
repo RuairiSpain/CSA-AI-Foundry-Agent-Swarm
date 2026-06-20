@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=65.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-phase6"
+version = "1.0.0"
+description = "SAFE Framework Phase 6: Agent 365 Integration"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "Microsoft CSA Team"}]
+dependencies = [
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+]
+
