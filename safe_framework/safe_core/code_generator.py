@@ -39,6 +39,7 @@ _PATTERN_TEMPLATE_DIRS = {
     RoutePattern.ADAPTIVE_ROUTING:            _PATTERNS_DIR / "adaptive-routing",
     RoutePattern.PLANNER_GENERATOR_EVALUATOR: _PATTERNS_DIR / "planner-generator-evaluator",
     RoutePattern.LATS:                        _PATTERNS_DIR / "lats",
+    RoutePattern.RALPH_LOOP:                  _PATTERNS_DIR / "ralph-loop",
 }
 
 def _get_template(pattern: RoutePattern):
@@ -111,6 +112,8 @@ class RouteCodeGenerator:
             return RouteCodeGenerator._generate_planner_generator_evaluator(route_def)
         elif route_def.pattern == RoutePattern.LATS:
             return RouteCodeGenerator._generate_lats(route_def)
+        elif route_def.pattern == RoutePattern.RALPH_LOOP:
+            return RouteCodeGenerator._generate_ralph_loop(route_def)
         else:
             raise NotImplementedError(f"Pattern {route_def.pattern} not yet implemented")
 
@@ -779,6 +782,48 @@ class RouteCodeGenerator:
             "max_interview_turns": 10,
         })
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.PLANNER_GENERATOR_EVALUATOR)
+
+    @staticmethod
+    def _generate_ralph_loop(route_def: RouteDefinition) -> GeneratedRoute:
+        planner_key = "planner"
+        implementer_key = "implementer"
+        verifier_key = "verifier"
+        spawn_budget = 10
+
+        planner = route_def.agents.get(planner_key)
+        input_required = planner.input_schema.get("required", []) if planner else []
+        verifier = route_def.agents.get(verifier_key)
+        output_required = verifier.output_schema.get("required", []) if verifier else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "planner_key": planner_key,
+            "implementer_key": implementer_key,
+            "verifier_key": verifier_key,
+            "spawn_budget": spawn_budget,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.RALPH_LOOP).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
 
     @staticmethod
     def _generate_requirements(route_def: RouteDefinition) -> str:

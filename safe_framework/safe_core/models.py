@@ -53,6 +53,7 @@ class RoutePattern(str, Enum):
     ADAPTIVE_ROUTING              = "adaptive-routing"
     PLANNER_GENERATOR_EVALUATOR   = "planner-generator-evaluator"
     LATS                          = "lats"
+    RALPH_LOOP                    = "ralph-loop"
 
 
 @dataclass

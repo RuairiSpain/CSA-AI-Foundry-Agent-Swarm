@@ -1,0 +1,96 @@
+name: Ralph Implementer
+version: 1.0
+category: implementer
+description: |
+  Executes the task selected by the Planner for this iteration. Writes
+  changes to the filesystem. Designed to be idempotent so that if the
+  Verifier rejects its output the next iteration can safely re-run or
+  extend the work.
+
+contract:
+  inputs:
+    - name: impl_request
+      type: object
+      required: true
+      description: Task to implement with supporting context
+      schema:
+        type: object
+        required_fields: [task, iteration]
+        field_definitions:
+          task:
+            type: object
+            description: Structured task definition from the Planner
+          context:
+            type: object
+            description: Supporting context (file paths, relevant spec excerpts)
+          iteration:
+            type: integer
+            description: Current iteration index (0-based)
+
+  outputs:
+    - name: impl_result
+      type: object
+      required: true
+      description: Outcome of task execution
+      schema:
+        type: object
+        required_fields: [result]
+        field_definitions:
+          result:
+            type: object
+            description: Structured result of the implementation step
+          files_changed:
+            type: array
+            description: List of filesystem paths written or modified
+          metadata:
+            type: object
+            description: Execution details (model used, tokens, elapsed ms)
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 120
+
+documentation:
+  use_cases:
+    - Write or modify source files to satisfy an acceptance criterion
+    - Execute a data transformation step defined in the spec
+    - Apply a refactoring or compliance fix to a document
+  example:
+    input:
+      task:
+        id: "task-1"
+        description: "Implement user authentication endpoint"
+        acceptance_criteria: ["tests pass", "linter clean"]
+      context:
+        relevant_files: ["src/auth.py", "tests/test_auth.py"]
+      iteration: 0
+    output:
+      result:
+        status: "implemented"
+        summary: "Added /auth/login endpoint with JWT token issuance"
+      files_changed: ["src/auth.py"]
+      metadata:
+        model: "claude-sonnet-4-6"
+        elapsed_ms: 4200
+  limitations:
+    - Must be idempotent; the Verifier may reject output and the next iteration will re-run or extend the work
+    - Does not verify its own output — that is the Verifier's sole responsibility
+
+tags:
+  - implementer
+  - ralph-loop
+  - filesystem-state
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground implementation decisions in org knowledge and coding standards"
+  - id: iq-work
+    purpose: "Reference past accepted implementations for consistency"

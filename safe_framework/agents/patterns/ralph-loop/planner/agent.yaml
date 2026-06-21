@@ -1,0 +1,100 @@
+name: Ralph Planner
+version: 1.0
+category: planner
+description: |
+  Reads the task spec and current state from disk at the start of each
+  Ralph loop iteration. Selects the next actionable task and provides
+  fresh context to the implementer. Signals completion when all spec
+  items are satisfied.
+
+contract:
+  inputs:
+    - name: plan_request
+      type: object
+      required: true
+      description: Iteration context with filesystem paths and previous diagnostics
+      schema:
+        type: object
+        required_fields: [spec_path, state_path, iteration]
+        field_definitions:
+          spec_path:
+            type: string
+            description: Path to the task specification / TODO file on disk
+          state_path:
+            type: string
+            description: Path to the iteration state file on disk
+          iteration:
+            type: integer
+            description: Current iteration index (0-based)
+          previous_diagnostics:
+            type: array
+            description: Verifier diagnostics from the previous iteration (empty on first run)
+
+  outputs:
+    - name: plan_output
+      type: object
+      required: true
+      description: Next task for the implementer, or a done signal
+      schema:
+        type: object
+        required_fields: [done]
+        field_definitions:
+          done:
+            type: boolean
+            description: True when all spec items are complete
+          next_task:
+            type: object
+            description: Structured description of the task to implement this iteration
+          context:
+            type: object
+            description: Supporting context for the implementer (file paths, relevant spec excerpts)
+          final_result:
+            type: object
+            description: Summary result when done=true
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Read PRD / spec file and pick the next incomplete item
+    - Resume from a previous iteration state without re-reading conversation history
+    - Signal completion once all items are verified as done
+  example:
+    input:
+      spec_path: "/workspace/spec.md"
+      state_path: "/workspace/.ralph_state.json"
+      iteration: 0
+      previous_diagnostics: []
+    output:
+      done: false
+      next_task:
+        id: "task-1"
+        description: "Implement user authentication endpoint"
+        acceptance_criteria: ["tests pass", "linter clean"]
+      context:
+        relevant_files: ["src/auth.py", "tests/test_auth.py"]
+  limitations:
+    - Reads spec from disk; spec file must exist before the loop starts
+    - Does not maintain in-memory state between iterations by design (Ralph loop invariant)
+
+tags:
+  - planner
+  - ralph-loop
+  - context-reset
+  - filesystem-state
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground spec interpretation in org knowledge base"
+  - id: safe-durable-task
+    purpose: "Read and write durable iteration state between loop rounds"
