@@ -38,6 +38,7 @@ _PATTERN_TEMPLATE_DIRS = {
     RoutePattern.BUDGET_AWARE_ROUTING: _PATTERNS_DIR / "budget-aware-routing",
     RoutePattern.ADAPTIVE_ROUTING:            _PATTERNS_DIR / "adaptive-routing",
     RoutePattern.PLANNER_GENERATOR_EVALUATOR: _PATTERNS_DIR / "planner-generator-evaluator",
+    RoutePattern.LATS:                        _PATTERNS_DIR / "lats",
 }
 
 def _get_template(pattern: RoutePattern):
@@ -108,6 +109,8 @@ class RouteCodeGenerator:
             return RouteCodeGenerator._generate_adaptive_routing(route_def)
         elif route_def.pattern == RoutePattern.PLANNER_GENERATOR_EVALUATOR:
             return RouteCodeGenerator._generate_planner_generator_evaluator(route_def)
+        elif route_def.pattern == RoutePattern.LATS:
+            return RouteCodeGenerator._generate_lats(route_def)
         else:
             raise NotImplementedError(f"Pattern {route_def.pattern} not yet implemented")
 
@@ -736,6 +739,34 @@ class RouteCodeGenerator:
         ctx.update({"performance_tracker_key": "performance_tracker", "router_key": "router",
                      "worker_keys": worker_keys})
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.ADAPTIVE_ROUTING)
+
+    @staticmethod
+    def _generate_lats(route_def: RouteDefinition) -> GeneratedRoute:
+        expander = route_def.agents.get("expander")
+        input_required = expander.input_schema.get("required", []) if expander else []
+        evaluator = route_def.agents.get("evaluator")
+        output_required = evaluator.output_schema.get("required", []) if evaluator else []
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "expander_key":         "expander",
+            "executor_key":         "executor",
+            "evaluator_key":        "evaluator",
+            "reflector_key":        "reflector",
+            "max_iterations":       20,
+            "branching_factor":     3,
+            "exploration_constant": 1.414,
+            "success_threshold":    0.8,
+            "max_depth":            10,
+            "required_input_fields":  json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+        return RouteCodeGenerator._wrap(route_def, context, RoutePattern.LATS)
 
     @staticmethod
     def _generate_planner_generator_evaluator(route_def: RouteDefinition) -> GeneratedRoute:

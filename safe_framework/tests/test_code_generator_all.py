@@ -179,6 +179,12 @@ PATTERN_AGENTS = {
         "generator": make_agent("Generator", outputs=["sprint_delivery"]),
         "evaluator": make_agent("Evaluator", outputs=["approved"]),
     },
+    RoutePattern.LATS: {
+        "expander":  make_agent("Expander",  outputs=["actions"]),
+        "executor":  make_agent("Executor",  outputs=["next_state"]),
+        "evaluator": make_agent("Evaluator", outputs=["value", "terminal"]),
+        "reflector": make_agent("Reflector", outputs=["reflection"]),
+    },
 }
 
 

@@ -52,6 +52,7 @@ class RoutePattern(str, Enum):
     BUDGET_AWARE_ROUTING          = "budget-aware-routing"
     ADAPTIVE_ROUTING              = "adaptive-routing"
     PLANNER_GENERATOR_EVALUATOR   = "planner-generator-evaluator"
+    LATS                          = "lats"
 
 
 @dataclass

@@ -386,6 +386,61 @@ class ContractValidator:
                         suggested_solutions=["Choose a reducer whose output schema includes 'result'"]
                     ))
 
+        elif pattern == RoutePattern.LATS:
+            for role in ("expander", "executor", "evaluator", "reflector"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for lats pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+            evaluator = agents.get("evaluator")
+            if evaluator:
+                eval_props = evaluator.output_schema.get("properties", {})
+                for field in ("value", "terminal"):
+                    if field not in eval_props:
+                        errors.append(ValidationError(
+                            error_type="contract_mismatch",
+                            message=f"Evaluator '{evaluator.name}' must output a '{field}' field",
+                            suggested_solutions=[
+                                f"Choose an evaluator whose output schema includes '{field}'"
+                            ]
+                        ))
+
+            expander = agents.get("expander")
+            if expander:
+                if "actions" not in expander.output_schema.get("properties", {}):
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Expander '{expander.name}' must output an 'actions' field",
+                        suggested_solutions=[
+                            "Choose an expander whose output schema includes 'actions'"
+                        ]
+                    ))
+
+            reflector = agents.get("reflector")
+            if reflector:
+                if "reflection" not in reflector.output_schema.get("properties", {}):
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Reflector '{reflector.name}' must output a 'reflection' field",
+                        suggested_solutions=[
+                            "Choose a reflector whose output schema includes 'reflection'"
+                        ]
+                    ))
+
+            executor = agents.get("executor")
+            if executor:
+                if "next_state" not in executor.output_schema.get("properties", {}):
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Executor '{executor.name}' must output a 'next_state' field",
+                        suggested_solutions=[
+                            "Choose an executor whose output schema includes 'next_state'"
+                        ]
+                    ))
+
         elif pattern == RoutePattern.PLANNER_GENERATOR_EVALUATOR:
             for role in ("planner", "generator", "evaluator"):
                 if role not in agents:
