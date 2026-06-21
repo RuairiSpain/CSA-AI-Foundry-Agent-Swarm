@@ -156,3 +156,9 @@ pattern_roles:
   - pattern: sequential-pipeline
     placeholder: presenter
     description: Formats pipeline results as Word document
+
+tools:
+  - id: iq-work
+    purpose: "Pull org Word templates and branding from SharePoint before generating"
+  - id: iq-foundry
+    purpose: "Retrieve source content / data to populate document sections"

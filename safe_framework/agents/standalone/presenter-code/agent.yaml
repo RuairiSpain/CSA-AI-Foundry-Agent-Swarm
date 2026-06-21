@@ -52,3 +52,9 @@ tags:
   - generation
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve internal coding standards, style guides, and approved patterns"
+  - id: iq-work
+    purpose: "Pull approved code examples from internal SharePoint repositories"
+

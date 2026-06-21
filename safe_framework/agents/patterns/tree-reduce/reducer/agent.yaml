@@ -56,3 +56,9 @@ tags:
   - tree-reduce
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate each reduction step against known business rules"
+  - id: azure-cosmos-db
+    purpose: "Persist intermediate reduction results for large trees spanning multiple invocations"
+

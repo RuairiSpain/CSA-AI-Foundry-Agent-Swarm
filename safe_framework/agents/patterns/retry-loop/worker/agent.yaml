@@ -53,3 +53,9 @@ tags:
   - retry-loop
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground each attempt in the same knowledge base"
+  - id: safe-durable-task
+    purpose: "Checkpoint state between retries so a restart doesn't lose progress"
+

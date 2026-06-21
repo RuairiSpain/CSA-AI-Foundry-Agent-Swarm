@@ -52,3 +52,7 @@ tags:
   - retrieval
 
 pattern_roles: []
+tools:
+  - id: iq-web
+    purpose: "Primary — Bing grounding via Foundry IQ MCP for web, news, images, and video"
+

@@ -53,3 +53,9 @@ tags:
   - hierarchical-teams
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Team-specific knowledge domain (each team supervisor has its own index)"
+  - id: iq-fabric
+    purpose: "Team needs to query business / analytics data as part of its work"
+

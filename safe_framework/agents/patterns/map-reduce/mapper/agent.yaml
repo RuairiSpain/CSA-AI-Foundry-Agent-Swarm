@@ -52,3 +52,9 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Enrich each chunk with contextual knowledge (entity lookup, classification rules)"
+  - id: iq-web
+    purpose: "Live external lookup per record when mapping requires it"
+

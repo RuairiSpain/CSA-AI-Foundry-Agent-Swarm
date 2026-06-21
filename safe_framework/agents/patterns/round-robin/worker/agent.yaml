@@ -53,3 +53,7 @@ tags:
   - round-robin
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Each worker independently grounded in the shared knowledge base"
+

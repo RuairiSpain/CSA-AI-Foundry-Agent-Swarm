@@ -52,3 +52,15 @@ tags:
   - retrieval
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Primary — indexes org docs via Azure AI Search; core function of this agent"
+  - id: iq-work
+    purpose: "Extend retrieval to M365 content (meetings, emails, Teams chats)"
+  - id: iq-fabric
+    purpose: "Extend retrieval to structured business data in OneLake / Power BI"
+  - id: iq-web
+    purpose: "Fallback or augmentation when internal knowledge is insufficient"
+  - id: azure-cosmos-db
+    purpose: "Vector search over operational / transactional data"
+

@@ -53,3 +53,7 @@ tags:
   - hierarchical-teams
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Cross-team synthesis grounded in authoritative org knowledge"
+

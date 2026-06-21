@@ -52,3 +52,11 @@ tags:
   - generation
 
 pattern_roles: []
+tools:
+  - id: iq-work
+    purpose: "Retrieve org branding, CSS templates, and approved layouts from SharePoint"
+  - id: iq-foundry
+    purpose: "Source data and content for dashboard components"
+  - id: iq-fabric
+    purpose: "Embed live Power BI visuals or OneLake data into the HTML output"
+

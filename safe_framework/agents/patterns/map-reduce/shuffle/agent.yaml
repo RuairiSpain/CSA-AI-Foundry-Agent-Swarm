@@ -52,3 +52,7 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-fabric
+    purpose: "Reorder/shuffle structured data sourced from OneLake"
+

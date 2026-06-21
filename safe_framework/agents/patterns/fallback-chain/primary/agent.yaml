@@ -53,3 +53,7 @@ tags:
   - fallback-chain
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Primary attempt grounded in internal org knowledge"
+

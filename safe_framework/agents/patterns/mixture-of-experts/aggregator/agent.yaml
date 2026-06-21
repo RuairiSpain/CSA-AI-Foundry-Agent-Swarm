@@ -53,3 +53,7 @@ tags:
   - mixture-of-experts
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground the final expert synthesis in authoritative source material"
+

@@ -53,3 +53,9 @@ tags:
   - diamond
 
 pattern_roles: []
+tools:
+  - id: iq-fabric
+    purpose: "Split structured data from OneLake into left/right paths"
+  - id: azure-cosmos-db
+    purpose: "Split from an operational database"
+

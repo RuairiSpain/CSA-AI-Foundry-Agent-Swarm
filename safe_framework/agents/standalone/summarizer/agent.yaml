@@ -52,3 +52,11 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve source documents to summarise from the knowledge index"
+  - id: iq-work
+    purpose: "Summarise M365 content — meeting transcripts, email threads, documents"
+  - id: iq-fabric
+    purpose: "Summarise data reports and Power BI datasets"
+

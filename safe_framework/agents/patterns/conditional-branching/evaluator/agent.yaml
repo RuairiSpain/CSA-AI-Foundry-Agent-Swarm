@@ -53,3 +53,11 @@ tags:
   - conditional-branching
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve classification rules and decision trees to evaluate conditions"
+  - id: iq-work
+    purpose: "Use org signals (requestor, team, history) as part of the condition"
+  - id: iq-fabric
+    purpose: "Query business rules or thresholds directly from the semantic data model"
+

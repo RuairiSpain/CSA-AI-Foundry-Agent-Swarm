@@ -52,3 +52,7 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate combined specialist outputs against known outcome patterns and policies"
+

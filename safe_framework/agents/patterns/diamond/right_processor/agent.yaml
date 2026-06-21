@@ -53,3 +53,9 @@ tags:
   - diamond
 
 pattern_roles: []
+tools:
+  - id: iq-web
+    purpose: "External context / market data path via Bing grounding"
+  - id: iq-work
+    purpose: "Internal collaboration / people context path from M365"
+

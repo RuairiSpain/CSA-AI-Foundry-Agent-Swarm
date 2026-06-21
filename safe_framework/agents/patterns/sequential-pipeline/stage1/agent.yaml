@@ -52,3 +52,11 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve source documents to kick off the pipeline"
+  - id: iq-work
+    purpose: "Retrieve M365 source content (emails, meetings, documents)"
+  - id: iq-fabric
+    purpose: "Retrieve structured data from OneLake as pipeline input"
+

@@ -53,3 +53,9 @@ tags:
   - fallback-chain
 
 pattern_roles: []
+tools:
+  - id: iq-web
+    purpose: "First fallback — try public web when internal knowledge is insufficient"
+  - id: azure-cosmos-db
+    purpose: "Second fallback — return a cached or historical result from operational DB"
+

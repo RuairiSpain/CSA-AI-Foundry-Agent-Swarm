@@ -56,3 +56,9 @@ tags:
   - retry-loop
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate output against known-good patterns from the knowledge base"
+  - id: iq-work
+    purpose: "Compare output against org quality standards and past accepted outputs"
+

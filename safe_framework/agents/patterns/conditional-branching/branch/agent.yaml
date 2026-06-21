@@ -53,3 +53,9 @@ tags:
   - conditional-branching
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Branch-specific knowledge index per execution path"
+  - id: iq-web
+    purpose: "For branches that need live external information"
+

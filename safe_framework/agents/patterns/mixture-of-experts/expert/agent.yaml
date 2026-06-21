@@ -53,3 +53,11 @@ tags:
   - mixture-of-experts
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Domain-specific knowledge index per expert (e.g. legal-expert → legal index)"
+  - id: iq-fabric
+    purpose: "When the expert needs to reason over analytical business data"
+  - id: iq-web
+    purpose: "When an expert needs current external information (e.g. market-expert)"
+

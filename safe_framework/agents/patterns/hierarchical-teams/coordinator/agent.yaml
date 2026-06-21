@@ -53,3 +53,9 @@ tags:
   - hierarchical-teams
 
 pattern_roles: []
+tools:
+  - id: iq-work
+    purpose: "Understand team structure, ownership, and past project assignments from M365"
+  - id: iq-foundry
+    purpose: "Retrieve org knowledge to decompose the task and assign to the right teams"
+

@@ -52,3 +52,13 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-web
+    purpose: "Primary — live web and news search for external research via Bing grounding"
+  - id: iq-foundry
+    purpose: "Internal knowledge base for org-specific context and validation"
+  - id: iq-work
+    purpose: "Search past internal projects, meeting notes, and decisions"
+  - id: iq-fabric
+    purpose: "Pull business data to support or validate research findings"
+

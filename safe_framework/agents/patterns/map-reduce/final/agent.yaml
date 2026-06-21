@@ -52,3 +52,7 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate final output against business rules and known patterns"
+

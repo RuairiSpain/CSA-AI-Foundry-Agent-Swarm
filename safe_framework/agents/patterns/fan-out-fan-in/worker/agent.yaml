@@ -52,3 +52,9 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground each parallel worker in the shared knowledge base"
+  - id: iq-fabric
+    purpose: "When workers are analysing structured analytical datasets"
+

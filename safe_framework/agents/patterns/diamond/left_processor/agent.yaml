@@ -53,3 +53,9 @@ tags:
   - diamond
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Internal knowledge analysis path"
+  - id: iq-fabric
+    purpose: "Quantitative / analytical path using Power BI data"
+

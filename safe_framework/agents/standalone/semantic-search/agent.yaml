@@ -52,3 +52,11 @@ tags:
   - retrieval
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Primary — powered by Azure AI Search semantic ranking"
+  - id: azure-cosmos-db
+    purpose: "Vector search over operational / product data"
+  - id: iq-fabric
+    purpose: "Semantic search over business data entities in OneLake"
+

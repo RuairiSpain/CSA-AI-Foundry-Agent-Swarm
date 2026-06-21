@@ -53,3 +53,9 @@ tags:
   - mixture-of-experts
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve expert capability descriptions and past routing decisions to assign weights"
+  - id: iq-work
+    purpose: "Understand the query domain from org signals (which team owns this topic)"
+

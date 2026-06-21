@@ -52,3 +52,9 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve review rubrics, compliance standards, and past review outcomes"
+  - id: iq-work
+    purpose: "Compare against org review history and approved versions in SharePoint"
+

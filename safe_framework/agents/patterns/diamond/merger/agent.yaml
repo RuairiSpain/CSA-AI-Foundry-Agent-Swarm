@@ -56,3 +56,7 @@ tags:
   - diamond
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Merge left + right results validated against business rules"
+

@@ -52,3 +52,9 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve routing rules and specialist capability descriptions"
+  - id: iq-work
+    purpose: "Understand org context — ownership, past routing decisions, escalation history"
+

@@ -53,3 +53,9 @@ tags:
   - tree-reduce
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Each leaf grounded in org knowledge for its individual item"
+  - id: iq-fabric
+    purpose: "When leaves are processing individual data records from OneLake"
+

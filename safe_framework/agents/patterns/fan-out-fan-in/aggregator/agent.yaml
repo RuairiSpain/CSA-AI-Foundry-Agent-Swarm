@@ -52,3 +52,9 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate merged result against known combined-output patterns"
+  - id: azure-cosmos-db
+    purpose: "Persist aggregation results for downstream audit or replay"
+

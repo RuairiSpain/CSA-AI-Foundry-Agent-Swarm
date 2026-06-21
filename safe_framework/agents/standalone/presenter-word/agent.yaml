@@ -52,3 +52,9 @@ tags:
   - generation
 
 pattern_roles: []
+tools:
+  - id: iq-work
+    purpose: "Pull org-approved Word templates from SharePoint"
+  - id: iq-foundry
+    purpose: "Retrieve structured source content to populate the document"
+

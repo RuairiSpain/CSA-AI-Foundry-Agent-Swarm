@@ -52,3 +52,9 @@ tags:
   - processing
 
 pattern_roles: []
+tools:
+  - id: iq-fabric
+    purpose: "Split directly from OneLake / Power BI data model instead of pre-loading"
+  - id: azure-cosmos-db
+    purpose: "Split from an operational database — query chunk boundaries, stream records"
+

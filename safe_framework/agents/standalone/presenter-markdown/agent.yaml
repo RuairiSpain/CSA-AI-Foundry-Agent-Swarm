@@ -52,3 +52,7 @@ tags:
   - generation
 
 pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve org Markdown templates and style conventions"
+
