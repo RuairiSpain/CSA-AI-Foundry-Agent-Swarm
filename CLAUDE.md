@@ -23,6 +23,10 @@ pip install -e ".[dev]"
 # Run the CLI
 safe catalog [query]         # search agents
 safe route                   # interactive route creation wizard
+safe chain                   # interactive multi-pattern chain wizard
+safe chain list              # list chains in routes/
+safe chain validate <name>   # validate field mappings and step references
+safe chain generate <name>   # regenerate chain.py from a saved chain.yaml
 safe tool list               # list all MCP tools
 safe tool info <id>          # full catalog entry
 safe tool fork <id> <proj>   # fork a tool for project customisation

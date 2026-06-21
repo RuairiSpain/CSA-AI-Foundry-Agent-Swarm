@@ -1,6 +1,9 @@
 """
 SAFE Framework — unified models (Phases 1-9).
 
+RouteChain models are in chain_models.py and re-exported here for convenience:
+    from safe_core.models import RouteChain, RouteChainStep
+
 This file merges two groups of models:
   - p4 runtime models (dataclass-based): used by interview / generator / validator
   - p1-3 Pydantic schema models: static/dynamic route definitions
@@ -14,6 +17,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Literal
 from enum import Enum
 from datetime import datetime
+
+from .chain_models import RouteChain, RouteChainStep  # noqa: F401 — re-export
 
 
 class RoutePattern(str, Enum):
