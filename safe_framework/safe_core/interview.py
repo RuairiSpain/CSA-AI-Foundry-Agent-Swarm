@@ -6,6 +6,18 @@ from enum import Enum
 from .models import RoutePattern, RouteDefinition, Agent, ValidationError
 from .agent_catalog import AgentCatalog
 
+
+class _InterviewCancelledError(Exception):
+    """Raised when the user types 'q' at any prompt."""
+
+
+def _safe_input(prompt: str) -> str:
+    """Wrapper around input() that raises on 'q'/'quit'."""
+    val = input(prompt).strip()
+    if val.lower() in ("q", "quit"):
+        raise _InterviewCancelledError
+    return val
+
 class InterviewStep(str, Enum):
     """Steps in the interview"""
     PATTERN = "pattern"
@@ -24,29 +36,38 @@ class RouteInterviewer:
         self.route_def = None
         self.history = []  # For going back
         
-    async def start_interview(self) -> RouteDefinition:
-        """Start interactive interview loop"""
-        
+    async def start_interview(self) -> Optional[RouteDefinition]:
+        """Start interactive interview loop. Returns None if cancelled."""
         print("\n" + "="*60)
         print("SAFE Route Writer Agent - Interactive Interview")
         print("="*60)
-        print("\nLet's create a new route! You can go back at any time.\n")
-        
+        print("\nLet's create a new route! Type 'q' at any prompt to cancel.\n")
+
+        try:
+            return await self._run_interview()
+        except _InterviewCancelledError:
+            print("\nCancelled. No route was created.")
+            return None
+        except KeyboardInterrupt:
+            print("\n\nCancelled. No route was created.")
+            return None
+
+    async def _run_interview(self) -> Optional[RouteDefinition]:
         # Step 1: Pattern selection
         pattern = await self._ask_pattern()
-        
+
         # Step 2: Agent selection
         agents = await self._ask_agents(pattern)
-        
+
         # Step 3: Logic configuration
         routing_field, routing_rules = await self._ask_logic(pattern, agents)
-        
+
         # Step 4: Timeouts
         total_timeout, per_agent_timeout = await self._ask_timeouts(agents)
-        
+
         # Step 5: Metadata
         name, description, csa_email = await self._ask_metadata()
-        
+
         # Create route definition
         self.route_def = RouteDefinition(
             name=name,
@@ -59,14 +80,14 @@ class RouteInterviewer:
             routing_field=routing_field,
             routing_rules=routing_rules,
         )
-        
+
         # Step 6: Review
         confirmed = await self._review_and_confirm()
-        
+
         if not confirmed:
             print("\nRoute creation cancelled.")
             return None
-        
+
         print("\n✓ Route definition created!")
         return self.route_def
     
@@ -91,7 +112,7 @@ class RouteInterviewer:
         print("   └─ Best for: Extract → Clean → Enrich\n")
         
         while True:
-            choice = input("Choose (1-4, or 'b' to go back): ").strip()
+            choice = _safe_input("Choose (1-4, or 'b' to go back): ")
             
             pattern_map = {
                 "1": RoutePattern.SUPERVISOR_MANAGER,
@@ -126,7 +147,7 @@ class RouteInterviewer:
             agents["supervisor"] = supervisor
             
             # Specialists
-            specialist_count = int(input("\nHow many specialists? (2-5): ") or "2")
+            specialist_count = int(_safe_input("\nHow many specialists? (2-5): ") or "2")
             specialist_count = max(2, min(5, specialist_count))
             
             for i in range(specialist_count):
@@ -147,7 +168,7 @@ class RouteInterviewer:
         
         elif pattern == RoutePattern.FAN_OUT_FAN_IN:
             # Parallel processors
-            processor_count = int(input("\nHow many parallel processors? (2-5): ") or "2")
+            processor_count = int(_safe_input("\nHow many parallel processors? (2-5): ") or "2")
             processor_count = max(2, min(5, processor_count))
             
             for i in range(processor_count):
@@ -172,7 +193,7 @@ class RouteInterviewer:
             agents["reducer"] = await self._select_agent("Reducer", "reducer")
         
         elif pattern == RoutePattern.SEQUENTIAL_PIPELINE:
-            stage_count = int(input("\nHow many stages? (2-5): ") or "2")
+            stage_count = int(_safe_input("\nHow many stages? (2-5): ") or "2")
             stage_count = max(2, min(5, stage_count))
             
             for i in range(stage_count):
@@ -201,7 +222,7 @@ class RouteInterviewer:
             print(f"  (no agents found for category '{category}' — type a name to search)")
 
         while True:
-            search = input(f"\nSearch agent name or press Enter for recommendation: ").strip()
+            search = _safe_input(f"\nSearch agent name or press Enter for recommendation: ")
 
             if not search:
                 if recommended:
@@ -220,7 +241,7 @@ class RouteInterviewer:
                 else:
                     for i, agent in enumerate(results[:5], 1):
                         print(f"  {i}. {agent.name}")
-                    choice = input("Select (1-5): ")
+                    choice = _safe_input("Select (1-5): ")
                     try:
                         selected = results[int(choice) - 1]
                     except (ValueError, IndexError):
@@ -249,7 +270,7 @@ class RouteInterviewer:
                 for i, field in enumerate(fields, 1):
                     print(f"  {i}. {field}")
                 
-                choice = input(f"\nChoose field (1-{len(fields)}): ").strip()
+                choice = _safe_input(f"\nChoose field (1-{len(fields)}): ")
                 try:
                     routing_field = fields[int(choice) - 1]
                 except (ValueError, IndexError):
@@ -264,10 +285,10 @@ class RouteInterviewer:
         print(f"\n--- Step 4: Configure Timeouts ---\n")
         
         print("Total route timeout (seconds): ")
-        total_timeout = int(input("Default (120): ") or "120")
-        
+        total_timeout = int(_safe_input("Default (120): ") or "120")
+
         print("\nPer-agent timeout (seconds): ")
-        per_agent_timeout = int(input("Default (60): ") or "60")
+        per_agent_timeout = int(_safe_input("Default (60): ") or "60")
         
         # Validate
         if total_timeout < per_agent_timeout:
@@ -282,12 +303,9 @@ class RouteInterviewer:
         """Ask for route metadata"""
         print(f"\n--- Step 5: Route Information ---\n")
         
-        name = input("Route name (lowercase, hyphens): ").strip()
-        if not name:
-            name = "my-route"
-        
-        description = input("Description (optional): ").strip()
-        csa_email = input("Your email (for audit trail): ").strip()
+        name = _safe_input("Route name (lowercase, hyphens): ") or "my-route"
+        description = _safe_input("Description (optional): ")
+        csa_email = _safe_input("Your email (for audit trail): ")
         
         print(f"\n✓ Route: {name}")
         return name, description, csa_email
@@ -304,7 +322,7 @@ class RouteInterviewer:
         print(f"Description: {self.route_def.description}")
         
         while True:
-            response = input("\nConfirm and generate? (y/n): ").strip().lower()
+            response = _safe_input("\nConfirm and generate? (y/n): ").lower()
             if response in ['y', 'yes']:
                 return True
             elif response in ['n', 'no']:

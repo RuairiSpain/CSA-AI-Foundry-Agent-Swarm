@@ -140,6 +140,146 @@ def tool_fork(
     )
 
 
+# ── chain sub-commands ────────────────────────────────────────────────────────
+
+chain_app = typer.Typer(help="Build and manage multi-pattern chains.")
+app.add_typer(chain_app, name="chain")
+
+
+@chain_app.callback(invoke_without_command=True)
+def chain_default(ctx: typer.Context):
+    """Chain builder (interactive). Runs the wizard when no sub-command is given."""
+    if ctx.invoked_subcommand is None:
+        import asyncio
+        from pathlib import Path
+        from safe_core.chain_interview import ChainInterviewer
+        from safe_core.chain_generator import RouteChainGenerator
+        from safe_core.chain_validator import ChainValidator
+
+        routes_dir = Path.cwd() / "routes"
+        interviewer = ChainInterviewer(routes_dir=routes_dir)
+        chain = asyncio.run(interviewer.start_interview())
+        if chain is None:
+            return
+
+        validator = ChainValidator()
+        errors = validator.validate(chain, routes_dir)
+        warnings = [e for e in errors if e.error_type == "tight_timeout"]
+        hard = [e for e in errors if e.error_type != "tight_timeout"]
+
+        for w in warnings:
+            typer.echo(typer.style(f"  ⚠ {w.message}", fg=typer.colors.YELLOW))
+
+        if hard:
+            for e in hard:
+                typer.echo(typer.style(f"  ✗ {e.message}", fg=typer.colors.RED), err=True)
+            raise typer.Exit(1)
+
+        chain_dir = RouteChainGenerator.save(chain, routes_dir)
+        typer.echo(
+            f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+            f"Generated: {chain_dir}/chain.py"
+        )
+        typer.echo(f"  Definition : {chain_dir}/chain.yaml")
+
+
+@chain_app.command("list")
+def chain_list(
+    routes_dir: str = typer.Option("./routes", "--routes-dir", "-d", help="Routes directory"),
+):
+    """List all chains defined under the routes directory."""
+    from pathlib import Path
+
+    rdir = Path(routes_dir)
+    if not rdir.exists():
+        typer.echo("No routes directory found.")
+        raise typer.Exit(0)
+
+    chains = [d for d in sorted(rdir.iterdir()) if (d / "chain.yaml").exists()]
+    if not chains:
+        typer.echo("No chains found. Run 'safe chain' to create one.")
+        raise typer.Exit(0)
+
+    typer.echo(f"\n  {'Chain':<40}  {'Steps':<7}  Description")
+    typer.echo("  " + "-" * 70)
+    import yaml
+    for d in chains:
+        try:
+            data = yaml.safe_load((d / "chain.yaml").read_text(encoding="utf-8"))
+            n_steps = len(data.get("steps", []))
+            desc = (data.get("description") or "")[:45]
+            typer.echo(f"  {data['name']:<40}  {n_steps:<7}  {desc}")
+        except Exception:
+            typer.echo(f"  {d.name:<40}  (could not read chain.yaml)")
+
+    typer.echo(f"\n  {len(chains)} chain(s) found.")
+
+
+@chain_app.command("validate")
+def chain_validate(
+    name: str = typer.Argument(..., help="Chain name (directory under routes/)"),
+    routes_dir: str = typer.Option("./routes", "--routes-dir", "-d"),
+):
+    """Validate an existing chain's field mappings and step references."""
+    from pathlib import Path
+    from safe_core.chain_generator import RouteChainGenerator
+    from safe_core.chain_validator import ChainValidator
+
+    rdir = Path(routes_dir)
+    chain_yaml = rdir / name / "chain.yaml"
+    if not chain_yaml.exists():
+        typer.echo(typer.style(f"  ✗ chain.yaml not found: {chain_yaml}", fg=typer.colors.RED), err=True)
+        raise typer.Exit(1)
+
+    chain = RouteChainGenerator.load_from_yaml(chain_yaml)
+    errors = ChainValidator().validate(chain, rdir)
+
+    if not errors:
+        typer.echo(typer.style(f"  ✓ {name} is valid.", fg=typer.colors.GREEN))
+        return
+
+    for e in errors:
+        colour = typer.colors.YELLOW if e.error_type == "tight_timeout" else typer.colors.RED
+        typer.echo(typer.style(f"  {'⚠' if colour == typer.colors.YELLOW else '✗'} {e.message}", fg=colour))
+        for s in e.suggested_solutions:
+            typer.echo(f"      → {s}")
+
+    hard = [e for e in errors if e.error_type != "tight_timeout"]
+    if hard:
+        raise typer.Exit(1)
+
+
+@chain_app.command("generate")
+def chain_generate(
+    name: str = typer.Argument(..., help="Chain name to regenerate from its chain.yaml"),
+    routes_dir: str = typer.Option("./routes", "--routes-dir", "-d"),
+):
+    """Regenerate chain.py from a saved chain.yaml (after manual edits)."""
+    from pathlib import Path
+    from safe_core.chain_generator import RouteChainGenerator
+    from safe_core.chain_validator import ChainValidator
+
+    rdir = Path(routes_dir)
+    chain_yaml = rdir / name / "chain.yaml"
+    if not chain_yaml.exists():
+        typer.echo(typer.style(f"  ✗ chain.yaml not found: {chain_yaml}", fg=typer.colors.RED), err=True)
+        raise typer.Exit(1)
+
+    chain = RouteChainGenerator.load_from_yaml(chain_yaml)
+    errors = ChainValidator().validate(chain, rdir)
+    hard = [e for e in errors if e.error_type != "tight_timeout"]
+    if hard:
+        for e in hard:
+            typer.echo(typer.style(f"  ✗ {e.message}", fg=typer.colors.RED), err=True)
+        raise typer.Exit(1)
+
+    chain_dir = RouteChainGenerator.save(chain, rdir)
+    typer.echo(
+        f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+        f"Regenerated: {chain_dir}/chain.py"
+    )
+
+
 # ── existing commands ─────────────────────────────────────────────────────────
 
 
