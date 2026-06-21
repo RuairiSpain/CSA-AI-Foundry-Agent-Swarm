@@ -1,0 +1,27 @@
+# CODEOWNERS
+# Changes to these files require explicit approval from a repo admin before merging.
+# See .github/workflows/freeze-check.yml for the CI enforcement layer.
+
+# This file itself
+.github/CODEOWNERS                                      @ruairispain
+
+# Core data models — changing these affects all generated routes and validators
+safe_framework/safe_core/models.py                      @ruairispain
+safe_framework/safe_core/patterns.py                    @ruairispain
+
+# Agent + tool catalogs — additions/removals affect the route interview and discovery
+safe_framework/safe_core/catalog.yaml                   @ruairispain
+safe_framework/agents/catalog.yaml                      @ruairispain
+safe_framework/tools/catalog.yaml                       @ruairispain
+
+# Validation and contract rules — changes here alter what routes are accepted
+safe_framework/safe_core/validator.py                   @ruairispain
+safe_framework/safe_core/agent_validation.py            @ruairispain
+
+# Project-wide config and repo guidance
+pyproject.toml                                          @ruairispain
+safe_framework/pyproject.toml                           @ruairispain
+CLAUDE.md                                               @ruairispain
+
+# CI / security workflows
+.github/workflows/                                      @ruairispain
