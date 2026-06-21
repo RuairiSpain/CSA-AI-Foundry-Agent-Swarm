@@ -21,7 +21,6 @@ from datetime import datetime
 from .chain_models import RouteChain, RouteChainStep  # noqa: F401 — re-export
 
 
-
 class RoutePattern(str, Enum):
     """Supported route patterns"""
     SUPERVISOR_MANAGER = "supervisor-manager"
