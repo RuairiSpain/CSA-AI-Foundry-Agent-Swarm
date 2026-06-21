@@ -1,0 +1,56 @@
+name: Task Orchestrator
+version: 1.0
+category: orchestration
+description: |
+  Dynamically decomposes an incoming task into subtasks and assigns them to workers.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: High-level task description
+    - name: context
+      type: object
+      required: false
+      description: Additional context
+
+  outputs:
+    - name: subtasks
+      type: array
+      required: true
+      description: List of subtask objects for workers
+    - name: plan_id
+      type: string
+      required: true
+      description: Unique plan identifier for tracing
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Complex analysis decomposition
+    - Multi-step report planning
+    - RFP workstream breakdown
+  example:
+    input: {task: 'analyse Q2 performance'}
+    output: {subtasks: [], plan_id: 'plan-001'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: iq-work
+    purpose: "Understand org context to plan task decomposition"

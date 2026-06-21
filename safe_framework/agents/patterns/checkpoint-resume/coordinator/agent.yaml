@@ -1,0 +1,68 @@
+name: Checkpoint Coordinator
+version: 1.0
+category: orchestration
+description: |
+  Manages the workflow step graph, tracks progress, and coordinates start/resume/finalise transitions.
+
+contract:
+  inputs:
+    - name: workflow_id
+      type: string
+      required: true
+      description: Unique workflow instance identifier
+    - name: action
+      type: string
+      required: true
+      description: 'start_or_resume' | 'finalise'
+    - name: payload
+      type: object
+      required: false
+      description: Workflow input (required for start)
+
+  outputs:
+    - name: workflow_id
+      type: string
+      required: true
+      description: Echo of workflow ID
+    - name: status
+      type: string
+      required: true
+      description: 'running' | 'completed' | 'suspended'
+    - name: completed_steps
+      type: array
+      required: true
+      description: Steps already done
+    - name: pending_steps
+      type: array
+      required: true
+      description: Steps still to execute
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Long-running ETL coordination
+    - Multi-day approval workflow
+    - Resumable data pipeline
+  example:
+    input: {workflow_id: 'wf-001', action: 'start_or_resume'}
+    output: {status: 'running', pending_steps: []}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: safe-durable-task
+    purpose: "Manages step graph, checkpoints every state transition"

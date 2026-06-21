@@ -1,0 +1,60 @@
+name: Sub-Agent Tool
+version: 1.0
+category: orchestration
+description: |
+  A specialised agent exposed as a callable tool to the orchestrator.
+
+contract:
+  inputs:
+    - name: input
+      type: object
+      required: true
+      description: Tool-specific input from the orchestrator
+    - name: tool_id
+      type: string
+      required: false
+      description: This tool's registered ID
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Tool output
+    - name: tool_id
+      type: string
+      required: true
+      description: Echo of tool ID for orchestrator correlation
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Summariser tool
+    - Classifier tool
+    - Data-fetch tool
+  example:
+    input: {input: {}, tool_id: 'summariser'}
+    output: {result: {}, tool_id: 'summariser'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground sub-agent execution in org knowledge"
+  - id: iq-fabric
+    purpose: "Sub-agent accesses structured business data"
+  - id: iq-web
+    purpose: "Sub-agent performs web research"

@@ -1,0 +1,56 @@
+name: Memory Reader
+version: 1.0
+category: memory
+description: |
+  Retrieves relevant memories for the current session from the vector store.
+
+contract:
+  inputs:
+    - name: session_id
+      type: string
+      required: true
+      description: Session or user identifier
+    - name: query
+      type: string
+      required: true
+      description: Current query for semantic memory retrieval
+
+  outputs:
+    - name: memories
+      type: array
+      required: true
+      description: Relevant past memories with semantic scores
+    - name: session_context
+      type: object
+      required: true
+      description: Aggregated session context
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Multi-turn conversation context
+    - Long-running project state
+    - Personalised recommendations
+  example:
+    input: {session_id: 'sess-001', query: 'What did we decide?'}
+    output: {memories: [], session_context: {}}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - memory
+
+pattern_roles: []
+tools:
+  - id: azure-cosmos-db
+    purpose: "Hybrid + vector search over stored episodic/semantic memories"

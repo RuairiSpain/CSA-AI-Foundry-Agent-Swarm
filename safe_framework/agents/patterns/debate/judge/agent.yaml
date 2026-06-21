@@ -1,0 +1,68 @@
+name: Debate Judge
+version: 1.0
+category: analysis
+description: |
+  Evaluates both positions impartially and synthesises the most defensible verdict.
+
+contract:
+  inputs:
+    - name: topic
+      type: string
+      required: true
+      description: The original debate topic
+    - name: proposal
+      type: object
+      required: true
+      description: Proposer's argument
+    - name: challenge
+      type: object
+      required: true
+      description: Challenger's argument
+
+  outputs:
+    - name: verdict
+      type: string
+      required: true
+      description: The judge's conclusion
+    - name: reasoning
+      type: string
+      required: true
+      description: Reasoning for the verdict
+    - name: stronger_side
+      type: string
+      required: true
+      description: 'proposer' | 'challenger' | 'tie'
+    - name: recommendations
+      type: array
+      required: true
+      description: Actionable recommendations
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Go/no-go investment decision
+    - Risk vs. opportunity summary
+    - Balanced policy brief
+  example:
+    input: {topic: '', proposal: {}, challenge: {}}
+    output: {verdict: '', stronger_side: 'proposer'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - analysis
+
+pattern_roles: []
+tools:
+  - id: iq-work
+    purpose: "Apply org policy context and past decisions to the verdict"

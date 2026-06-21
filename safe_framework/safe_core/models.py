@@ -30,6 +30,22 @@ class RoutePattern(str, Enum):
     DIAMOND = "diamond"
     CONDITIONAL_BRANCHING = "conditional-branching"
     TREE_REDUCE = "tree-reduce"
+    # Backlog patterns
+    EVALUATOR_OPTIMIZER  = "evaluator-optimizer"
+    HUMAN_IN_THE_LOOP    = "human-in-the-loop"
+    REFLECTION           = "reflection"
+    ORCHESTRATOR_WORKERS = "orchestrator-workers"
+    RAG                  = "rag"
+    PLANNING             = "planning"
+    GATE_GUARD           = "gate-guard"
+    SELF_CONSISTENCY     = "self-consistency"
+    DEBATE               = "debate"
+    AGENT_AS_A_TOOL      = "agent-as-a-tool"
+    MEMORY_AUGMENTED     = "memory-augmented"
+    EVENT_DRIVEN         = "event-driven"
+    CHECKPOINT_RESUME    = "checkpoint-resume"
+    BUDGET_AWARE_ROUTING = "budget-aware-routing"
+    ADAPTIVE_ROUTING     = "adaptive-routing"
 
 
 @dataclass

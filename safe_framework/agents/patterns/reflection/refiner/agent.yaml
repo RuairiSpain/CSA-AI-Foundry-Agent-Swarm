@@ -1,0 +1,58 @@
+name: Reflection Refiner
+version: 1.0
+category: processing
+description: |
+  Applies critic feedback to produce an improved version of the draft.
+
+contract:
+  inputs:
+    - name: draft
+      type: object
+      required: true
+      description: Current draft
+    - name: critique
+      type: object
+      required: true
+      description: Critic's issues and suggestions
+    - name: reflection
+      type: integer
+      required: true
+      description: Reflection round number
+
+  outputs:
+    - name: draft
+      type: object
+      required: true
+      description: Improved draft
+    - name: changes_made
+      type: array
+      required: true
+      description: Summary of changes applied
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Tone improvement
+    - Compliance fix-up
+    - Clarity enhancement
+  example:
+    input: {draft: {}, critique: {}, reflection: 1}
+    output: {draft: {}, changes_made: []}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools: []

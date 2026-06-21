@@ -1,0 +1,52 @@
+name: Reflection Generator
+version: 1.0
+category: processing
+description: |
+  Produces the initial draft that will be critiqued and refined.
+
+contract:
+  inputs:
+    - name: payload
+      type: object
+      required: true
+      description: Task to generate from
+    - name: context
+      type: object
+      required: false
+      description: Optional context
+
+  outputs:
+    - name: draft
+      type: object
+      required: true
+      description: Initial generated output
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - First-draft reports
+    - Initial code generation
+    - Contract drafting
+  example:
+    input: {payload: {task: 'summarise'}}
+    output: {draft: {}}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground initial draft in org knowledge"

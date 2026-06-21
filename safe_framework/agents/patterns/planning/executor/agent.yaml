@@ -1,0 +1,58 @@
+name: Plan Executor
+version: 1.0
+category: orchestration
+description: |
+  Executes a single plan step and returns its outcome.
+
+contract:
+  inputs:
+    - name: step
+      type: object
+      required: true
+      description: Plan step to execute — includes id, action, inputs
+    - name: context
+      type: object
+      required: true
+      description: Original goal context
+
+  outputs:
+    - name: step_id
+      type: string
+      required: true
+      description: Echo of input step ID
+    - name: output
+      type: object
+      required: true
+      description: Step execution result
+    - name: success
+      type: boolean
+      required: true
+      description: Whether the step completed successfully
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Data fetch steps
+    - Document generation steps
+    - API call steps
+  example:
+    input: {step: {id: 'step-1', action: 'fetch data'}, context: {}}
+    output: {step_id: 'step-1', success: true}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools: []

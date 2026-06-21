@@ -1,0 +1,60 @@
+name: Adaptive Router
+version: 1.0
+category: routing
+description: |
+  Selects the worker with the highest weight for the current input type.
+
+contract:
+  inputs:
+    - name: input_type
+      type: string
+      required: true
+      description: Category of the current query
+    - name: weights
+      type: object
+      required: true
+      description: Worker weights from the performance tracker
+
+  outputs:
+    - name: selected_worker
+      type: string
+      required: true
+      description: Worker key with the highest weight
+    - name: weight_used
+      type: float
+      required: true
+      description: Weight of the selected worker
+    - name: routing_reason
+      type: string
+      required: true
+      description: Why this worker was selected
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Best-worker selection
+    - Traffic shaping
+    - Gradual model migration
+  example:
+    input: {input_type: 'support', weights: {}}
+    output: {selected_worker: 'worker_a', weight_used: 0.7}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - routing
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve and update routing weights from the knowledge store"

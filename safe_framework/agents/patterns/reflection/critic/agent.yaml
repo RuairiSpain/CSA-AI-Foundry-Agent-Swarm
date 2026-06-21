@@ -1,0 +1,64 @@
+name: Reflection Critic
+version: 1.0
+category: processing
+description: |
+  Critiques the draft against internal standards and returns structured improvement notes.
+
+contract:
+  inputs:
+    - name: draft
+      type: object
+      required: true
+      description: Draft to critique
+    - name: original_request
+      type: object
+      required: true
+      description: The original task
+    - name: reflection
+      type: integer
+      required: true
+      description: Reflection round number
+
+  outputs:
+    - name: no_issues
+      type: boolean
+      required: true
+      description: True if draft needs no further improvement
+    - name: issues
+      type: array
+      required: true
+      description: List of specific issues found
+    - name: suggestions
+      type: array
+      required: true
+      description: Improvement suggestions
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Quality assurance
+    - Bias detection
+    - Completeness check
+  example:
+    input: {draft: {}, original_request: {}, reflection: 0}
+    output: {no_issues: false, issues: []}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools:
+  - id: iq-work
+    purpose: "Compare against internal standards and past approved versions"

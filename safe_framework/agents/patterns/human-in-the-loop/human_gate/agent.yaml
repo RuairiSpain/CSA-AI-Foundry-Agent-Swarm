@@ -1,0 +1,64 @@
+name: HITL Human Gate
+version: 1.0
+category: compliance
+description: |
+  Suspends the workflow and waits for a human approval or rejection before proceeding.
+
+contract:
+  inputs:
+    - name: payload
+      type: object
+      required: true
+      description: Original request
+    - name: pre_validation
+      type: object
+      required: true
+      description: Pre-validator output
+
+  outputs:
+    - name: decision
+      type: string
+      required: true
+      description: 'approved' or 'rejected'
+    - name: approver
+      type: string
+      required: true
+      description: Identity of the human reviewer
+    - name: reason
+      type: string
+      required: false
+      description: Optional rejection reason
+    - name: timestamp_iso
+      type: string
+      required: true
+      description: When the decision was made
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Budget approval
+    - Contract sign-off
+    - Compliance decision
+  example:
+    input: {payload: {}, pre_validation: {}}
+    output: {decision: 'approved'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - compliance
+
+pattern_roles: []
+tools:
+  - id: safe-durable-task
+    purpose: "Suspend workflow and resume on webhook callback from human reviewer"
