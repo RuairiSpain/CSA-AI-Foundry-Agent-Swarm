@@ -1,204 +1,233 @@
-# SAFE Tool Catalog — Azure IQ + Azure Services
-#
-# Naming convention:
-#   iq-<service>   — Microsoft IQ Suite (native Foundry MCP endpoints, no custom code needed)
-#   azure-<svc>    — Azure native service MCPs (Cosmos DB is GA from Microsoft)
-#   safe-<svc>     — Custom MCP servers written for SAFE (see tools/mcp/)
-#
-# Foundry catalog fields:
-#   category  — portal browse filter: Knowledge | Productivity | Data & Analytics | Web | DevOps
-#   tags      — search/filter array; prefix iq-, azure-, safe- mirrors tool IDs
-#   tool_type — remote_mcp | local_mcp | openapi | a2a
-#
-# Usage in agent.yaml:
-#   tools:
-#     - id: iq-foundry
-#       purpose: "Retrieve routing rules and capability descriptions"
-
-version: "1.0"
-
+version: '1.0'
 tools:
+- id: iq-foundry
+  display_name: Foundry IQ
+  description: 'Indexed org knowledge — SharePoint, Blob Storage, OneLake via Azure
+    AI Search. Primary RAG source for internal documents, policies, standards, and
+    procedures.
 
-  # ── Knowledge ─────────────────────────────────────────────────────────────
+    '
+  category: Knowledge
+  tags:
+  - iq-foundry
+  - search
+  - rag
+  - knowledge-base
+  - azure-ai-search
+  - sharepoint
+  - blob
+  - onelake
+  tool_type: remote_mcp
+  endpoint:
+    type: azure_foundry_iq
+    notes: Configure in Azure AI Foundry portal → Tools → Knowledge → Foundry IQ
+  authentication:
+    type: managed_identity
+  functions:
+  - name: search
+    description: Semantic search over indexed org knowledge
+  - name: retrieve
+    description: Retrieve specific document or chunk by ID
+- id: iq-work
+  display_name: Work IQ
+  description: 'M365 signals — meetings, chats, emails, documents, workflows. Connects
+    agents to live org context: who owns what, past decisions, collaboration history.
 
-  - id: iq-foundry
-    display_name: "Foundry IQ"
-    description: >
-      Indexed org knowledge — SharePoint, Blob Storage, OneLake via Azure AI Search.
-      Primary RAG source for internal documents, policies, standards, and procedures.
-    category: Knowledge
-    tags: [iq-foundry, search, rag, knowledge-base, azure-ai-search, sharepoint, blob, onelake]
-    tool_type: remote_mcp
-    endpoint:
-      type: azure_foundry_iq
-      notes: "Configure in Azure AI Foundry portal → Tools → Knowledge → Foundry IQ"
-    authentication:
-      type: managed_identity
-    functions:
-      - name: search
-        description: Semantic search over indexed org knowledge
-      - name: retrieve
-        description: Retrieve specific document or chunk by ID
+    '
+  category: Productivity
+  tags:
+  - iq-work
+  - m365
+  - sharepoint
+  - teams
+  - outlook
+  - meetings
+  - emails
+  - workflows
+  tool_type: remote_mcp
+  endpoint:
+    type: azure_work_iq
+    notes: Configure in Azure AI Foundry portal → Tools → Productivity → Work IQ
+  authentication:
+    type: managed_identity
+  functions:
+  - name: search
+    description: Search across M365 content (emails, meetings, documents, chats)
+  - name: get_meeting_context
+    description: Retrieve meeting transcripts and action items
+  - name: get_document
+    description: Retrieve a specific SharePoint document
+- id: iq-fabric
+  display_name: Fabric IQ
+  description: 'Structured business data — OneLake, Power BI semantic models, data
+    agents. Enables agents to query live business metrics, KPIs, and analytical datasets.
 
-  # ── Productivity ──────────────────────────────────────────────────────────
+    '
+  category: Data & Analytics
+  tags:
+  - iq-fabric
+  - power-bi
+  - onelake
+  - fabric
+  - semantic-model
+  - analytics
+  - kpi
+  tool_type: remote_mcp
+  endpoint:
+    type: azure_fabric_iq
+    notes: Configure in Azure AI Foundry portal → Tools → Data → Fabric IQ
+  authentication:
+    type: managed_identity
+  functions:
+  - name: query
+    description: Natural-language query over Power BI semantic models or OneLake
+  - name: get_dataset
+    description: Retrieve a named dataset or report data
+- id: azure-cosmos-db
+  display_name: Azure Cosmos DB
+  description: 'Persistent vector + document store for agent memory and operational
+    data. Supports hybrid search (vector + keyword). Official Microsoft MCP Toolkit
+    (GA).
 
-  - id: iq-work
-    display_name: "Work IQ"
-    description: >
-      M365 signals — meetings, chats, emails, documents, workflows.
-      Connects agents to live org context: who owns what, past decisions, collaboration history.
-    category: Productivity
-    tags: [iq-work, m365, sharepoint, teams, outlook, meetings, emails, workflows]
-    tool_type: remote_mcp
-    endpoint:
-      type: azure_work_iq
-      notes: "Configure in Azure AI Foundry portal → Tools → Productivity → Work IQ"
-    authentication:
-      type: managed_identity
-    functions:
-      - name: search
-        description: Search across M365 content (emails, meetings, documents, chats)
-      - name: get_meeting_context
-        description: Retrieve meeting transcripts and action items
-      - name: get_document
-        description: Retrieve a specific SharePoint document
+    '
+  category: Data & Analytics
+  tags:
+  - azure-cosmos-db
+  - vector-search
+  - document-store
+  - agent-memory
+  - hybrid-search
+  tool_type: remote_mcp
+  endpoint:
+    type: azure_cosmos_db_mcp
+    notes: Use Microsoft official Cosmos DB MCP Toolkit — see devblogs.microsoft.com/cosmosdb
+  authentication:
+    type: managed_identity
+  functions:
+  - name: vector_search
+    description: Hybrid vector + keyword search over a Cosmos DB container
+  - name: upsert
+    description: Insert or update a document in Cosmos DB
+  - name: get
+    description: Retrieve a document by ID
+  - name: query
+    description: SQL-like query over a Cosmos DB container
+- id: iq-web
+  display_name: Web IQ
+  description: 'Live public web, news, images, and video via Bing grounding. Accessed
+    through the Foundry IQ MCP endpoint — no separate server needed.
 
-  # ── Data & Analytics ──────────────────────────────────────────────────────
+    '
+  category: Web
+  tags:
+  - iq-web
+  - bing
+  - web-search
+  - news
+  - images
+  - video
+  - grounding
+  tool_type: remote_mcp
+  endpoint:
+    type: azure_foundry_iq
+    grounding: web
+    notes: Enabled via Foundry IQ MCP with web grounding flag. Configure in Foundry
+      portal.
+  authentication:
+    type: managed_identity
+  functions:
+  - name: web_search
+    description: Search the live public web and news via Bing grounding
+  - name: fetch_page
+    description: Fetch and extract content from a public URL
+- id: safe-durable-task
+  display_name: SAFE Durable Task
+  description: 'Checkpoint, suspend, and resume long-running agent workflows via Azure
+    Durable Functions. Custom MCP server (safe_framework/tools/mcp/durable_task_mcp.py)
+    wrapping the Durable Task HTTP Management API.
 
-  - id: iq-fabric
-    display_name: "Fabric IQ"
-    description: >
-      Structured business data — OneLake, Power BI semantic models, data agents.
-      Enables agents to query live business metrics, KPIs, and analytical datasets.
-    category: "Data & Analytics"
-    tags: [iq-fabric, power-bi, onelake, fabric, semantic-model, analytics, kpi]
-    tool_type: remote_mcp
-    endpoint:
-      type: azure_fabric_iq
-      notes: "Configure in Azure AI Foundry portal → Tools → Data → Fabric IQ"
-    authentication:
-      type: managed_identity
-    functions:
-      - name: query
-        description: Natural-language query over Power BI semantic models or OneLake
-      - name: get_dataset
-        description: Retrieve a named dataset or report data
+    '
+  category: DevOps
+  tags:
+  - safe-durable-task
+  - durable-functions
+  - checkpoint
+  - resume
+  - long-running
+  - orchestration
+  tool_type: local_mcp
+  endpoint:
+    type: local_python
+    module: safe_framework.tools.mcp.durable_task_mcp
+    notes: Requires DURABLE_TASK_ENDPOINT and DURABLE_TASK_KEY environment variables
+  authentication:
+    type: api_key
+    env_var: DURABLE_TASK_KEY
+  functions:
+  - name: durable_start
+    description: Start a new Durable Functions orchestration instance
+  - name: durable_checkpoint
+    description: Get the current state checkpoint of a running orchestration
+  - name: durable_suspend
+    description: Suspend a running orchestration (preserves state)
+  - name: durable_resume
+    description: Resume a suspended orchestration from its last checkpoint
+  - name: durable_get_status
+    description: Get the current runtime status (Running/Suspended/Completed/Failed)
+- id: safe-model-router
+  display_name: SAFE Model Router
+  description: 'Route LLM calls to the optimal model tier (Quality / Cost / Balanced)
+    using Azure AI Foundry Model Router. Custom MCP server wrapping the Foundry REST
+    API.
 
-  - id: azure-cosmos-db
-    display_name: "Azure Cosmos DB"
-    description: >
-      Persistent vector + document store for agent memory and operational data.
-      Supports hybrid search (vector + keyword). Official Microsoft MCP Toolkit (GA).
-    category: "Data & Analytics"
-    tags: [azure-cosmos-db, vector-search, document-store, agent-memory, hybrid-search]
-    tool_type: remote_mcp
-    endpoint:
-      type: azure_cosmos_db_mcp
-      notes: "Use Microsoft official Cosmos DB MCP Toolkit — see devblogs.microsoft.com/cosmosdb"
-    authentication:
-      type: managed_identity
-    functions:
-      - name: vector_search
-        description: Hybrid vector + keyword search over a Cosmos DB container
-      - name: upsert
-        description: Insert or update a document in Cosmos DB
-      - name: get
-        description: Retrieve a document by ID
-      - name: query
-        description: SQL-like query over a Cosmos DB container
+    '
+  category: DevOps
+  tags:
+  - safe-model-router
+  - model-router
+  - cost-aware
+  - budget
+  - llm-routing
+  - foundry
+  tool_type: local_mcp
+  endpoint:
+    type: local_python
+    module: safe_framework.tools.mcp.model_router_mcp
+    notes: Requires FOUNDRY_ENDPOINT and FOUNDRY_API_KEY environment variables
+  authentication:
+    type: api_key
+    env_var: FOUNDRY_API_KEY
+  functions:
+  - name: model_router_chat
+    description: Route a chat completion request to the optimal model tier
+  - name: model_router_estimate_cost
+    description: Estimate token cost for a request before routing
+- id: safe-token-metrics
+  display_name: SAFE Token Metrics
+  description: 'Track per-request token cost and usage via Azure AI Foundry Token
+    Metrics API. Custom MCP server for granular cost attribution and budget enforcement.
 
-  # ── Web ───────────────────────────────────────────────────────────────────
-
-  - id: iq-web
-    display_name: "Web IQ"
-    description: >
-      Live public web, news, images, and video via Bing grounding.
-      Accessed through the Foundry IQ MCP endpoint — no separate server needed.
-    category: Web
-    tags: [iq-web, bing, web-search, news, images, video, grounding]
-    tool_type: remote_mcp
-    endpoint:
-      type: azure_foundry_iq
-      grounding: web
-      notes: "Enabled via Foundry IQ MCP with web grounding flag. Configure in Foundry portal."
-    authentication:
-      type: managed_identity
-    functions:
-      - name: web_search
-        description: Search the live public web and news via Bing grounding
-      - name: fetch_page
-        description: Fetch and extract content from a public URL
-
-  # ── DevOps / Orchestration (custom MCP — see tools/mcp/) ─────────────────
-
-  - id: safe-durable-task
-    display_name: "SAFE Durable Task"
-    description: >
-      Checkpoint, suspend, and resume long-running agent workflows via Azure Durable Functions.
-      Custom MCP server (safe_framework/tools/mcp/durable_task_mcp.py) wrapping the
-      Durable Task HTTP Management API.
-    category: DevOps
-    tags: [safe-durable-task, durable-functions, checkpoint, resume, long-running, orchestration]
-    tool_type: local_mcp
-    endpoint:
-      type: local_python
-      module: safe_framework.tools.mcp.durable_task_mcp
-      notes: "Requires DURABLE_TASK_ENDPOINT and DURABLE_TASK_KEY environment variables"
-    authentication:
-      type: api_key
-      env_var: DURABLE_TASK_KEY
-    functions:
-      - name: durable_start
-        description: Start a new Durable Functions orchestration instance
-      - name: durable_checkpoint
-        description: Get the current state checkpoint of a running orchestration
-      - name: durable_suspend
-        description: Suspend a running orchestration (preserves state)
-      - name: durable_resume
-        description: Resume a suspended orchestration from its last checkpoint
-      - name: durable_get_status
-        description: Get the current runtime status (Running/Suspended/Completed/Failed)
-
-  - id: safe-model-router
-    display_name: "SAFE Model Router"
-    description: >
-      Route LLM calls to the optimal model tier (Quality / Cost / Balanced) using
-      Azure AI Foundry Model Router. Custom MCP server wrapping the Foundry REST API.
-    category: DevOps
-    tags: [safe-model-router, model-router, cost-aware, budget, llm-routing, foundry]
-    tool_type: local_mcp
-    endpoint:
-      type: local_python
-      module: safe_framework.tools.mcp.model_router_mcp
-      notes: "Requires FOUNDRY_ENDPOINT and FOUNDRY_API_KEY environment variables"
-    authentication:
-      type: api_key
-      env_var: FOUNDRY_API_KEY
-    functions:
-      - name: model_router_chat
-        description: Route a chat completion request to the optimal model tier
-      - name: model_router_estimate_cost
-        description: Estimate token cost for a request before routing
-
-  - id: safe-token-metrics
-    display_name: "SAFE Token Metrics"
-    description: >
-      Track per-request token cost and usage via Azure AI Foundry Token Metrics API.
-      Custom MCP server for granular cost attribution and budget enforcement.
-    category: DevOps
-    tags: [safe-token-metrics, token-usage, cost-tracking, budget, metrics, foundry]
-    tool_type: local_mcp
-    endpoint:
-      type: local_python
-      module: safe_framework.tools.mcp.token_metrics_mcp
-      notes: "Requires FOUNDRY_ENDPOINT and FOUNDRY_API_KEY environment variables"
-    authentication:
-      type: api_key
-      env_var: FOUNDRY_API_KEY
-    functions:
-      - name: token_metrics_get_usage
-        description: Get token usage breakdown for a time period or request ID
-      - name: token_metrics_get_cost
-        description: Get cost breakdown by model, agent, and operation
-      - name: token_metrics_get_budget
-        description: Get current budget utilization and remaining allowance
+    '
+  category: DevOps
+  tags:
+  - safe-token-metrics
+  - token-usage
+  - cost-tracking
+  - budget
+  - metrics
+  - foundry
+  tool_type: local_mcp
+  endpoint:
+    type: local_python
+    module: safe_framework.tools.mcp.token_metrics_mcp
+    notes: Requires FOUNDRY_ENDPOINT and FOUNDRY_API_KEY environment variables
+  authentication:
+    type: api_key
+    env_var: FOUNDRY_API_KEY
+  functions:
+  - name: token_metrics_get_usage
+    description: Get token usage breakdown for a time period or request ID
+  - name: token_metrics_get_cost
+    description: Get cost breakdown by model, agent, and operation
+  - name: token_metrics_get_budget
+    description: Get current budget utilization and remaining allowance
