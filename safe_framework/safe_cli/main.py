@@ -52,6 +52,53 @@ def tool_info_cmd(tool_id: str = typer.Argument(..., help="Tool ID from the cata
     typer.echo(json.dumps(info, indent=2))
 
 
+@tool_app.command("rename")
+def tool_rename(
+    old_id: str = typer.Argument(..., help="Current tool ID to rename"),
+    new_id: str = typer.Argument(..., help="New tool ID (lowercase, kebab-case)"),
+):
+    """Rename a local MCP tool — updates the file, catalog entry, and all agent.yaml refs.
+
+    \b
+    Only local_mcp tools can be renamed (safe-* and project-*).
+    Remote tools (iq-*, azure-*) are cloud-endpoint references and cannot be renamed.
+
+    \b
+    Examples:
+      safe tool rename project-acme-iq-foundry  acme-knowledge-search
+      safe tool rename safe-durable-task         my-workflow-checkpoint
+    """
+    from tools.scaffold import rename_tool  # type: ignore[import]
+
+    try:
+        result = rename_tool(old_id, new_id)
+    except ValueError as exc:
+        typer.echo(typer.style(str(exc), fg=typer.colors.RED), err=True)
+        raise typer.Exit(1)
+
+    typer.echo(
+        f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+        f"Renamed: {result['old_id']} → {result['catalog_id']}"
+    )
+    typer.echo(f"  File       : {result['old_file']}")
+    typer.echo(f"             → {result['new_file']}")
+    if result["agents_updated"]:
+        typer.echo(f"  Agents updated ({len(result['agents_updated'])}):")
+        for path in result["agents_updated"]:
+            typer.echo(f"    {path}")
+    else:
+        typer.echo("  No agent.yaml files referenced this tool.")
+    typer.echo(
+        f"\n  Remember to commit:"
+        f"\n    git add {result['new_file']} tools/catalog.yaml"
+        + (
+            "".join(f"\n    git add {p}" for p in result["agents_updated"])
+            if result["agents_updated"] else ""
+        )
+        + "\n"
+    )
+
+
 @tool_app.command("fork")
 def tool_fork(
     tool_id: str = typer.Argument(..., help="ID of the tool to fork (e.g. iq-foundry)"),

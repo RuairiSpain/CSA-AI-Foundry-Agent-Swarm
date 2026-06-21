@@ -1,20 +1,24 @@
 """
-safe tool scaffold — fork an existing tool MCP for project-level customisation.
+safe tool scaffold — fork and rename MCP tools for project-level customisation.
 
 Usage (via CLI):
-    safe tool fork <tool-id> <project-name>
-    safe tool list
-    safe tool info <tool-id>
+    safe tool fork   <tool-id> <project-name>
+    safe tool rename <old-id>  <new-id>
+    safe tool list   [--category] [--project]
+    safe tool info   <tool-id>
 
-For custom MCPs (safe-*):   copies the source file and patches the server name.
-For native tools (iq-*, azure-*): generates a delegation wrapper stub that calls
-through to the native endpoint so the engineer adds logic without reimplementing.
+For custom MCPs (safe-*):   fork copies the source file and patches the server name.
+For native tools (iq-*, azure-*): fork generates a delegation wrapper stub.
 
-Forked files land in safe_framework/tools/mcp/ with the name:
-    project_<project>_<tool_slug>.py   (underscores — valid Python module name)
+Forked / renamed files live in safe_framework/tools/mcp/.
+  File name  : <new_id with hyphens → underscores>.py
+  Catalog ID : kebab-case new-id
 
-The catalog entry ID uses kebab-case to match the convention:
-    project-<project>-<tool-id>
+rename updates:
+  - Python file name
+  - FastMCP server name inside the file
+  - tools/catalog.yaml (id, display_name, tags, endpoint.module)
+  - every agent.yaml that references the old tool ID
 """
 
 from __future__ import annotations
@@ -329,6 +333,127 @@ def fork_tool(tool_id: str, project: str) -> dict[str, Any]:
         "catalog_id": new_id,
         "module": module_path,
         "is_copy": is_copy,
+    }
+
+
+def rename_tool(old_id: str, new_id: str) -> dict[str, Any]:
+    """Rename a local_mcp tool: file, FastMCP server name, catalog entry, agent.yaml refs.
+
+    Only tools with tool_type == 'local_mcp' can be renamed (i.e. safe-* and project-*).
+    Remote tools (iq-*, azure-*) are cloud-endpoint references — rename is not applicable.
+
+    Returns a summary dict with keys: old_file, new_file, agents_updated, catalog_id.
+    Raises ValueError on validation failure.
+    """
+    new_id = new_id.strip()
+    if not re.match(r"^[a-z0-9][a-z0-9-]*[a-z0-9]$", new_id):
+        raise ValueError(
+            f"new-id '{new_id}' must be lowercase alphanumeric with optional hyphens, "
+            "e.g. my-custom-search"
+        )
+
+    catalog = _load_catalog()
+
+    tool = _find_tool(catalog, old_id)
+    if tool is None:
+        available = [t["id"] for t in catalog.get("tools", [])]
+        raise ValueError(
+            f"Tool '{old_id}' not found in catalog.\nAvailable: {', '.join(available)}"
+        )
+
+    if _find_tool(catalog, new_id):
+        raise ValueError(
+            f"Tool '{new_id}' already exists in catalog. Choose a different name."
+        )
+
+    if tool.get("tool_type") != "local_mcp":
+        raise ValueError(
+            f"'{old_id}' is a {tool.get('tool_type', 'remote')} tool — it has no local "
+            "Python file to rename. Only local_mcp tools (safe-* and project-*) "
+            "can be renamed."
+        )
+
+    # Resolve current Python file from endpoint.module
+    old_module: str = (tool.get("endpoint") or {}).get("module", "")
+    if not old_module:
+        raise ValueError(
+            f"No endpoint.module found for '{old_id}'. Cannot determine file to rename."
+        )
+    old_filename = old_module.split(".")[-1] + ".py"
+    old_path = _MCP_DIR / old_filename
+    if not old_path.exists():
+        raise ValueError(
+            f"Expected file '{old_path}' not found. Has it been moved or deleted?"
+        )
+
+    # Determine new file name and module path
+    new_filename = _slug(new_id) + ".py"
+    new_path = _MCP_DIR / new_filename
+    new_module = f"safe_framework.tools.mcp.{_slug(new_id)}"
+
+    if new_path.exists():
+        raise ValueError(
+            f"Target file '{new_path}' already exists. Remove it first."
+        )
+
+    # Patch FastMCP server name inside the source
+    source = old_path.read_text()
+    patched = re.sub(
+        r'FastMCP\(["\'][^"\']+["\']\)',
+        f'FastMCP("{new_id}")',
+        source,
+        count=1,
+    )
+    # Also update any "Forked from" / server id comments in the docstring
+    patched = re.sub(
+        rf'\b{re.escape(old_id)}\b',
+        new_id,
+        patched,
+        count=3,  # docstring header + module name; avoid touching URLs or other strings
+    )
+
+    # Write new file, remove old
+    new_path.write_text(patched)
+    old_path.unlink()
+
+    # Update catalog entry in-place (mutate the dict, preserve all other fields)
+    tool["id"] = new_id
+    tool["display_name"] = re.sub(
+        rf'\b{re.escape(old_id)}\b', new_id, tool.get("display_name", old_id)
+    )
+    # Replace old_id in tags, add new_id if not present
+    tags: list[str] = tool.get("tags", [])
+    tags = [new_id if t == old_id else t for t in tags]
+    if new_id not in tags:
+        tags.insert(0, new_id)
+    tool["tags"] = tags
+    # Update module reference
+    if tool.get("endpoint"):
+        tool["endpoint"]["module"] = new_module
+        old_notes = tool["endpoint"].get("notes", "")
+        tool["endpoint"]["notes"] = re.sub(
+            rf'\b{re.escape(old_id)}\b', new_id, old_notes
+        )
+    _save_catalog(catalog)
+
+    # Scan all agent.yaml files and replace old_id references
+    agents_updated: list[str] = []
+    agents_root = _TOOLS_DIR.parent / "agents"
+    for agent_yaml in agents_root.rglob("agent.yaml"):
+        text = agent_yaml.read_text()
+        # Match  "id: old-id"  or  "id: 'old-id'"  or  'id: "old-id"'
+        pattern = rf'(id:\s*["\']?){re.escape(old_id)}(["\']?)'
+        if re.search(pattern, text):
+            updated = re.sub(pattern, rf'\g<1>{new_id}\g<2>', text)
+            agent_yaml.write_text(updated)
+            agents_updated.append(str(agent_yaml.relative_to(_TOOLS_DIR.parent.parent)))
+
+    return {
+        "old_file": str(old_path),
+        "new_file": str(new_path),
+        "old_id": old_id,
+        "catalog_id": new_id,
+        "agents_updated": agents_updated,
     }
 
 
