@@ -59,4 +59,11 @@ tools:
     purpose: "Summarise M365 content — meeting transcripts, email threads, documents"
   - id: iq-fabric
     purpose: "Summarise data reports and Power BI datasets"
+skills:
+  - id: summarize-text
+    purpose: "Core summarisation operation — produces abstractive prose, bullets, or tl;dr"
+  - id: score-sentiment
+    purpose: "Tag the emotional tone of the source before summarising to preserve sentiment in output"
+  - id: format-markdown
+    purpose: "Render the final summary with structured headings when the consumer expects Markdown"
 

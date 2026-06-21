@@ -140,6 +140,83 @@ def tool_fork(
     )
 
 
+# ── skill sub-commands ───────────────────────────────────────────────────────
+skill_app = typer.Typer(help="Browse and create reusable agent skills in the skill catalog.")
+app.add_typer(skill_app, name="skill")
+
+
+@skill_app.command("list")
+def skill_list(
+    category: str = typer.Option("", "--category", "-c", help="Filter by category (NLP, Text, Data)"),
+):
+    """List all skills in the catalog, grouped by category."""
+    from skills.scaffold import list_skills  # type: ignore[import]
+
+    skills = list_skills(category=category)
+
+    grouped: dict[str, list] = {}
+    for s in skills:
+        cat = s.get("category", "Uncategorised")
+        grouped.setdefault(cat, []).append(s)
+
+    for cat, items in sorted(grouped.items()):
+        typer.echo(f"\n  {typer.style(cat, bold=True)}")
+        for s in items:
+            tags = "  [" + ", ".join(s.get("tags", [])[:3]) + "]" if s.get("tags") else ""
+            typer.echo(f"    {s['id']:<42}  {s.get('display_name', '')}{tags}")
+
+    typer.echo(f"\n  {len(skills)} skill(s) found.")
+
+
+@skill_app.command("info")
+def skill_info_cmd(skill_id: str = typer.Argument(..., help="Skill ID from the catalog")):
+    """Show the full catalog entry for a skill."""
+    from skills.scaffold import skill_info  # type: ignore[import]
+    import json
+
+    try:
+        info = skill_info(skill_id)
+    except ValueError as exc:
+        typer.echo(typer.style(str(exc), fg=typer.colors.RED), err=True)
+        raise typer.Exit(1)
+
+    typer.echo(json.dumps(info, indent=2))
+
+
+@skill_app.command("create")
+def skill_create(
+    skill_id: str = typer.Argument(..., help="New skill ID (lowercase kebab-case, e.g. my-new-skill)"),
+    category: str = typer.Argument(..., help="Category (NLP, Text, Data, or custom)"),
+    description: str = typer.Argument(..., help="One-line description of what the skill does"),
+):
+    """Register a new skill in the catalog.
+
+    \b
+    Examples:
+      safe skill create chunk-text       Text  "Split long text into overlapping chunks"
+      safe skill create score-relevance  Data  "Score document relevance against a query"
+      safe skill create anonymize-pii    NLP   "Detect and redact PII from text"
+    """
+    from skills.scaffold import create_skill  # type: ignore[import]
+
+    try:
+        entry = create_skill(skill_id, category, description)
+    except ValueError as exc:
+        typer.echo(typer.style(str(exc), fg=typer.colors.RED), err=True)
+        raise typer.Exit(1)
+
+    typer.echo(
+        f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+        f"Created skill: {entry['id']} ({entry['category']})"
+    )
+    typer.echo(
+        f"\n  Next steps:"
+        f"\n    1. Edit skills/catalog.yaml to fill in inputs/outputs for '{entry['id']}'"
+        f"\n    2. Reference it in an agent.yaml:  skills:\n         - id: {entry['id']}"
+        f"\n    3. Commit skills/catalog.yaml\n"
+    )
+
+
 # ── chain sub-commands ────────────────────────────────────────────────────────
 
 chain_app = typer.Typer(help="Build and manage multi-pattern chains.")

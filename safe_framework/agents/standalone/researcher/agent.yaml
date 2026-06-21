@@ -61,4 +61,11 @@ tools:
     purpose: "Search past internal projects, meeting notes, and decisions"
   - id: iq-fabric
     purpose: "Pull business data to support or validate research findings"
+skills:
+  - id: extract-entities
+    purpose: "Pull persons, organisations, and dates from retrieved documents to build a structured knowledge graph"
+  - id: extract-key-phrases
+    purpose: "Surface the most relevant phrases from each source to guide follow-up search queries"
+  - id: detect-language
+    purpose: "Auto-detect source language before processing multilingual research content"
 

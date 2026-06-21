@@ -116,6 +116,7 @@ class Agent:
     # delegates subtasks to the named handoff pool via ConnectedAgentTool at
     # runtime. The route's deterministic path continues after the handoff returns.
     handoff_ref: Optional[str] = None
+    skills: List[Any] = field(default_factory=list)
 
 
 @dataclass
