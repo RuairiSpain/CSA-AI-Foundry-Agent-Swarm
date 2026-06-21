@@ -1,0 +1,55 @@
+name: Round-Robin Worker
+version: 1.0
+category: worker
+description: |
+  Processes assigned requests in a round-robin pool
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Request to process
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request payload
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Processed result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Process tasks assigned by dispatcher
+    - Parallel worker in round-robin pool
+  example:
+    input: {data: {task: "process"}}
+    output: {result: {status: "done"}}
+  limitations:
+    - Processes one request at a time
+
+tags:
+  - worker
+  - round-robin
+
+pattern_roles: []
