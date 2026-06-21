@@ -36,7 +36,8 @@ _PATTERN_TEMPLATE_DIRS = {
     RoutePattern.EVENT_DRIVEN:         _PATTERNS_DIR / "event-driven",
     RoutePattern.CHECKPOINT_RESUME:    _PATTERNS_DIR / "checkpoint-resume",
     RoutePattern.BUDGET_AWARE_ROUTING: _PATTERNS_DIR / "budget-aware-routing",
-    RoutePattern.ADAPTIVE_ROUTING:     _PATTERNS_DIR / "adaptive-routing",
+    RoutePattern.ADAPTIVE_ROUTING:            _PATTERNS_DIR / "adaptive-routing",
+    RoutePattern.PLANNER_GENERATOR_EVALUATOR: _PATTERNS_DIR / "planner-generator-evaluator",
 }
 
 def _get_template(pattern: RoutePattern):
@@ -105,6 +106,8 @@ class RouteCodeGenerator:
             return RouteCodeGenerator._generate_budget_aware_routing(route_def)
         elif route_def.pattern == RoutePattern.ADAPTIVE_ROUTING:
             return RouteCodeGenerator._generate_adaptive_routing(route_def)
+        elif route_def.pattern == RoutePattern.PLANNER_GENERATOR_EVALUATOR:
+            return RouteCodeGenerator._generate_planner_generator_evaluator(route_def)
         else:
             raise NotImplementedError(f"Pattern {route_def.pattern} not yet implemented")
 
@@ -733,6 +736,18 @@ class RouteCodeGenerator:
         ctx.update({"performance_tracker_key": "performance_tracker", "router_key": "router",
                      "worker_keys": worker_keys})
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.ADAPTIVE_ROUTING)
+
+    @staticmethod
+    def _generate_planner_generator_evaluator(route_def: RouteDefinition) -> GeneratedRoute:
+        ctx = RouteCodeGenerator._backlog_route(route_def, "planner", "evaluator")
+        ctx.update({
+            "planner_key": "planner",
+            "generator_key": "generator",
+            "evaluator_key": "evaluator",
+            "max_sprint_iterations": 5,
+            "max_interview_turns": 10,
+        })
+        return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.PLANNER_GENERATOR_EVALUATOR)
 
     @staticmethod
     def _generate_requirements(route_def: RouteDefinition) -> str:
