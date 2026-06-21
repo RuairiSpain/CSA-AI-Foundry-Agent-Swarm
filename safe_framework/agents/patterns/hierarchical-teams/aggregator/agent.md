@@ -1,42 +1,78 @@
-# Team Results Aggregator
+# Cross-Team Aggregator
+
+_Merges results from all team supervisors into a unified final output._
 
 ## Overview
-Combines and synthesises results from all team supervisors into a single unified final output in the hierarchical-teams pattern.
 
-## Contract
+The Aggregator is the final stage in the **hierarchical-teams** pattern. It collects the result objects from every team supervisor, resolves any conflicts or overlaps between team contributions, and produces the single canonical output for the original task.
+
+## Pattern Diagram
+
+```mermaid
+flowchart LR
+    classDef active fill:#0078D4,color:#fff,stroke:#005A9E
+    Input([Input]) --> Coordinator
+    Coordinator --> TeamSupA[Team Supervisor A]
+    Coordinator --> TeamSupB[Team Supervisor B]
+    TeamSupA --> W1[Worker]
+    TeamSupA --> W2[Worker]
+    TeamSupB --> W3[Worker]
+    TeamSupB --> W4[Worker]
+    TeamSupA --> Aggregator
+    TeamSupB --> Aggregator
+    Aggregator --> Output([Output])
+    class Aggregator active
+```
+
+## Contract Specification
 
 ### Inputs
-- team_results (object): Dict mapping team_key to each team's result
+
+**team_results** (array, required):
+- Each element: `{ "team": str, "result": object, "status": str, "blockers": array }`
 
 ### Outputs
-- final_output (object): Combined result from all teams
+
+**final_output** (object):
+- `report` (object, required): Merged content from all teams
+- `teams_contributed` (array): List of teams whose results were included
+- `teams_blocked` (array): Teams that reported `"blocked"` status
+- `overall_status` (string): `"complete"` | `"partial"`
+
+## Azure Tools
+
+| Tool ID | Display Name | Service | Purpose in this role |
+|---|---|---|---|
+| `iq-foundry` | Foundry IQ | Indexed org knowledge via Azure AI Search | Cross-team synthesis grounded in authoritative org knowledge |
 
 ## Usage
 
 ```python
-from agents.team_results_aggregator import Agent
+from safe_framework.agents.patterns.hierarchical_teams.aggregator import CrossTeamAggregator
 
-agent = Agent()
-result = await agent.invoke({"team_results": {"team_0": {"result": "..."}, "team_1": {"result": "..."}}})
-# Returns: {"result": {"combined": "..."}}
+agg = CrossTeamAggregator(kernel=kernel)
+output = await agg.invoke({"team_results": all_team_results})
 ```
 
 ## Use Cases
-- Combine results from multiple teams
-- Final synthesis in hierarchical-teams route
 
-## Dependencies
-- (See requirements.txt)
+1. **Investor deck** — merge finance, legal, and product team contributions into one deck
+2. **RFP response** — combine technical, commercial, and legal sections into a single bid
+3. **Annual report** — aggregate divisional P&Ls, risk registers, and ESG summaries
 
 ## Limitations
-- Requires at least one team result
 
-## Related Agents
-- Team Coordinator
-- Team Supervisor
+- Aggregating contradictory team results requires LLM judgement — review outputs in high-stakes scenarios
+- Blocked teams produce gaps in the output; callers should inspect `teams_blocked`
+
+## Related Roles
+
+- **Coordinator** — orchestrated the teams whose results this role merges
+- **Team Supervisor** — each supervisor contributed one element to the input array
 
 ---
 
-**Status:** Production Ready
-**Version:** 1.0
-**Framework:** SAFE 1.0
+**Status:** Production Ready  
+**Version:** 1.0  
+**Framework:** SAFE 1.0  
+**Last Updated:** 2026-06-21

@@ -1,58 +1,72 @@
 # Document Writer Agent
 
+_Generates professional Word documents (.docx) from structured data._
+
 ## Overview
 
-The Document Writer agent generates professional Word documents (.docx) from structured data.
+The Document Writer agent accepts a document structure (title, sections, formatting preferences) and produces a fully formatted .docx file. It is ideal for reports, contracts, proposals, and client deliverables. It can pull templates from SharePoint via Work IQ and source content from Foundry IQ before generating the document.
 
-Input a document structure (title, sections, formatting), and receive a properly formatted .docx file ready to share, print, or archive.
+## Pattern Diagram
 
-Perfect for: reports, contracts, proposals, client deliverables, formatted exports.
+```mermaid
+flowchart LR
+    classDef active fill:#0078D4,color:#fff,stroke:#005A9E
+    Source([Source Data]) --> DocWriter
+    Templates[(SharePoint Templates)] --> DocWriter
+    DocWriter --> DOCX([.docx Output])
+    class DocWriter active
+```
 
 ## Contract Specification
 
 ### Inputs
 
-**document_data** (object) - Structure defining the document:
+**document_data** (object, required):
 - `title` (string, required): Document title
 - `author` (string, optional): Author name
 - `subject` (string, optional): Document subject
 - `sections` (array, required): Document sections
   - `heading` (string): Section heading
   - `content` (string): Section body (Markdown or plain text)
-  - `style` (string): Visual style (normal, highlight, note, code)
-  - `include_page_break` (boolean): Page break before section
+  - `style` (string): `"normal"` | `"highlight"` | `"note"` | `"code"`
+  - `include_page_break` (boolean): Start a new page before this section
 
 ### Outputs
 
-**document** (object) - Generated Word document:
+**document** (object):
 - `filename` (string): Suggested filename
-- `content_base64` (string): Base64-encoded .docx file
-- `size_bytes` (integer): File size
-- `page_count` (integer): Number of pages
-- `metadata` (object): Generation metadata
+- `content_base64` (string): Base64-encoded .docx file content
+- `size_bytes` (integer): File size in bytes
+- `page_count` (integer): Estimated page count
+- `metadata` (object): Generation metadata (timestamp, agent version)
+
+## Azure Tools
+
+| Tool ID | Display Name | Service | Purpose |
+|---|---|---|---|
+| `iq-work` | Work IQ | M365 signals — meetings, chats, emails, documents | Pull org Word templates and branding from SharePoint before generating |
+| `iq-foundry` | Foundry IQ | Indexed org knowledge via Azure AI Search | Retrieve source content / data to populate document sections |
 
 ## Usage
 
-### Basic Example
-
 ```python
-from agents.document_writer import DocumentWriter
+import base64
+from safe_framework.agents.standalone.document_writer import DocumentWriter
 
-agent = DocumentWriter()
-
+agent = DocumentWriter(kernel=kernel)
 result = await agent.invoke({
     "document_data": {
-        "title": "Sales Report Q2 2026",
+        "title": "Q2 2026 Sales Report",
         "author": "Sales Team",
         "sections": [
             {
                 "heading": "Executive Summary",
-                "content": "Strong growth in key markets.",
+                "content": "Strong Q2 growth in all regions.",
                 "style": "highlight"
             },
             {
                 "heading": "Regional Breakdown",
-                "content": "North America: +20%\nEurope: +15%\nAsia: +18%",
+                "content": "EMEA: +18%  APAC: +22%  Americas: +15%",
                 "style": "normal",
                 "include_page_break": True
             }
@@ -60,155 +74,45 @@ result = await agent.invoke({
     }
 })
 
-# Decode and save
-import base64
 if result["status"] == "success":
-    content = base64.b64decode(result["document"]["content_base64"])
     with open(result["document"]["filename"], "wb") as f:
-        f.write(content)
+        f.write(base64.b64decode(result["document"]["content_base64"]))
 ```
 
 ## Use Cases
 
-1. **Client Reports** - Generate formatted reports for clients
-2. **Contract Generation** - Create standardized contracts
-3. **Proposal Documents** - Professional proposals with styling
-4. **Analysis Exports** - Export analysis results as documents
-5. **Documentation** - Generate technical documentation
-
-## Configuration
-
-### Styling Options
-
-- `normal`: Regular paragraph style
-- `highlight`: Highlighted/callout style
-- `note`: Note/important box style
-- `code`: Code block with monospace font
-
-### Page Breaks
-
-Use `include_page_break: true` to start a new page before a section:
-
-```json
-{
-  "heading": "Chapter 2",
-  "content": "...",
-  "include_page_break": true
-}
-```
-
-## Dependencies
-
-- **python-docx >= 0.8.10** - Word document generation
-- **pandas >= 1.0** - Data manipulation support
+1. **Client reports** — generate branded reports using SharePoint templates
+2. **Contract generation** — create standardised contracts from structured clause data
+3. **Proposal documents** — professional proposals with section styling
+4. **Analysis exports** — export agent-generated analysis as an executive-ready document
+5. **Meeting follow-ups** — generate action-item summaries from Work IQ meeting transcripts
 
 ## Limitations
 
-- Maximum 100 sections per document
-- 50MB maximum output file size
-- Requires pre-structured input (not freeform)
-- Output is Base64 encoded (must be decoded)
-- Limited formatting options (expand by modifying scripts/)
+- Output is .docx only; use Presenter agents for HTML, Markdown, or code output formats
+- Very large documents (100+ pages) may exceed generation time limits — split across multiple calls
+- Complex tables and embedded charts are not supported — add these manually after generation
 
 ## Error Handling
 
-Returns error status when:
-- Input validation fails (missing required fields)
-- Document generation fails
-- Output exceeds file size limit
-- Encoding error occurs
-
-Example error response:
+If generation fails, the agent returns:
 ```json
 {
   "status": "error",
-  "error_message": "Input validation failed: missing required field 'sections'"
+  "error": "missing_required_field",
+  "message": "document_data.sections is required and must be non-empty"
 }
-```
-
-## Advanced Usage
-
-### Custom Formatting
-
-Modify `scripts/formatter.py` to add:
-- Custom styles
-- Header/footer
-- Embedded images
-- Tables
-- Bullet points
-- Text formatting
-
-### Batch Generation
-
-Generate multiple documents in sequence:
-
-```python
-documents = [
-    {"title": "Report 1", ...},
-    {"title": "Report 2", ...},
-    {"title": "Report 3", ...}
-]
-
-for doc_data in documents:
-    result = await agent.invoke({"document_data": doc_data})
-    # Process result
 ```
 
 ## Related Agents
 
-- **presenter-html** - Generate HTML dashboards
-- **presenter-markdown** - Generate Markdown output
-- **presenter-word** - Word document formatting
-- **presenter-code** - Code generation
-
-## Tips
-
-1. **Keep sections focused** - One idea per section
-2. **Use meaningful headings** - Help readers navigate
-3. **Structure content** - Use Markdown for lists and formatting
-4. **Include metadata** - Author and subject for document properties
-5. **Test styling** - Preview with different styles
-
-## Troubleshooting
-
-**File too large:**
-- Reduce number of sections
-- Shorten section content
-- Remove large data blocks
-
-**Style not applied:**
-- Ensure valid style name (normal, highlight, note, code)
-- Check section structure matches contract
-
-**Decoding error:**
-- Verify Base64 content is complete
-- Check for encoding issues
-
-## Testing
-
-```bash
-# Show agent details
-python -m safe_cli.cli show-agent document-writer
-
-# Validate contract
-python -m safe_cli.cli validate-agent \
-  --agent agents/document-writer \
-  --pattern sequential-pipeline \
-  --placeholder presenter
-
-# Create from template
-python -m safe_cli.cli create-agent --from-template document-writer
-```
-
-## Performance
-
-- Average generation time: 2-5 seconds
-- Memory usage: ~50-100MB depending on document size
-- Timeout: 120 seconds
+- `presenter-word` — similar but optimised for presentation-style Word output
+- `presenter-markdown` — Markdown output instead of .docx
+- `presenter-html` — HTML/dashboard output
 
 ---
 
 **Status:** Production Ready  
 **Version:** 1.0  
 **Framework:** SAFE 1.0  
-**Last Updated:** 2026-06-20
+**Last Updated:** 2026-06-21

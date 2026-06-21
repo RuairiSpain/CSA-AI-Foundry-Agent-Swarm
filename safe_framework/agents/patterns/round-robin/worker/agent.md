@@ -1,41 +1,77 @@
 # Round-Robin Worker
 
-## Overview
-Processes tasks assigned by the Round-Robin Dispatcher. Multiple instances of this agent form a worker pool for load distribution.
+_Executes the assigned task for a single rotation slot._
 
-## Contract
+## Overview
+
+The Worker in the **round-robin** pattern is stateless and interchangeable. All workers in the pool are identical — they perform the same task on whatever payload is assigned to them. The dispatcher ensures balanced utilisation; the worker simply executes and returns.
+
+## Pattern Diagram
+
+```mermaid
+flowchart LR
+    classDef active fill:#0078D4,color:#fff,stroke:#005A9E
+    Input([Input]) --> Dispatcher
+    Dispatcher --> Worker1[Worker 1]
+    Dispatcher --> Worker2[Worker 2]
+    Dispatcher --> Worker3[Worker N]
+    Worker1 --> Output([Output])
+    Worker2 --> Output
+    Worker3 --> Output
+    class Worker1,Worker2,Worker3 active
+```
+
+## Contract Specification
 
 ### Inputs
-- request (object): The task payload to process
+
+**dispatch_result** (object, required):
+- `assigned_worker` (string): This worker's key (for self-identification in logs)
+- `payload` (any, required): The work to perform
+- `worker_index` (integer): Position in the pool
 
 ### Outputs
-- result (object): The processed result
+
+**worker_result** (object):
+- `result` (any, required): Task output
+- `worker_key` (string): Which worker processed this request
+- `status` (string): `"success"` | `"error"`
+
+## Azure Tools
+
+| Tool ID | Display Name | Service | Purpose in this role |
+|---|---|---|---|
+| `iq-foundry` | Foundry IQ | Indexed org knowledge via Azure AI Search | Each worker independently grounded in the shared knowledge base |
 
 ## Usage
 
 ```python
-from agents.round_robin_worker import Agent
+from safe_framework.agents.patterns.round_robin.worker import RoundRobinWorker
 
-agent = Agent()
-result = await agent.invoke({"data": {"task": "process"}})
-# Returns: {"result": {"status": "done"}}
+worker = RoundRobinWorker(kernel=kernel, worker_key="worker_1")
+result = await worker.invoke(dispatch_result)
 ```
 
 ## Use Cases
-- Parallel task processing in a round-robin pool
-- Load-balanced workload distribution
 
-## Dependencies
-- (See requirements.txt)
+1. **Parallel summarisation pool** — multiple identical summariser workers
+2. **Translation fleet** — rotate across translation workers to balance quota consumption
+3. **Embedding generation** — distribute embedding requests across Azure OpenAI deployments
 
 ## Limitations
-- Processes one request at a time per instance
 
-## Related Agents
-- Round-Robin Dispatcher
+- Workers are identical — routing is positional, not capability-based
+- Workers cannot communicate with each other
+- For heterogeneous workers, use `mixture-of-experts` instead
+
+## Related Roles
+
+- **Dispatcher** — assigns requests to this worker
+- See also: `fan-out-fan-in/worker` for parallel (non-rotating) workers
 
 ---
 
-**Status:** Production Ready
-**Version:** 1.0
-**Framework:** SAFE 1.0
+**Status:** Production Ready  
+**Version:** 1.0  
+**Framework:** SAFE 1.0  
+**Last Updated:** 2026-06-21
