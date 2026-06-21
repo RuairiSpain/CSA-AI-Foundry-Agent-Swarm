@@ -246,8 +246,8 @@ class AgentDiscovery:
         """Filter agents by criteria."""
         results = []
 
-        # Collect all agents
-        all_agents = self.catalog.get("standalone", [])
+        # Collect all agents (copy to avoid mutating the catalog list)
+        all_agents = list(self.catalog.get("standalone", []))
         for agents_in_pattern in self.catalog.get("patterns", {}).values():
             all_agents.extend(agents_in_pattern)
 
