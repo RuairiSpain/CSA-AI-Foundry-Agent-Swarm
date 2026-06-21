@@ -30,6 +30,19 @@ def _class_name(s: str) -> str:
     return "".join(p.capitalize() for p in s.replace("-", "_").split("_"))
 
 
+def _callable_by(caller_key: str, sub_agents: Dict[str, Any]) -> Dict[str, Any]:
+    """Return the subset of sub_agents that caller_key is permitted to invoke.
+
+    A sub-agent is callable by caller_key when:
+      - its allowed_callers list is empty (unrestricted), OR
+      - caller_key appears in its allowed_callers list.
+    """
+    return {
+        k: v for k, v in sub_agents.items()
+        if not v.allowed_callers or caller_key in v.allowed_callers
+    }
+
+
 def _get_template(pattern: HandoffPattern):
     template_dir = _HANDOFF_TEMPLATE_DIRS[pattern]
     env = Environment(
@@ -65,6 +78,8 @@ class HandoffCodeGenerator:
                         "name": v.name,
                         "description": v.description,
                         "capability_tags": v.capability_tags,
+                        "allowed_callers": v.allowed_callers,
+                        "max_calls": v.max_calls,
                     }
                     for k, v in handoff.sub_agents.items()
                 },
@@ -105,10 +120,13 @@ class HandoffCodeGenerator:
 
         elif handoff.pattern == HandoffPattern.SELECTIVE:
             ctx["coordinator"] = handoff.sub_agents.get("coordinator")
-            ctx["candidates"] = {
+            all_candidates = {
                 k: v for k, v in handoff.sub_agents.items()
                 if k.startswith("candidate_")
             }
+            # Only expose candidates the coordinator is permitted to call
+            ctx["candidates"] = _callable_by("coordinator", all_candidates)
+            ctx["all_candidates"] = all_candidates  # for docs / metadata
 
         elif handoff.pattern == HandoffPattern.SEQUENTIAL:
             ctx["stages"] = dict(
@@ -120,10 +138,13 @@ class HandoffCodeGenerator:
 
         elif handoff.pattern == HandoffPattern.HIERARCHICAL:
             ctx["manager"] = handoff.sub_agents.get("manager")
-            ctx["workers"] = {
+            all_workers = {
                 k: v for k, v in handoff.sub_agents.items()
                 if k.startswith("worker_")
             }
+            # Only expose workers the manager is permitted to call
+            ctx["workers"] = _callable_by("manager", all_workers)
+            ctx["all_workers"] = all_workers  # for docs / metadata
 
         elif handoff.pattern == HandoffPattern.RECURSIVE:
             ctx["recursive_agent"] = handoff.sub_agents.get("agent")
@@ -150,6 +171,8 @@ class HandoffCodeGenerator:
                 name=v["name"],
                 description=v["description"],
                 capability_tags=v.get("capability_tags", []),
+                allowed_callers=v.get("allowed_callers", []),
+                max_calls=v.get("max_calls", 0),
             )
             for k, v in data.get("sub_agents", {}).items()
         }

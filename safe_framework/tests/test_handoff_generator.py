@@ -201,6 +201,145 @@ class TestLoadFromYaml:
         assert loaded.csa_email == original.csa_email
 
 
+# ── _callable_by filtering and max_calls enforcement ──────────────────────────
+
+class TestCallableByFiltering:
+    def test_selective_excludes_restricted_candidate(self):
+        """candidate_0 allows only 'manager' caller → not registered as a tool for coordinator."""
+        h = HandoffDefinition(
+            name="sel-filter",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": _sub("coord", "Coordinator"),
+                "candidate_0": SubAgent(
+                    name="billing", description="billing agent",
+                    allowed_callers=["manager"],
+                ),
+                "candidate_1": _sub("support agent", "Support"),
+            },
+        )
+        result = HandoffCodeGenerator.generate(h)
+        # candidate_0 must not be registered as a ConnectedAgentTool
+        assert 'self._candidate_tools["candidate_0"]' not in result.handoff_code
+        assert 'self._candidate_tools["candidate_1"]' in result.handoff_code
+
+    def test_selective_includes_unrestricted_candidates(self):
+        """Empty allowed_callers → both candidates always reachable by coordinator."""
+        h = HandoffDefinition(
+            name="sel-open",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": _sub("coord"),
+                "candidate_0": _sub("billing"),
+                "candidate_1": _sub("support"),
+            },
+        )
+        result = HandoffCodeGenerator.generate(h)
+        assert "candidate_0" in result.handoff_code
+        assert "candidate_1" in result.handoff_code
+
+    def test_selective_includes_coordinator_allowed_candidate(self):
+        """candidate explicitly allows coordinator → included."""
+        h = HandoffDefinition(
+            name="sel-explicit",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": _sub("coord"),
+                "candidate_0": SubAgent(
+                    name="c0", description="c0", allowed_callers=["coordinator"]
+                ),
+                "candidate_1": _sub("c1"),
+            },
+        )
+        result = HandoffCodeGenerator.generate(h)
+        assert "candidate_0" in result.handoff_code
+
+    def test_hierarchical_excludes_restricted_worker(self):
+        """worker_0 restricted to 'supervisor', not reachable by manager → excluded."""
+        h = HandoffDefinition(
+            name="hier-filter",
+            pattern=HandoffPattern.HIERARCHICAL,
+            sub_agents={
+                "manager": _sub("manager", "Manager"),
+                "worker_0": SubAgent(
+                    name="w0", description="worker zero",
+                    allowed_callers=["supervisor"],
+                ),
+                "worker_1": _sub("worker one", "Worker1"),
+            },
+            max_depth=2,
+        )
+        result = HandoffCodeGenerator.generate(h)
+        assert "worker_0" not in result.handoff_code
+        assert "worker_1" in result.handoff_code
+
+    def test_selective_max_calls_instruction_injected(self):
+        """max_calls > 0 on a candidate → call limit line appears in generated instructions."""
+        h = HandoffDefinition(
+            name="sel-limited",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": _sub("coord"),
+                "candidate_0": SubAgent(name="c0", description="billing", max_calls=2),
+                "candidate_1": _sub("support"),
+            },
+        )
+        result = HandoffCodeGenerator.generate(h)
+        assert "at most 2 call(s)" in result.handoff_code
+        assert "Call limits" in result.handoff_code
+
+    def test_selective_no_max_calls_no_limit_section(self):
+        """All candidates have max_calls=0 → call limits section absent."""
+        h = HandoffDefinition(
+            name="sel-unlimited",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": _sub("coord"),
+                "candidate_0": _sub("billing"),
+                "candidate_1": _sub("support"),
+            },
+        )
+        result = HandoffCodeGenerator.generate(h)
+        assert "Call limits" not in result.handoff_code
+
+    def test_hierarchical_max_calls_instruction_injected(self):
+        """max_calls > 0 on a worker → call limit line appears in generated instructions."""
+        h = HandoffDefinition(
+            name="hier-limited",
+            pattern=HandoffPattern.HIERARCHICAL,
+            sub_agents={
+                "manager": _sub("manager"),
+                "worker_0": SubAgent(name="w0", description="worker zero", max_calls=1),
+            },
+            max_depth=2,
+        )
+        result = HandoffCodeGenerator.generate(h)
+        assert "at most 1 call(s)" in result.handoff_code
+        assert "Call limits per worker" in result.handoff_code
+
+    def test_allowed_callers_and_max_calls_roundtrip(self, tmp_path):
+        """allowed_callers and max_calls survive a save → load_from_yaml roundtrip."""
+        h = HandoffDefinition(
+            name="roundtrip-restrict",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": _sub("coord"),
+                "candidate_0": SubAgent(
+                    name="c0", description="c0",
+                    allowed_callers=["coordinator"],
+                    max_calls=3,
+                ),
+                "candidate_1": _sub("c1"),
+            },
+        )
+        saved_dir = HandoffCodeGenerator.save(h, tmp_path)
+        loaded = HandoffCodeGenerator.load_from_yaml(saved_dir / "config.yaml")
+        assert loaded.sub_agents["candidate_0"].allowed_callers == ["coordinator"]
+        assert loaded.sub_agents["candidate_0"].max_calls == 3
+        assert loaded.sub_agents["candidate_1"].allowed_callers == []
+        assert loaded.sub_agents["candidate_1"].max_calls == 0
+
+
 # ── save_to_disk ───────────────────────────────────────────────────────────────
 
 class TestSaveToDisk:

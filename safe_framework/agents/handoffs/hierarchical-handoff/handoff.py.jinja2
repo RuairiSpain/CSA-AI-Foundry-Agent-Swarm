@@ -81,20 +81,28 @@ class {{ class_name }}Handoff:
             )
             return {"result": task, "context": context, "depth_reached": _depth}
 
-        worker_descriptions = "\n".join(
+{% set ns = namespace(has_limits=false) %}
 {% for key, agent in workers.items() %}
-            "- {{ key }}: {{ agent.description }}"{% if not loop.last %} +{% endif %}
-
+{% if agent.max_calls > 0 %}{% set ns.has_limits = true %}{% endif %}
 {% endfor %}
-        )
-
         manager_agent = await self._client.agents.create_agent(
             model="gpt-4o",
             instructions=(
                 f"You are a manager agent (depth {_depth}). "
-                f"Decompose the task and delegate subtasks to the appropriate workers.\n\n"
-                f"Workers available:\n{worker_descriptions}\n\n"
-                f"Aggregate all worker results and return a consolidated response."
+                "Decompose the task and delegate subtasks to the appropriate workers.\n\n"
+                "Workers available:\n"
+{% for key, agent in workers.items() %}
+                "  - {{ key }}: {{ agent.description }}\n"
+{% endfor %}
+{% if ns.has_limits %}
+                "\nCall limits per worker (do not exceed per invoke):\n"
+{% for key, agent in workers.items() %}
+{% if agent.max_calls > 0 %}
+                "  - {{ key }}: at most {{ agent.max_calls }} call(s)\n"
+{% endif %}
+{% endfor %}
+{% endif %}
+                "\nAggregate all worker results and return a consolidated response."
             ),
             tools=self._manager_tools,
             tool_resources=self._manager_resources,

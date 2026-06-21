@@ -43,6 +43,8 @@ class HandoffValidator:
                 suggested_solutions=["Add sub-agents under sub_agents."],
             ))
 
+        errors.extend(self._validate_restrictions(handoff))
+
         if handoff.return_policy not in _VALID_RETURN_POLICIES:
             errors.append(ValidationError(
                 error_type="invalid_return_policy",
@@ -68,6 +70,70 @@ class HandoffValidator:
                 message=f"Handoff timeout too low: {handoff.timeout_seconds}s.",
                 suggested_solutions=["Set timeout_seconds to at least 30."],
             ))
+
+        return errors
+
+    def _validate_restrictions(self, handoff: HandoffDefinition) -> List[ValidationError]:
+        """Validate allowed_callers and max_calls fields on each sub-agent."""
+        errors: List[ValidationError] = []
+        known_keys = set(handoff.sub_agents.keys())
+
+        for role_key, sub in handoff.sub_agents.items():
+            # allowed_callers must reference existing role keys in the same pool
+            for caller in sub.allowed_callers:
+                if caller not in known_keys:
+                    errors.append(ValidationError(
+                        error_type="unknown_caller",
+                        message=(
+                            f"sub_agent '{role_key}' lists unknown caller '{caller}' "
+                            f"in allowed_callers. Must be a role key in the same HandoffDefinition."
+                        ),
+                        suggested_solutions=[
+                            f"Remove '{caller}' from allowed_callers.",
+                            f"Or add a sub-agent with key '{caller}' to sub_agents.",
+                        ],
+                    ))
+                if caller == role_key:
+                    errors.append(ValidationError(
+                        error_type="self_caller",
+                        message=(
+                            f"sub_agent '{role_key}' lists itself in allowed_callers. "
+                            "A sub-agent cannot be its own caller."
+                        ),
+                        suggested_solutions=[f"Remove '{role_key}' from its own allowed_callers."],
+                    ))
+
+            # max_calls must be non-negative
+            if sub.max_calls < 0:
+                errors.append(ValidationError(
+                    error_type="invalid_max_calls",
+                    message=(
+                        f"sub_agent '{role_key}' has max_calls={sub.max_calls}. "
+                        "Must be ≥ 0 (0 = unlimited)."
+                    ),
+                    suggested_solutions=["Set max_calls to 0 (unlimited) or a positive integer."],
+                ))
+
+        # Warn when a sub-agent's allowed_callers would prevent it from ever being called
+        for role_key, sub in handoff.sub_agents.items():
+            if sub.allowed_callers:
+                # Find callers that exist but whose own allowed_callers doesn't include role_key
+                # (i.e. potential dead sub-agents — only a warning, not a hard error)
+                reachable = any(
+                    c in known_keys for c in sub.allowed_callers
+                )
+                if not reachable:
+                    errors.append(ValidationError(
+                        error_type="unreachable_sub_agent",
+                        message=(
+                            f"sub_agent '{role_key}' has allowed_callers "
+                            f"{sub.allowed_callers!r} but none of those keys exist in sub_agents."
+                        ),
+                        suggested_solutions=[
+                            f"Add a sub-agent with one of {sub.allowed_callers!r} as its key.",
+                            "Or clear allowed_callers to make it unrestricted.",
+                        ],
+                    ))
 
         return errors
 

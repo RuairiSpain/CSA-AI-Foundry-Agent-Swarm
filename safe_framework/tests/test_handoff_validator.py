@@ -262,3 +262,109 @@ class TestRecursiveHandoff:
             max_depth=10,
         )
         assert "depth_too_high" not in _errors(h)
+
+
+# ── restriction checks ─────────────────────────────────────────────────────────
+
+class TestRestrictions:
+    def test_allowed_callers_unknown_key(self):
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.DIRECT,
+            sub_agents={
+                "delegate": SubAgent(name="d", description="d", allowed_callers=["ghost"]),
+            },
+        )
+        assert "unknown_caller" in _errors(h)
+
+    def test_allowed_callers_self_reference(self):
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.DIRECT,
+            sub_agents={
+                "delegate": SubAgent(name="d", description="d", allowed_callers=["delegate"]),
+            },
+        )
+        assert "self_caller" in _errors(h)
+
+    def test_max_calls_negative_rejected(self):
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.DIRECT,
+            sub_agents={
+                "delegate": SubAgent(name="d", description="d", max_calls=-1),
+            },
+        )
+        assert "invalid_max_calls" in _errors(h)
+
+    def test_max_calls_zero_ok(self):
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.DIRECT,
+            sub_agents={
+                "delegate": SubAgent(name="d", description="d", max_calls=0),
+            },
+        )
+        assert "invalid_max_calls" not in _errors(h)
+
+    def test_max_calls_positive_ok(self):
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.DIRECT,
+            sub_agents={
+                "delegate": SubAgent(name="d", description="d", max_calls=3),
+            },
+        )
+        assert "invalid_max_calls" not in _errors(h)
+
+    def test_unreachable_sub_agent_detected(self):
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": SubAgent(name="coord", description="coord"),
+                "candidate_0": SubAgent(name="c0", description="c0"),
+                "candidate_1": SubAgent(
+                    name="c1", description="c1", allowed_callers=["nonexistent"]
+                ),
+            },
+        )
+        assert "unreachable_sub_agent" in _errors(h)
+
+    def test_valid_allowed_callers_accepted(self):
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": SubAgent(name="coord", description="coord"),
+                "candidate_0": SubAgent(
+                    name="c0", description="c0", allowed_callers=["coordinator"]
+                ),
+                "candidate_1": SubAgent(
+                    name="c1", description="c1", allowed_callers=["coordinator"]
+                ),
+            },
+        )
+        restriction_errors = [
+            e for e in HandoffValidator().validate(h)
+            if e.error_type in ("unknown_caller", "self_caller", "unreachable_sub_agent")
+        ]
+        assert restriction_errors == []
+
+    def test_multiple_allowed_callers_partial_unknown(self):
+        """One caller exists, one does not — unknown_caller fires but not unreachable."""
+        h = HandoffDefinition(
+            name="r",
+            pattern=HandoffPattern.SELECTIVE,
+            sub_agents={
+                "coordinator": SubAgent(name="coord", description="coord"),
+                "candidate_0": SubAgent(
+                    name="c0", description="c0",
+                    allowed_callers=["coordinator", "ghost"],
+                ),
+                "candidate_1": SubAgent(name="c1", description="c1"),
+            },
+        )
+        errors = _errors(h)
+        assert "unknown_caller" in errors
+        assert "unreachable_sub_agent" not in errors

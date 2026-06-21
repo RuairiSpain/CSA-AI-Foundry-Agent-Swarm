@@ -71,19 +71,27 @@ class {{ class_name }}Handoff:
         start = datetime.now()
         context = context or {}
 
-        candidate_descriptions = "\n".join(
+{% set ns = namespace(has_limits=false) %}
 {% for key, agent in candidates.items() %}
-            "- {{ key }}: {{ agent.description }}"{% if not loop.last %} +{% endif %}
-
+{% if agent.max_calls > 0 %}{% set ns.has_limits = true %}{% endif %}
 {% endfor %}
-        )
-
         agent = await self._client.agents.create_agent(
             model="gpt-4o",
             instructions=(
-                f"You are a routing coordinator. Evaluate the task and call exactly one of your "
-                f"connected agents that is best suited to handle it.\n\n"
-                f"Available candidates:\n{candidate_descriptions}"
+                "You are a routing coordinator. Evaluate the task and call exactly one of your "
+                "connected agents that is best suited to handle it.\n\n"
+                "Available candidates:\n"
+{% for key, agent in candidates.items() %}
+                "  - {{ key }}: {{ agent.description }}\n"
+{% endfor %}
+{% if ns.has_limits %}
+                "\nCall limits (do not exceed per invoke):\n"
+{% for key, agent in candidates.items() %}
+{% if agent.max_calls > 0 %}
+                "  - {{ key }}: at most {{ agent.max_calls }} call(s)\n"
+{% endif %}
+{% endfor %}
+{% endif %}
             ),
             tools=self._coordinator_tools,
             tool_resources=self._coordinator_resources,

@@ -24,12 +24,27 @@ class HandoffPattern(str, Enum):
 
 @dataclass
 class SubAgent:
-    """Descriptor for one sub-agent available in a handoff pool."""
+    """Descriptor for one sub-agent available in a handoff pool.
+
+    Restriction fields
+    ------------------
+    allowed_callers : list of role keys (e.g. ``["coordinator"]``) that may
+        invoke this sub-agent.  When set, the code generator only includes
+        this sub-agent's ``ConnectedAgentTool`` definition in the tool list
+        of matching callers.  ``None`` / empty list = unrestricted.
+
+    max_calls : maximum number of times this sub-agent may be invoked within
+        a single ``invoke()`` call.  0 = unlimited.  Enforced via explicit
+        instructions injected into the parent agent's system prompt; Azure AI
+        Foundry does not expose per-tool call interception natively.
+    """
     name: str
     description: str
     capability_tags: List[str] = field(default_factory=list)
     input_schema: Dict[str, Any] = field(default_factory=dict)
     output_schema: Dict[str, Any] = field(default_factory=dict)
+    allowed_callers: List[str] = field(default_factory=list)   # [] = unrestricted
+    max_calls: int = 0                                          # 0 = unlimited
 
 
 @dataclass
