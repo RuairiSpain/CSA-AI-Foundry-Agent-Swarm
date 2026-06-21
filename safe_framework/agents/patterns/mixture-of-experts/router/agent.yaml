@@ -1,0 +1,61 @@
+name: Expert Router
+version: 1.0
+category: router
+description: |
+  Routes requests to experts by assigning weight scores to each expert
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Input request to route
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request payload
+
+  outputs:
+    - name: routing_output
+      type: object
+      required: true
+      description: Expert weights dict (key=expert_key, value=weight 0-1)
+      schema:
+        type: object
+        required_fields: [expert_weights]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Route queries to domain experts by relevance
+    - Weighted expert selection
+  example:
+    input: {data: {query: "finance question"}}
+    output: {expert_weights: {expert_0: 0.9, expert_1: 0.1}}
+  limitations:
+    - Weights must sum to approximately 1.0
+
+tags:
+  - router
+  - mixture-of-experts
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve expert capability descriptions and past routing decisions to assign weights"
+  - id: iq-work
+    purpose: "Understand the query domain from org signals (which team owns this topic)"
+

@@ -1,0 +1,60 @@
+name: Adaptive Worker
+version: 1.0
+category: routing
+description: |
+  Executes the request; its outcome is fed back to the performance tracker to update routing weights.
+
+contract:
+  inputs:
+    - name: query
+      type: string
+      required: true
+      description: The query or task to process
+    - name: input_type
+      type: string
+      required: true
+      description: Input type category for context
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Worker output
+    - name: quality_score
+      type: float
+      required: true
+      description: Self-assessed or rubric quality score 0.0–1.0
+    - name: latency_ms
+      type: integer
+      required: true
+      description: Processing time in milliseconds
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Specialised model A vs. model B trial
+    - Version upgrade gradual rollout
+    - Regional worker comparison
+  example:
+    input: {query: 'Classify ticket', input_type: 'support'}
+    output: {result: {}, quality_score: 0.88}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - routing
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground worker execution in org knowledge for the input type"

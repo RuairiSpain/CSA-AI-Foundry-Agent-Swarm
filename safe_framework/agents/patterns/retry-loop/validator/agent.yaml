@@ -1,0 +1,64 @@
+name: Result Validator
+version: 1.0
+category: validator
+description: |
+  Validates worker results and determines whether retry is needed
+
+contract:
+  inputs:
+    - name: validation_input
+      type: object
+      required: true
+      description: Worker result and attempt number to validate
+      schema:
+        type: object
+        required_fields: [result, attempt]
+        field_definitions:
+          result:
+            type: object
+            description: Worker output to validate
+          attempt:
+            type: integer
+            description: Current attempt number (0-based)
+
+  outputs:
+    - name: validation_output
+      type: object
+      required: true
+      description: Validation result with valid flag
+      schema:
+        type: object
+        required_fields: [valid]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Validate worker output quality
+    - Gate for retry decisions
+  example:
+    input: {result: {status: "done"}, attempt: 0}
+    output: {valid: true}
+  limitations:
+    - Validation criteria are domain-specific
+
+tags:
+  - validator
+  - retry-loop
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate output against known-good patterns from the knowledge base"
+  - id: iq-work
+    purpose: "Compare output against org quality standards and past accepted outputs"
+

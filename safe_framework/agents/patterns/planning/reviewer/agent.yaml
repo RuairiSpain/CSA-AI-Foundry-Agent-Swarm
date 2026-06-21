@@ -1,0 +1,64 @@
+name: Plan Reviewer
+version: 1.0
+category: orchestration
+description: |
+  Reviews plan execution results and validates that the goal was fully achieved.
+
+contract:
+  inputs:
+    - name: plan
+      type: object
+      required: true
+      description: The original plan
+    - name: execution_results
+      type: array
+      required: true
+      description: Results from each executed step
+
+  outputs:
+    - name: verdict
+      type: string
+      required: true
+      description: 'complete' | 'partial' | 'failed'
+    - name: coverage
+      type: float
+      required: true
+      description: Fraction of steps that succeeded
+    - name: gaps
+      type: array
+      required: true
+      description: Steps that failed or were skipped
+    - name: summary
+      type: string
+      required: true
+      description: Human-readable execution summary
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Post-execution QA
+    - Coverage reporting
+    - Gap analysis
+  example:
+    input: {plan: {}, execution_results: []}
+    output: {verdict: 'complete', coverage: 1.0}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate execution against known constraints and completion criteria"

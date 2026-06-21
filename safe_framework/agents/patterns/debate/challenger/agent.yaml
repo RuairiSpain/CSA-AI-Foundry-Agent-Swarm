@@ -1,0 +1,62 @@
+name: Debate Challenger
+version: 1.0
+category: analysis
+description: |
+  Argues the opposing position, exposing weaknesses in the proposer's argument.
+
+contract:
+  inputs:
+    - name: topic
+      type: string
+      required: true
+      description: The topic or question to debate
+    - name: opposing_position
+      type: object
+      required: true
+      description: The proposer's argument to challenge
+
+  outputs:
+    - name: position
+      type: string
+      required: true
+      description: The challenger's argued position
+    - name: evidence
+      type: array
+      required: true
+      description: Counter-evidence and sources
+    - name: strength
+      type: float
+      required: true
+      description: Self-assessed argument strength 0.0–1.0
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Investment case against
+    - Risk analysis — downside
+    - Devil's advocate
+  example:
+    input: {topic: 'Expand to APAC?', opposing_position: {}}
+    output: {position: '', evidence: []}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - analysis
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve internal evidence supporting position B"
+  - id: iq-web
+    purpose: "Gather external evidence supporting position B"

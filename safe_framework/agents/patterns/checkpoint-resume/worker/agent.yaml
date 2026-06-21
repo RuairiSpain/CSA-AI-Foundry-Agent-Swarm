@@ -1,0 +1,62 @@
+name: Checkpoint Worker
+version: 1.0
+category: orchestration
+description: |
+  Executes a single workflow step; its result is immediately checkpointed after completion.
+
+contract:
+  inputs:
+    - name: step
+      type: object
+      required: true
+      description: Step definition — id, action, inputs
+    - name: workflow_id
+      type: string
+      required: true
+      description: Parent workflow identifier
+
+  outputs:
+    - name: step_id
+      type: string
+      required: true
+      description: Echo of step ID
+    - name: output
+      type: object
+      required: true
+      description: Step output
+    - name: success
+      type: boolean
+      required: true
+      description: Whether the step completed successfully
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Data transformation step
+    - Document generation step
+    - API call step
+  example:
+    input: {step: {id: 'step-1'}, workflow_id: 'wf-001'}
+    output: {step_id: 'step-1', success: true}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground step execution in org knowledge"
+  - id: iq-fabric
+    purpose: "Execute data-oriented steps against OneLake"

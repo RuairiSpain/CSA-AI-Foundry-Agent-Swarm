@@ -1,0 +1,63 @@
+name: Domain Expert
+version: 1.0
+category: expert
+description: |
+  Domain expert that processes requests within its area of specialisation
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Request payload from router
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request data
+
+  outputs:
+    - name: expert_output
+      type: object
+      required: true
+      description: Expert analysis result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Domain-specific analysis
+    - Specialised inference
+  example:
+    input: {data: {query: "finance question"}}
+    output: {result: {answer: "..."}}
+  limitations:
+    - Limited to its area of expertise
+
+tags:
+  - expert
+  - mixture-of-experts
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Domain-specific knowledge index per expert (e.g. legal-expert → legal index)"
+  - id: iq-fabric
+    purpose: "When the expert needs to reason over analytical business data"
+  - id: iq-web
+    purpose: "When an expert needs current external information (e.g. market-expert)"
+

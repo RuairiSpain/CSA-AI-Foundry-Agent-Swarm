@@ -1,0 +1,672 @@
+# SAFE Unified Agent Catalog — Phase 4
+# Categories match interview search terms:
+#   supervisor, specialist, aggregator  → supervisor-manager pattern
+#   processor                           → fan-out-fan-in + sequential-pipeline
+#   splitter, mapper, reducer           → map-reduce pattern
+
+version: "1.0"
+
+agents:
+
+  # ── supervisor-manager: supervisor role ───────────────────────────────────
+
+  - name: loan-supervisor-router
+    category: supervisor
+    version: "1.0"
+    description: Routes loan applications to appropriate specialists
+    input_schema:
+      type: object
+      required: [amount, loan_type, credit_score]
+      properties:
+        amount: {type: number}
+        loan_type: {type: string}
+        credit_score: {type: integer}
+    output_schema:
+      type: object
+      required: [loan_type, specialist, amount, credit_score]
+      properties:
+        loan_type: {type: string}
+        specialist: {type: string}
+        amount: {type: number}
+        credit_score: {type: integer}
+
+  - name: document-triage-router
+    category: supervisor
+    version: "1.0"
+    description: Classifies incoming documents and routes to the appropriate specialist
+    input_schema:
+      type: object
+      required: [document_text, document_type]
+      properties:
+        document_text: {type: string}
+        document_type: {type: string}
+    output_schema:
+      type: object
+      required: [specialist, document_text, document_type]
+      properties:
+        specialist: {type: string}
+        document_text: {type: string}
+        document_type: {type: string}
+
+  # ── supervisor-manager: specialist roles ──────────────────────────────────
+
+  - name: loan-specialist-mortgage
+    category: specialist
+    version: "1.0"
+    description: Analyses mortgage loan applications
+    input_schema:
+      type: object
+      required: [amount, credit_score]
+      properties:
+        amount: {type: number}
+        credit_score: {type: integer}
+    output_schema:
+      type: object
+      required: [decision, confidence]
+      properties:
+        decision: {type: string}
+        confidence: {type: number}
+
+  - name: loan-specialist-auto
+    category: specialist
+    version: "1.0"
+    description: Analyses auto loan applications
+    input_schema:
+      type: object
+      required: [amount, credit_score]
+      properties:
+        amount: {type: number}
+        credit_score: {type: integer}
+    output_schema:
+      type: object
+      required: [decision, confidence]
+      properties:
+        decision: {type: string}
+        confidence: {type: number}
+
+  - name: loan-specialist-personal
+    category: specialist
+    version: "1.0"
+    description: Analyses personal loan applications
+    input_schema:
+      type: object
+      required: [amount, credit_score]
+      properties:
+        amount: {type: number}
+        credit_score: {type: integer}
+    output_schema:
+      type: object
+      required: [decision, confidence]
+      properties:
+        decision: {type: string}
+        confidence: {type: number}
+
+  - name: contract-review-specialist
+    category: specialist
+    version: "1.0"
+    description: Reviews contracts for compliance and risk
+    input_schema:
+      type: object
+      required: [document_text, document_type]
+      properties:
+        document_text: {type: string}
+        document_type: {type: string}
+    output_schema:
+      type: object
+      required: [decision, confidence]
+      properties:
+        decision: {type: string}
+        confidence: {type: number}
+
+  - name: invoice-review-specialist
+    category: specialist
+    version: "1.0"
+    description: Reviews invoices for accuracy and approval
+    input_schema:
+      type: object
+      required: [document_text, document_type]
+      properties:
+        document_text: {type: string}
+        document_type: {type: string}
+    output_schema:
+      type: object
+      required: [decision, confidence]
+      properties:
+        decision: {type: string}
+        confidence: {type: number}
+
+  # ── supervisor-manager + fan-out-fan-in: aggregator role ─────────────────
+
+  - name: standard-aggregator
+    category: aggregator
+    version: "1.0"
+    description: Combines decisions from multiple specialist agents
+    input_schema:
+      type: object
+      required: [decisions]
+      properties:
+        decisions: {type: array}
+    output_schema:
+      type: object
+      required: [final_decision, confidence]
+      properties:
+        final_decision: {type: string}
+        confidence: {type: number}
+
+  - name: fan-in-aggregator
+    category: aggregator
+    version: "1.0"
+    description: Merges parallel worker results into a single combined output
+    input_schema:
+      type: object
+      required: [results]
+      properties:
+        results: {type: array}
+    output_schema:
+      type: object
+      required: [combined_result, result_count]
+      properties:
+        combined_result: {type: object}
+        result_count: {type: integer}
+
+  # ── fan-out-fan-in + sequential-pipeline: processor role ─────────────────
+
+  - name: document-processor
+    category: processor
+    version: "1.0"
+    description: Pre-processes a document or data payload for parallel workers
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [processed_data]
+      properties:
+        processed_data: {type: object}
+
+  - name: text-enricher
+    category: processor
+    version: "1.0"
+    description: Enriches text with metadata, entity tags, and sentiment scores
+    input_schema:
+      type: object
+      required: [input_data]
+      properties:
+        input_data: {type: object}
+    output_schema:
+      type: object
+      required: [output_data]
+      properties:
+        output_data: {type: object}
+
+  - name: data-validator
+    category: processor
+    version: "1.0"
+    description: Validates, cleans, and normalises a data payload
+    input_schema:
+      type: object
+      required: [input_data]
+      properties:
+        input_data: {type: object}
+    output_schema:
+      type: object
+      required: [output_data]
+      properties:
+        output_data: {type: object}
+
+  - name: data-formatter
+    category: processor
+    version: "1.0"
+    description: Transforms data into a target format (JSON, CSV, Markdown)
+    input_schema:
+      type: object
+      required: [input_data]
+      properties:
+        input_data: {type: object}
+    output_schema:
+      type: object
+      required: [output_data]
+      properties:
+        output_data: {type: object}
+
+  # ── map-reduce: splitter role ─────────────────────────────────────────────
+
+  - name: batch-splitter
+    category: splitter
+    version: "1.0"
+    description: Splits a large dataset into equal-sized chunks for parallel mappers
+    input_schema:
+      type: object
+      required: [data, chunk_size]
+      properties:
+        data: {type: array}
+        chunk_size: {type: integer}
+    output_schema:
+      type: object
+      required: [chunks]
+      properties:
+        chunks: {type: array}
+
+  - name: document-splitter
+    category: splitter
+    version: "1.0"
+    description: Splits a long document into page or paragraph chunks
+    input_schema:
+      type: object
+      required: [document_text]
+      properties:
+        document_text: {type: string}
+        max_chunk_tokens: {type: integer}
+    output_schema:
+      type: object
+      required: [chunks]
+      properties:
+        chunks: {type: array}
+
+  # ── map-reduce: mapper role ───────────────────────────────────────────────
+
+  - name: data-mapper
+    category: mapper
+    version: "1.0"
+    description: Applies a transformation to a single data chunk
+    input_schema:
+      type: object
+      required: [data_chunk]
+      properties:
+        data_chunk: {type: object}
+    output_schema:
+      type: object
+      required: [mapped_result]
+      properties:
+        mapped_result: {type: object}
+
+  - name: chunk-summarizer
+    category: mapper
+    version: "1.0"
+    description: Summarises a single document chunk — use as the mapper in a summarisation pipeline
+    input_schema:
+      type: object
+      required: [data_chunk]
+      properties:
+        data_chunk: {type: object}
+    output_schema:
+      type: object
+      required: [mapped_result]
+      properties:
+        mapped_result: {type: object}
+
+  # ── map-reduce: reducer role ──────────────────────────────────────────────
+
+  - name: data-reducer
+    category: reducer
+    version: "1.0"
+    description: Aggregates all mapped results into a final reduced output
+    input_schema:
+      type: object
+      required: [mapped_results]
+      properties:
+        mapped_results: {type: array}
+    output_schema:
+      type: object
+      required: [reduced_result]
+      properties:
+        reduced_result: {type: object}
+
+  - name: summary-combiner
+    category: reducer
+    version: "1.0"
+    description: Combines per-chunk summaries into a single coherent document summary
+    input_schema:
+      type: object
+      required: [mapped_results]
+      properties:
+        mapped_results: {type: array}
+    output_schema:
+      type: object
+      required: [reduced_result]
+      properties:
+        reduced_result: {type: object}
+
+  # ── round-robin: dispatcher role ─────────────────────────────────────────────
+
+  - name: round-robin-dispatcher
+    category: dispatcher
+    version: "1.0"
+    description: Dispatches requests to workers in round-robin order
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [worker_index]
+      properties:
+        worker_index: {type: integer}
+
+  # ── round-robin: worker role ──────────────────────────────────────────────────
+
+  - name: round-robin-worker
+    category: worker
+    version: "1.0"
+    description: Processes requests assigned by round-robin dispatcher
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── mixture-of-experts: router role ──────────────────────────────────────────
+
+  - name: expert-router
+    category: router
+    version: "1.0"
+    description: Assigns relevance weights to domain experts for mixture-of-experts routing
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [expert_weights]
+      properties:
+        expert_weights: {type: object}
+
+  # ── mixture-of-experts: expert role ──────────────────────────────────────────
+
+  - name: domain-expert
+    category: expert
+    version: "1.0"
+    description: Domain expert that processes requests within its area of specialisation
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── mixture-of-experts + hierarchical-teams: aggregator (expert_outputs) ─────
+
+  - name: expert-aggregator
+    category: aggregator
+    version: "1.0"
+    description: Combines weighted expert outputs into a unified final answer
+    input_schema:
+      type: object
+      required: [expert_outputs]
+      properties:
+        expert_outputs: {type: array}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── hierarchical-teams: coordinator role ─────────────────────────────────────
+
+  - name: team-coordinator
+    category: coordinator
+    version: "1.0"
+    description: Coordinates hierarchical teams by assigning sub-requests to each team supervisor
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [team_assignments]
+      properties:
+        team_assignments: {type: object}
+
+  # ── hierarchical-teams: team_supervisor role ──────────────────────────────────
+
+  - name: team-supervisor
+    category: team_supervisor
+    version: "1.0"
+    description: Supervises a team of agents to complete an assigned sub-task
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── hierarchical-teams: aggregator (team_results) ─────────────────────────────
+
+  - name: team-results-aggregator
+    category: aggregator
+    version: "1.0"
+    description: Aggregates results from all team supervisors into a final combined output
+    input_schema:
+      type: object
+      required: [team_results]
+      properties:
+        team_results: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── fallback-chain: primary role ──────────────────────────────────────────────
+
+  - name: primary-agent
+    category: primary
+    version: "1.0"
+    description: Primary agent that is tried first in a fallback chain
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── fallback-chain: fallback role ─────────────────────────────────────────────
+
+  - name: fallback-agent
+    category: fallback
+    version: "1.0"
+    description: Fallback agent used when primary or earlier agents in the chain fail
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── retry-loop: worker role ────────────────────────────────────────────────────
+
+  - name: retry-worker
+    category: worker
+    version: "1.0"
+    description: Worker agent that attempts task execution in a retry loop
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── retry-loop: validator role ────────────────────────────────────────────────
+
+  - name: result-validator
+    category: validator
+    version: "1.0"
+    description: Validates worker results and determines whether retry is needed
+    input_schema:
+      type: object
+      required: [result, attempt]
+      properties:
+        result: {type: object}
+        attempt: {type: integer}
+    output_schema:
+      type: object
+      required: [valid]
+      properties:
+        valid: {type: boolean}
+
+  # ── diamond: splitter role ────────────────────────────────────────────────────
+
+  - name: diamond-splitter
+    category: splitter
+    version: "1.0"
+    description: Splits input into left and right branches for parallel diamond processing
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [left, right]
+      properties:
+        left: {type: object}
+        right: {type: object}
+
+  # ── diamond: processor roles ──────────────────────────────────────────────────
+
+  - name: left-processor
+    category: processor
+    version: "1.0"
+    description: Processes the left branch in a diamond pattern
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  - name: right-processor
+    category: processor
+    version: "1.0"
+    description: Processes the right branch in a diamond pattern
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── diamond: merger role ──────────────────────────────────────────────────────
+
+  - name: diamond-merger
+    category: merger
+    version: "1.0"
+    description: Merges left and right branch results into a unified output
+    input_schema:
+      type: object
+      required: [left_result, right_result]
+      properties:
+        left_result: {type: object}
+        right_result: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── conditional-branching: evaluator role ─────────────────────────────────────
+
+  - name: condition-evaluator
+    category: evaluator
+    version: "1.0"
+    description: Evaluates input conditions to determine which branch to route to
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [branch]
+      properties:
+        branch: {type: string}
+
+  # ── conditional-branching: branch role ───────────────────────────────────────
+
+  - name: branch-agent
+    category: branch
+    version: "1.0"
+    description: Processes requests on a specific conditional branch
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── tree-reduce: leaf role ────────────────────────────────────────────────────
+
+  - name: tree-leaf-agent
+    category: leaf
+    version: "1.0"
+    description: Leaf-level agent that processes input as the first stage of a tree-reduce
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── tree-reduce: reducer role ─────────────────────────────────────────────────
+
+  - name: tree-reducer
+    category: reducer
+    version: "1.0"
+    description: Pairwise reducer that combines two inputs in each level of the reduction tree
+    input_schema:
+      type: object
+      required: [left, right]
+      properties:
+        left: {type: object}
+        right: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}

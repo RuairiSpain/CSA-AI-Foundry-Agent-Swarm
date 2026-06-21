@@ -1,0 +1,62 @@
+name: Task Planner
+version: 1.0
+category: orchestration
+description: |
+  Produces an explicit step-by-step execution plan with dependencies before any work begins.
+
+contract:
+  inputs:
+    - name: goal
+      type: string
+      required: true
+      description: High-level goal to plan
+    - name: constraints
+      type: object
+      required: false
+      description: Deadline, budget, resource constraints
+
+  outputs:
+    - name: steps
+      type: array
+      required: true
+      description: Ordered list of steps with IDs and dependencies
+    - name: plan_id
+      type: string
+      required: true
+      description: Plan identifier
+    - name: estimated_duration_minutes
+      type: integer
+      required: true
+      description: Estimated total duration
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - RFP response planning
+    - Project timeline generation
+    - Incident response plan
+  example:
+    input: {goal: 'prepare RFP response'}
+    output: {steps: [], plan_id: 'plan-001'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve past plans and templates for similar goals"
+  - id: iq-work
+    purpose: "Understand org workflows, team capacity, and past execution history"

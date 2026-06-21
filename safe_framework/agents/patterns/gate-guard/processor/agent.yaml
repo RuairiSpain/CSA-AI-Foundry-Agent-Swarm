@@ -1,0 +1,54 @@
+name: Guarded Processor
+version: 1.0
+category: compliance
+description: |
+  Performs the downstream processing after the guard approves the request.
+
+contract:
+  inputs:
+    - name: payload
+      type: object
+      required: true
+      description: The approved request to process
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Processing output
+    - name: status
+      type: string
+      required: true
+      description: 'success' | 'error'
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Post-approval processing
+    - Compliant data transformation
+    - Validated inference
+  example:
+    input: {payload: {}}
+    output: {result: {}, status: 'success'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - compliance
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Process request grounded in org knowledge"
+  - id: iq-fabric
+    purpose: "Access structured business data for processing"

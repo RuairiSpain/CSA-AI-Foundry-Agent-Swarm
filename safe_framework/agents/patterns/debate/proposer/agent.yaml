@@ -1,0 +1,62 @@
+name: Debate Proposer
+version: 1.0
+category: analysis
+description: |
+  Argues the affirmative or initial position, gathering supporting evidence.
+
+contract:
+  inputs:
+    - name: topic
+      type: string
+      required: true
+      description: The topic or question to debate
+    - name: context
+      type: object
+      required: false
+      description: Additional context
+
+  outputs:
+    - name: position
+      type: string
+      required: true
+      description: The proposer's argued position
+    - name: evidence
+      type: array
+      required: true
+      description: Supporting evidence and sources
+    - name: strength
+      type: float
+      required: true
+      description: Self-assessed argument strength 0.0–1.0
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Investment case for
+    - Risk analysis — upside
+    - Policy argument for
+  example:
+    input: {topic: 'Expand to APAC?'}
+    output: {position: '', evidence: [], strength: 0.8}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - analysis
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve internal evidence supporting position A"
+  - id: iq-web
+    purpose: "Gather external evidence supporting position A"

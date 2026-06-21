@@ -1,0 +1,68 @@
+name: Model Router
+version: 1.0
+category: cost-optimisation
+description: |
+  Routes the LLM call to the optimal model tier (Quality / Cost / Balanced) based on budget and complexity.
+
+contract:
+  inputs:
+    - name: prompt
+      type: string
+      required: true
+      description: The prompt to route
+    - name: estimated_cost_usd
+      type: float
+      required: true
+      description: From cost estimator
+    - name: budget_usd
+      type: float
+      required: true
+      description: Available budget
+    - name: complexity
+      type: string
+      required: true
+      description: Prompt complexity from estimator
+
+  outputs:
+    - name: model_tier
+      type: string
+      required: true
+      description: 'Quality' | 'Cost' | 'Balanced'
+    - name: model_id
+      type: string
+      required: true
+      description: Specific model deployment selected
+    - name: routing_reason
+      type: string
+      required: true
+      description: Why this tier was selected
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Cost-aware inference
+    - Budget enforcement
+    - Latency vs. quality trade-off
+  example:
+    input: {prompt: '', estimated_cost_usd: 0.03, budget_usd: 0.05, complexity: 'simple'}
+    output: {model_tier: 'Cost', model_id: 'phi-4-mini'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - cost-optimisation
+
+pattern_roles: []
+tools:
+  - id: safe-model-router
+    purpose: "Azure AI Foundry Model Router — Quality/Cost/Balanced policy"

@@ -1,0 +1,54 @@
+name: Tool Orchestrator
+version: 1.0
+category: orchestration
+description: |
+  Plans which sub-agents to call as tools and combines their results.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: High-level task to accomplish using sub-agents
+    - name: available_tools
+      type: array
+      required: false
+      description: List of available sub-agent tool IDs
+
+  outputs:
+    - name: tool_calls
+      type: array
+      required: true
+      description: Planned sub-agent calls — each with agent_key and input
+    - name: tool_results
+      type: object
+      required: true
+      description: Results from each tool call keyed by call_id
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Multi-tool research
+    - Composite data pipeline
+    - Autonomous task completion
+  example:
+    input: {task: 'analyse and summarise this contract'}
+    output: {tool_calls: [], tool_results: {}}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools: []

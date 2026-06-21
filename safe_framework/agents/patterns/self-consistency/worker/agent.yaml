@@ -1,0 +1,56 @@
+name: SC Worker
+version: 1.0
+category: processing
+description: |
+  Independently answers the same question — one of N parallel identical workers used for voting.
+
+contract:
+  inputs:
+    - name: question
+      type: string
+      required: true
+      description: The question or task to answer
+    - name: context
+      type: object
+      required: false
+      description: Optional grounding context
+
+  outputs:
+    - name: answer
+      type: any
+      required: true
+      description: This worker's answer
+    - name: confidence
+      type: float
+      required: true
+      description: Worker self-assessed confidence 0.0–1.0
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Factual verification
+    - Numerical answer checking
+    - Classification consistency
+  example:
+    input: {question: 'What is 15% of 240?'}
+    output: {answer: 36, confidence: 0.95}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Each worker independently grounded in the same knowledge base"

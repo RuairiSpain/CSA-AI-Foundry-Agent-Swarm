@@ -1,0 +1,56 @@
+name: Event Router
+version: 1.0
+category: integration
+description: |
+  Classifies the normalised event and selects the appropriate handler agent.
+
+contract:
+  inputs:
+    - name: event_type
+      type: string
+      required: true
+      description: Normalised event type from listener
+    - name: payload
+      type: object
+      required: true
+      description: Event payload
+
+  outputs:
+    - name: handler_key
+      type: string
+      required: true
+      description: Key of the handler agent to invoke
+    - name: routing_reason
+      type: string
+      required: true
+      description: Why this handler was selected
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Event classification
+    - Priority routing
+    - Multi-system event dispatch
+  example:
+    input: {event_type: 'invoice_received', payload: {}}
+    output: {handler_key: 'handler_finance'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - integration
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Classify event type to determine the correct handler"

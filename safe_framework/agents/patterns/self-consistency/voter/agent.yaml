@@ -1,0 +1,58 @@
+name: SC Voter
+version: 1.0
+category: processing
+description: |
+  Aggregates N independent worker answers and selects the majority or weighted consensus.
+
+contract:
+  inputs:
+    - name: worker_results
+      type: array
+      required: true
+      description: All worker answers with confidence scores
+    - name: question
+      type: string
+      required: true
+      description: Original question for context
+
+  outputs:
+    - name: answer
+      type: any
+      required: true
+      description: Majority / consensus answer
+    - name: vote_distribution
+      type: object
+      required: true
+      description: Count of votes per unique answer
+    - name: confidence
+      type: float
+      required: true
+      description: Fraction of workers that agreed on the winning answer
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Majority vote
+    - Weighted confidence aggregation
+    - Outlier detection
+  example:
+    input: {worker_results: [], question: 'What is 15% of 240?'}
+    output: {answer: 36, confidence: 0.9}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools: []

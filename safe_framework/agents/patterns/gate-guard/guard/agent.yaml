@@ -1,0 +1,63 @@
+name: Gate Guard
+version: 1.0
+category: compliance
+description: |
+  Evaluates the request against policy rules and blocks non-compliant requests before they reach the processor.
+
+contract:
+  inputs:
+    - name: payload
+      type: object
+      required: true
+      description: Request to evaluate
+    - name: policy_key
+      type: string
+      required: false
+      description: Override policy to apply
+
+  outputs:
+    - name: pass
+      type: boolean
+      required: true
+      description: True if request passes all guard checks
+    - name: reason
+      type: string
+      required: false
+      description: Reason for blocking (present if pass: false)
+    - name: checks_run
+      type: array
+      required: true
+      description: List of policy checks that were evaluated
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - PII scanning
+    - Budget approval gates
+    - Compliance pre-checks
+    - Data quality gates
+  example:
+    input: {payload: {}}
+    output: {pass: true, checks_run: []}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - compliance
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Policy and rule lookup for guard evaluation"
+  - id: iq-work
+    purpose: "Compliance context from org — requestor history, team policies"

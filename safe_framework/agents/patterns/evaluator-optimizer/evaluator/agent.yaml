@@ -1,0 +1,62 @@
+name: EO Evaluator
+version: 1.0
+category: processing
+description: |
+  Scores the generator output against a quality rubric and returns feedback.
+
+contract:
+  inputs:
+    - name: output
+      type: object
+      required: true
+      description: Generated output to evaluate
+    - name: iteration
+      type: integer
+      required: true
+      description: Current iteration number
+
+  outputs:
+    - name: quality_score
+      type: float
+      required: true
+      description: Quality score 0.0–1.0
+    - name: feedback
+      type: object
+      required: true
+      description: Structured improvement feedback
+    - name: passed
+      type: boolean
+      required: true
+      description: True if score meets threshold
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Compliance check
+    - Quality gate for reports
+    - Code review scoring
+  example:
+    input: {output: {}, iteration: 0}
+    output: {quality_score: 0.9, passed: true}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve quality rubrics and standards"
+  - id: iq-work
+    purpose: "Compare against org-approved examples"

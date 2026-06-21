@@ -1,0 +1,9 @@
+{
+  "suite": "project_md",
+  "budget_per_file": 8000,
+  "total_files": 0,
+  "files_over_budget": 0,
+  "max_tokens": 0,
+  "avg_tokens": 0,
+  "entries": []
+}

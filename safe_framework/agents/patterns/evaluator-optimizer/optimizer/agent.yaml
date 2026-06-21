@@ -1,0 +1,58 @@
+name: EO Optimizer
+version: 1.0
+category: processing
+description: |
+  Refines the request or prompt based on evaluator feedback for the next generation attempt.
+
+contract:
+  inputs:
+    - name: output
+      type: object
+      required: true
+      description: Failed output from generator
+    - name: feedback
+      type: object
+      required: true
+      description: Evaluator feedback
+    - name: iteration
+      type: integer
+      required: true
+      description: Current iteration number
+
+  outputs:
+    - name: payload
+      type: object
+      required: true
+      description: Improved request for the generator
+    - name: changes
+      type: array
+      required: true
+      description: List of changes made to the prompt
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Prompt refinement
+    - Instruction improvement
+    - Constraint relaxation
+  example:
+    input: {output: {}, feedback: {}, iteration: 1}
+    output: {payload: {}}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools: []

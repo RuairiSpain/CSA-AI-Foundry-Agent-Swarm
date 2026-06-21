@@ -1,0 +1,56 @@
+name: Result Synthesizer
+version: 1.0
+category: orchestration
+description: |
+  Combines all worker subtask results into a unified final output.
+
+contract:
+  inputs:
+    - name: subtask_results
+      type: array
+      required: true
+      description: Results from all workers
+    - name: original_request
+      type: object
+      required: true
+      description: The original orchestrator input
+
+  outputs:
+    - name: synthesis
+      type: object
+      required: true
+      description: Unified combined output
+    - name: coverage
+      type: float
+      required: true
+      description: Fraction of subtasks that succeeded
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Cross-region summary
+    - Multi-workstream executive brief
+    - Aggregated analysis report
+  example:
+    input: {subtask_results: [], original_request: {}}
+    output: {synthesis: {}, coverage: 1.0}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground final synthesis in authoritative source material"

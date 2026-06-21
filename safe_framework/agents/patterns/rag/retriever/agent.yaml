@@ -1,0 +1,68 @@
+name: RAG Retriever
+version: 1.0
+category: retrieval
+description: |
+  Queries one or more knowledge sources and returns the top matching document chunks.
+
+contract:
+  inputs:
+    - name: query
+      type: string
+      required: true
+      description: Natural language query
+    - name: sources
+      type: array
+      required: false
+      description: Knowledge sources to query
+    - name: top_k
+      type: integer
+      required: false
+      description: Documents to retrieve (default: 10)
+
+  outputs:
+    - name: chunks
+      type: array
+      required: true
+      description: Retrieved document chunks with scores
+    - name: total_found
+      type: integer
+      required: true
+      description: Total matching documents before top_k truncation
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Policy lookup
+    - Meeting context retrieval
+    - Operational data Q&A
+  example:
+    input: {query: 'vendor onboarding policy', top_k: 8}
+    output: {chunks: [], total_found: 0}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - retrieval
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Primary — Azure AI Search indexed org knowledge"
+  - id: iq-work
+    purpose: "Retrieve M365 content (emails, meetings, documents)"
+  - id: iq-fabric
+    purpose: "Structured business data from OneLake / Power BI"
+  - id: iq-web
+    purpose: "Public web retrieval via Bing grounding"
+  - id: azure-cosmos-db
+    purpose: "Vector search over operational / transactional data"

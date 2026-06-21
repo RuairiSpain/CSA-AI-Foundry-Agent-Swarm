@@ -1,0 +1,60 @@
+name: Cost Estimator
+version: 1.0
+category: cost-optimisation
+description: |
+  Estimates token cost for a request before routing to select the optimal model tier.
+
+contract:
+  inputs:
+    - name: prompt
+      type: string
+      required: true
+      description: The prompt to cost-estimate
+    - name: budget_usd
+      type: float
+      required: true
+      description: Available budget in USD
+
+  outputs:
+    - name: estimated_cost_usd
+      type: float
+      required: true
+      description: Estimated cost at each model tier
+    - name: complexity
+      type: string
+      required: true
+      description: 'simple' | 'medium' | 'complex' based on prompt analysis
+    - name: recommended_tier
+      type: string
+      required: true
+      description: 'Quality' | 'Cost' | 'Balanced'
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Pre-flight cost check
+    - Budget enforcement
+    - Model tier pre-selection
+  example:
+    input: {prompt: 'Summarise...', budget_usd: 0.05}
+    output: {estimated_cost_usd: 0.03, complexity: 'simple'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - cost-optimisation
+
+pattern_roles: []
+tools:
+  - id: safe-token-metrics
+    purpose: "Granular per-request cost history for accurate estimation"

@@ -1,0 +1,54 @@
+name: RAG Reranker
+version: 1.0
+category: retrieval
+description: |
+  Re-ranks retrieved chunks by semantic relevance to the query.
+
+contract:
+  inputs:
+    - name: query
+      type: string
+      required: true
+      description: Original query for relevance scoring
+    - name: chunks
+      type: array
+      required: true
+      description: Raw retrieved chunks from the retriever
+
+  outputs:
+    - name: ranked_chunks
+      type: array
+      required: true
+      description: Chunks re-ordered by relevance score
+    - name: top_k_used
+      type: integer
+      required: true
+      description: Number of chunks passed to generator
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Relevance improvement
+    - Noise reduction
+    - Context window optimisation
+  example:
+    input: {query: 'policy', chunks: []}
+    output: {ranked_chunks: [], top_k_used: 5}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - retrieval
+
+pattern_roles: []
+tools: []

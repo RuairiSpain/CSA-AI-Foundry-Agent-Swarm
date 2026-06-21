@@ -1,0 +1,64 @@
+name: Tree Reducer
+version: 1.0
+category: reducer
+description: |
+  Pairwise reducer that combines two inputs in each level of the reduction tree
+
+contract:
+  inputs:
+    - name: reduce_input
+      type: object
+      required: true
+      description: Left and right inputs to combine
+      schema:
+        type: object
+        required_fields: [left, right]
+        field_definitions:
+          left:
+            type: object
+            description: Left input to reduce
+          right:
+            type: object
+            description: Right input to reduce
+
+  outputs:
+    - name: reduce_output
+      type: object
+      required: true
+      description: Combined reduction result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 45
+
+documentation:
+  use_cases:
+    - Pairwise combination in tree-reduce
+    - Intermediate and final reduction step
+  example:
+    input: {left: {result: "A"}, right: {result: "B"}}
+    output: {result: {combined: "A+B"}}
+  limitations:
+    - Combines exactly two inputs at a time
+
+tags:
+  - reducer
+  - tree-reduce
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Validate each reduction step against known business rules"
+  - id: azure-cosmos-db
+    purpose: "Persist intermediate reduction results for large trees spanning multiple invocations"
+

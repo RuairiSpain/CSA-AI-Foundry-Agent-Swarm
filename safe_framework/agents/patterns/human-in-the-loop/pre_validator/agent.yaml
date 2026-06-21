@@ -1,0 +1,56 @@
+name: HITL Pre-Validator
+version: 1.0
+category: compliance
+description: |
+  Validates the request before it is sent to the human review gate.
+
+contract:
+  inputs:
+    - name: payload
+      type: object
+      required: true
+      description: Request to validate
+
+  outputs:
+    - name: approved_for_human_review
+      type: boolean
+      required: true
+      description: Whether the request passes pre-checks
+    - name: reason
+      type: string
+      required: false
+      description: Reason if blocked
+    - name: metadata
+      type: object
+      required: true
+      description: Validation metadata
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - PII scan before human review
+    - Completeness check
+    - Compliance pre-screen
+  example:
+    input: {payload: {}}
+    output: {approved_for_human_review: true}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - compliance
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Look up approval policy for this request type"

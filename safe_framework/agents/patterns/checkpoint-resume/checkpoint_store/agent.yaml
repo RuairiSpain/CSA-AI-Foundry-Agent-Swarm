@@ -1,0 +1,64 @@
+name: Checkpoint Store
+version: 1.0
+category: orchestration
+description: |
+  Persists step results as durable checkpoints so the workflow can resume after interruption.
+
+contract:
+  inputs:
+    - name: workflow_id
+      type: string
+      required: true
+      description: Workflow identifier
+    - name: step_id
+      type: string
+      required: true
+      description: Step that just completed
+    - name: result
+      type: object
+      required: true
+      description: Step result to persist
+    - name: action
+      type: string
+      required: true
+      description: 'checkpoint' | 'get_state'
+
+  outputs:
+    - name: checkpoint_id
+      type: string
+      required: true
+      description: Stored checkpoint document ID
+    - name: persisted_at
+      type: string
+      required: true
+      description: ISO 8601 timestamp
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - State persistence between steps
+    - Crash-safe workflow execution
+    - Long-running pipeline checkpoint
+  example:
+    input: {workflow_id: 'wf-001', step_id: 'step-1', result: {}, action: 'checkpoint'}
+    output: {checkpoint_id: 'ckpt-001', persisted_at: ''}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: safe-durable-task
+    purpose: "Azure Durable Task — durable storage backend (Storage / Cosmos / MSSQL)"

@@ -1,0 +1,61 @@
+name: Retry Worker
+version: 1.0
+category: worker
+description: |
+  Worker agent that attempts task execution in a retry loop
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Task request to process
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Task data
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Task result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Idempotent task processing with retry support
+    - Worker in a retry-loop pattern
+  example:
+    input: {data: {task: "process"}}
+    output: {result: {status: "done"}}
+  limitations:
+    - Should be idempotent for safe retries
+
+tags:
+  - worker
+  - retry-loop
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground each attempt in the same knowledge base"
+  - id: safe-durable-task
+    purpose: "Checkpoint state between retries so a restart doesn't lose progress"
+

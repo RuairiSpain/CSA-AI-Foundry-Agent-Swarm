@@ -1,0 +1,60 @@
+name: Orchestrator Worker
+version: 1.0
+category: orchestration
+description: |
+  Executes one subtask assigned by the orchestrator and returns its result.
+
+contract:
+  inputs:
+    - name: subtask
+      type: object
+      required: true
+      description: The subtask to execute
+    - name: worker_index
+      type: integer
+      required: false
+      description: Worker assignment index
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Subtask output
+    - name: subtask_id
+      type: string
+      required: true
+      description: Subtask identifier for synthesizer correlation
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Financial sub-analysis
+    - Regional data fetch
+    - Competitive research subtask
+  example:
+    input: {subtask: {}, worker_index: 0}
+    output: {result: {}, subtask_id: 'sub-001'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - orchestration
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground subtask execution in org knowledge"
+  - id: iq-fabric
+    purpose: "Execute data-oriented subtasks against OneLake"
+  - id: iq-web
+    purpose: "Execute research-oriented subtasks using web search"

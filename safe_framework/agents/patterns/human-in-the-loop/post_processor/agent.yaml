@@ -1,0 +1,56 @@
+name: HITL Post-Processor
+version: 1.0
+category: compliance
+description: |
+  Completes the workflow after human approval, logging the decision back to the compliance record.
+
+contract:
+  inputs:
+    - name: payload
+      type: object
+      required: true
+      description: Original approved request
+    - name: gate_result
+      type: object
+      required: true
+      description: Human gate decision and metadata
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Final processed output
+    - name: audit_id
+      type: string
+      required: true
+      description: Compliance audit record ID
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Post-approval processing
+    - Audit record creation
+    - Downstream automation trigger
+  example:
+    input: {payload: {}, gate_result: {}}
+    output: {result: {}, audit_id: 'AUD-001'}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - compliance
+
+pattern_roles: []
+tools:
+  - id: iq-work
+    purpose: "Log decision back to M365 compliance record in SharePoint"

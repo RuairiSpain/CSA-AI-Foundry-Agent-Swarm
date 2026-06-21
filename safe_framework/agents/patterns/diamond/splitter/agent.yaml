@@ -1,0 +1,61 @@
+name: Diamond Splitter
+version: 1.0
+category: splitter
+description: |
+  Splits input into left and right branches for parallel diamond processing
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Input request to split
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request data
+
+  outputs:
+    - name: split_output
+      type: object
+      required: true
+      description: Left and right branch inputs
+      schema:
+        type: object
+        required_fields: [left, right]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Bifurcate input for dual-path processing
+    - Entry point in diamond pattern
+  example:
+    input: {data: {payload: "..."}}
+    output: {left: {half: "A"}, right: {half: "B"}}
+  limitations:
+    - Splitting strategy is domain-specific
+
+tags:
+  - splitter
+  - diamond
+
+pattern_roles: []
+tools:
+  - id: iq-fabric
+    purpose: "Split structured data from OneLake into left/right paths"
+  - id: azure-cosmos-db
+    purpose: "Split from an operational database"
+

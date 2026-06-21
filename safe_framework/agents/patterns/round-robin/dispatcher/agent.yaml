@@ -1,0 +1,61 @@
+name: Round-Robin Dispatcher
+version: 1.0
+category: dispatcher
+description: |
+  Dispatches requests to workers in round-robin order
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Incoming request to dispatch
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request payload
+
+  outputs:
+    - name: dispatch_output
+      type: object
+      required: true
+      description: Dispatch decision with worker index
+      schema:
+        type: object
+        required_fields: [worker_index]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Distribute load evenly across workers
+    - Round-robin task scheduling
+  example:
+    input: {data: {task: "process"}}
+    output: {worker_index: 0}
+  limitations:
+    - Stateless round-robin based on request metadata
+
+tags:
+  - dispatcher
+  - round-robin
+
+pattern_roles: []
+tools:
+  - id: safe-token-metrics
+    purpose: "Track worker cost per turn to weight dispatch toward under-used workers"
+  - id: azure-cosmos-db
+    purpose: "Persist the round-robin counter across sessions and process restarts"
+

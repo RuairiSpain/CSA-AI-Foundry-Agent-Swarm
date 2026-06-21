@@ -1,0 +1,56 @@
+name: EO Generator
+version: 1.0
+category: processing
+description: |
+  Produces the initial output draft for quality evaluation.
+
+contract:
+  inputs:
+    - name: payload
+      type: object
+      required: true
+      description: Task or content to generate
+    - name: feedback
+      type: object
+      required: false
+      description: Optimizer feedback from previous iteration
+
+  outputs:
+    - name: output
+      type: object
+      required: true
+      description: Generated output draft
+    - name: metadata
+      type: object
+      required: true
+      description: Generation metadata
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Draft contract clauses
+    - Generate report sections
+    - Produce initial code
+  example:
+    input: {task: 'draft contract clause'}
+    output: {output: {}}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - processing
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Ground first draft in org knowledge and standards"

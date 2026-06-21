@@ -1,0 +1,60 @@
+name: Memory Writer
+version: 1.0
+category: memory
+description: |
+  Persists new memories and updated session state to the vector store after processing.
+
+contract:
+  inputs:
+    - name: session_id
+      type: string
+      required: true
+      description: Session identifier
+    - name: new_memories
+      type: array
+      required: true
+      description: Memories produced by the processor
+    - name: result
+      type: object
+      required: true
+      description: Full processing result for metadata storage
+
+  outputs:
+    - name: stored_count
+      type: integer
+      required: true
+      description: Number of memories successfully persisted
+    - name: memory_ids
+      type: array
+      required: true
+      description: IDs of stored memory documents
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Session state persistence
+    - Long-running project memory
+    - User preference storage
+  example:
+    input: {session_id: 'sess-001', new_memories: [], result: {}}
+    output: {stored_count: 3, memory_ids: []}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - memory
+
+pattern_roles: []
+tools:
+  - id: azure-cosmos-db
+    purpose: "Persist episodic/semantic memories with vector embeddings"

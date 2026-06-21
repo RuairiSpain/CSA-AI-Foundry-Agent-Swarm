@@ -1,0 +1,58 @@
+name: Budget Executor
+version: 1.0
+category: cost-optimisation
+description: |
+  Executes the LLM request using the model tier selected by the router.
+
+contract:
+  inputs:
+    - name: prompt
+      type: string
+      required: true
+      description: The prompt to execute
+    - name: model_tier
+      type: string
+      required: true
+      description: Model tier from router — 'Quality' | 'Cost' | 'Balanced'
+
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: Model response
+    - name: actual_cost_usd
+      type: float
+      required: true
+      description: Actual token cost incurred
+    - name: model_used
+      type: string
+      required: true
+      description: Model deployment that executed the request
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Quality-tier report generation
+    - Cost-tier bulk classification
+    - Balanced-tier analysis
+  example:
+    input: {prompt: 'Summarise...', model_tier: 'Cost'}
+    output: {result: '', actual_cost_usd: 0.002}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - cost-optimisation
+
+pattern_roles: []
+tools: []

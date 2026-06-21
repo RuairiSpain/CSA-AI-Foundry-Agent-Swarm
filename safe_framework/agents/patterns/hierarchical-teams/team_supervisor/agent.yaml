@@ -1,0 +1,61 @@
+name: Team Supervisor
+version: 1.0
+category: team_supervisor
+description: |
+  Supervises a team of agents to complete an assigned sub-task
+
+contract:
+  inputs:
+    - name: sub_request
+      type: object
+      required: true
+      description: Sub-task assigned by the coordinator
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Sub-task data
+
+  outputs:
+    - name: team_result
+      type: object
+      required: true
+      description: Team's completed result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Lead a team through a sub-task
+    - Mid-level orchestration in hierarchical pattern
+  example:
+    input: {data: {subtask: "analyse segment A"}}
+    output: {result: {analysis: "..."}}
+  limitations:
+    - Scope limited to assigned sub-task
+
+tags:
+  - team_supervisor
+  - hierarchical-teams
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Team-specific knowledge domain (each team supervisor has its own index)"
+  - id: iq-fabric
+    purpose: "Team needs to query business / analytics data as part of its work"
+

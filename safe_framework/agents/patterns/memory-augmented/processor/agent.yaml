@@ -1,0 +1,60 @@
+name: Memory Processor
+version: 1.0
+category: memory
+description: |
+  Processes the request enriched with recalled memories, and produces new memories for storage.
+
+contract:
+  inputs:
+    - name: query
+      type: string
+      required: true
+      description: Current query
+    - name: memories
+      type: array
+      required: true
+      description: Recalled memories from memory reader
+    - name: context
+      type: object
+      required: false
+      description: Additional context
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Processing output grounded in recalled memories
+    - name: new_memories
+      type: array
+      required: true
+      description: New memory objects to persist for future recall
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Context-aware Q&A
+    - Personalised recommendations
+    - Long-running workflow continuation
+  example:
+    input: {query: 'Continue from last week', memories: []}
+    output: {result: {}, new_memories: []}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - memory
+
+pattern_roles: []
+tools:
+  - id: iq-foundry
+    purpose: "Combine recalled memory with authoritative org knowledge"

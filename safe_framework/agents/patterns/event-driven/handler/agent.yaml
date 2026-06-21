@@ -1,0 +1,68 @@
+name: Event Handler
+version: 1.0
+category: integration
+description: |
+  Processes a specific event type once routed by the event router.
+
+contract:
+  inputs:
+    - name: event_type
+      type: string
+      required: true
+      description: The event type this handler processes
+    - name: payload
+      type: object
+      required: true
+      description: Normalised event payload
+    - name: event_id
+      type: string
+      required: true
+      description: Event identifier for deduplication
+
+  outputs:
+    - name: handled
+      type: boolean
+      required: true
+      description: Whether the event was successfully handled
+    - name: result
+      type: object
+      required: true
+      description: Handler output
+    - name: event_id
+      type: string
+      required: true
+      description: Echo for audit trail
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Invoice processing
+    - Document classification on upload
+    - Calendar event processing
+  example:
+    input: {event_type: 'invoice_received', payload: {}, event_id: 'ev-001'}
+    output: {handled: true, result: {}}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - integration
+
+pattern_roles: []
+tools:
+  - id: iq-fabric
+    purpose: "Data events — query and update OneLake / Fabric"
+  - id: iq-work
+    purpose: "M365 events — process Teams, Outlook, or SharePoint events"
+  - id: iq-foundry
+    purpose: "Knowledge events — update or query the knowledge index"

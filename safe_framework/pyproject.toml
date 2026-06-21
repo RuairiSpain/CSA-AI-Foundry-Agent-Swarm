@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=65.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-framework"
+version = "1.0.0"
+description = "SAFE Framework — Semantic Agent Framework for Enterprises (Phases 1-9)"
+requires-python = ">=3.11"
+authors = [{name = "Microsoft CSA Team"}]
+dependencies = [
+    "jinja2>=3.0.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0.0",
+    "typer>=0.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+safe = "safe_cli.main:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::pytest.PytestCollectionWarning"]
+markers = [
+    "safe_md: SAFE framework agent.md analysis (section checks + token budgets)",
+    "project_md: Engineer project MD analysis under routes/ (section checks + token budgets)",
+]

@@ -1,0 +1,64 @@
+name: Performance Tracker
+version: 1.0
+category: routing
+description: |
+  Tracks quality and cost per worker per input type and provides updated routing weights.
+
+contract:
+  inputs:
+    - name: input_type
+      type: string
+      required: true
+      description: Category of the input (e.g. 'support', 'finance')
+    - name: action
+      type: string
+      required: true
+      description: 'get_weights' | 'update_weights'
+    - name: worker_key
+      type: string
+      required: false
+      description: Worker to update (update_weights only)
+    - name: result
+      type: object
+      required: false
+      description: Execution result to score (update_weights only)
+
+  outputs:
+    - name: weights
+      type: object
+      required: true
+      description: Current routing weights per worker for this input_type
+    - name: updated
+      type: boolean
+      required: false
+      description: True if weights were updated
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Performance-based routing
+    - A/B routing
+    - Continuous routing improvement
+  example:
+    input: {input_type: 'support', action: 'get_weights'}
+    output: {weights: {worker_a: 0.7, worker_b: 0.3}}
+  limitations:
+    - See agent.md for details
+
+tags:
+  - routing
+
+pattern_roles: []
+tools:
+  - id: safe-token-metrics
+    purpose: "Track quality and cost per agent per input type via Token Metrics API"
