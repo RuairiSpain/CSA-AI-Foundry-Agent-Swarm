@@ -1,0 +1,40 @@
+name: Hierarchical Manager
+version: 1.0
+category: handoff
+description: |
+  Decomposes the task and delegates subtasks to worker sub-agents via
+  ConnectedAgentTool. Aggregates worker results and returns a consolidated
+  response. Sits at the root or an intermediate node of the hierarchy.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: Task to decompose and delegate to workers
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: Aggregated result from all worker outputs
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages:
+      - azure-ai-projects>=1.0.0b4
+  timeout_seconds: 120
+
+tags:
+  - handoff
+  - hierarchical
+  - manager
+
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve task decomposition context and worker capability profiles"

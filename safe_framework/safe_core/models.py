@@ -64,6 +64,10 @@ class Agent:
     dependencies: List[str] = field(default_factory=list)
     description: str = ""
     example_usage: str = ""
+    # Optional reference to a HandoffDefinition by name. When set, this agent
+    # delegates subtasks to the named handoff pool via ConnectedAgentTool at
+    # runtime. The route's deterministic path continues after the handoff returns.
+    handoff_ref: Optional[str] = None
 
 
 @dataclass

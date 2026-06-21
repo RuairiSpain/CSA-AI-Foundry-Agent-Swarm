@@ -280,6 +280,150 @@ def chain_generate(
     )
 
 
+# ── handoff sub-commands ──────────────────────────────────────────────────────
+
+handoff_app = typer.Typer(help="Build and manage ConnectedAgentTool handoff definitions.")
+app.add_typer(handoff_app, name="handoff")
+
+
+@handoff_app.callback(invoke_without_command=True)
+def handoff_default(ctx: typer.Context):
+    """Handoff builder (interactive). Runs the wizard when no sub-command is given."""
+    if ctx.invoked_subcommand is None:
+        import asyncio
+        from pathlib import Path
+        from safe_core.handoff_interview import HandoffInterviewer
+        from safe_core.handoff_generator import HandoffCodeGenerator
+        from safe_core.handoff_validator import HandoffValidator
+
+        handoffs_dir = Path.cwd() / "handoffs"
+        interviewer = HandoffInterviewer(handoffs_dir=handoffs_dir)
+        handoff = asyncio.run(interviewer.start_interview())
+        if handoff is None:
+            return
+
+        validator = HandoffValidator()
+        errors = validator.validate(handoff)
+        if errors:
+            for e in errors:
+                typer.echo(typer.style(f"  ✗ {e.message}", fg=typer.colors.RED), err=True)
+                for s in e.suggested_solutions:
+                    typer.echo(f"      → {s}")
+            raise typer.Exit(1)
+
+        handoff_dir = HandoffCodeGenerator.save(handoff, handoffs_dir)
+        typer.echo(
+            f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+            f"Generated: {handoff_dir}/handoff.py"
+        )
+        typer.echo(f"  Config : {handoff_dir}/config.yaml")
+        typer.echo(
+            f"\n  To embed in a route agent, add to your agent definition:\n"
+            f"    handoff_ref: {handoff.name}\n"
+            f"\n  To use as a chain step, reference it as:\n"
+            f"    route_name: handoff:{handoff.name}\n"
+        )
+
+
+@handoff_app.command("list")
+def handoff_list(
+    handoffs_dir: str = typer.Option("./handoffs", "--handoffs-dir", "-d"),
+):
+    """List all handoff definitions under the handoffs directory."""
+    from pathlib import Path
+    import yaml
+
+    hdir = Path(handoffs_dir)
+    if not hdir.exists():
+        typer.echo("No handoffs directory found. Run 'safe handoff' to create one.")
+        raise typer.Exit(0)
+
+    defs = [d for d in sorted(hdir.iterdir()) if (d / "config.yaml").exists()]
+    if not defs:
+        typer.echo("No handoffs found. Run 'safe handoff' to create one.")
+        raise typer.Exit(0)
+
+    typer.echo(f"\n  {'Name':<35}  {'Pattern':<22}  Sub-agents")
+    typer.echo("  " + "-" * 75)
+    for d in defs:
+        try:
+            cfg = yaml.safe_load((d / "config.yaml").read_text(encoding="utf-8"))
+            n_sub = len(cfg.get("sub_agents", {}))
+            typer.echo(
+                f"  {cfg['name']:<35}  {cfg.get('pattern',''):<22}  {n_sub}"
+            )
+        except Exception:
+            typer.echo(f"  {d.name:<35}  (could not read config.yaml)")
+
+    typer.echo(f"\n  {len(defs)} handoff(s) found.")
+
+
+@handoff_app.command("validate")
+def handoff_validate(
+    name: str = typer.Argument(..., help="Handoff name (directory under handoffs/)"),
+    handoffs_dir: str = typer.Option("./handoffs", "--handoffs-dir", "-d"),
+):
+    """Validate an existing handoff definition."""
+    from pathlib import Path
+    from safe_core.handoff_generator import HandoffCodeGenerator
+    from safe_core.handoff_validator import HandoffValidator
+
+    hdir = Path(handoffs_dir)
+    config = hdir / name / "config.yaml"
+    if not config.exists():
+        typer.echo(
+            typer.style(f"  ✗ config.yaml not found: {config}", fg=typer.colors.RED),
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    handoff = HandoffCodeGenerator.load_from_yaml(config)
+    errors = HandoffValidator().validate(handoff)
+
+    if not errors:
+        typer.echo(typer.style(f"  ✓ {name} is valid.", fg=typer.colors.GREEN))
+        return
+
+    for e in errors:
+        typer.echo(typer.style(f"  ✗ {e.message}", fg=typer.colors.RED))
+        for s in e.suggested_solutions:
+            typer.echo(f"      → {s}")
+    raise typer.Exit(1)
+
+
+@handoff_app.command("generate")
+def handoff_generate(
+    name: str = typer.Argument(..., help="Handoff name to regenerate from its config.yaml"),
+    handoffs_dir: str = typer.Option("./handoffs", "--handoffs-dir", "-d"),
+):
+    """Regenerate handoff.py from a saved config.yaml (after manual edits)."""
+    from pathlib import Path
+    from safe_core.handoff_generator import HandoffCodeGenerator
+    from safe_core.handoff_validator import HandoffValidator
+
+    hdir = Path(handoffs_dir)
+    config = hdir / name / "config.yaml"
+    if not config.exists():
+        typer.echo(
+            typer.style(f"  ✗ config.yaml not found: {config}", fg=typer.colors.RED),
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    handoff = HandoffCodeGenerator.load_from_yaml(config)
+    errors = HandoffValidator().validate(handoff)
+    if errors:
+        for e in errors:
+            typer.echo(typer.style(f"  ✗ {e.message}", fg=typer.colors.RED), err=True)
+        raise typer.Exit(1)
+
+    handoff_dir = HandoffCodeGenerator.save(handoff, hdir)
+    typer.echo(
+        f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+        f"Regenerated: {handoff_dir}/handoff.py"
+    )
+
+
 # ── existing commands ─────────────────────────────────────────────────────────
 
 

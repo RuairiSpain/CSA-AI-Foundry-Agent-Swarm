@@ -1,0 +1,40 @@
+name: Selective Candidate
+version: 1.0
+category: handoff
+description: |
+  Specialist sub-agent available for selection by the coordinator. Registered
+  as a ConnectedAgentTool on the coordinator; invoked only when the coordinator
+  determines this candidate is the best match for the task.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: Task delegated by the coordinator
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: Specialist result to return to coordinator
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages:
+      - azure-ai-projects>=1.0.0b4
+  timeout_seconds: 60
+
+tags:
+  - handoff
+  - selective
+  - candidate
+
+tools:
+  - id: iq-foundry
+    purpose: "Domain knowledge retrieval for specialised task execution"

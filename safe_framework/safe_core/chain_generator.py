@@ -10,6 +10,8 @@ from jinja2 import Environment, FileSystemLoader
 
 from .chain_models import RouteChain, RouteChainStep
 
+_HANDOFF_PREFIX = "handoff:"
+
 
 _CHAINS_TEMPLATE_DIR = Path(__file__).parent.parent / "agents" / "chains"
 
@@ -34,11 +36,18 @@ class RouteChainGenerator:
 
         steps_ctx: List[Dict[str, Any]] = []
         for step in chain.steps:
+            is_handoff = step.route_name.startswith(_HANDOFF_PREFIX)
+            bare_name = (
+                step.route_name[len(_HANDOFF_PREFIX):]
+                if is_handoff
+                else step.route_name
+            )
             steps_ctx.append({
-                "route_name": step.route_name,
-                "import_class": _class_name(step.route_name),
-                "module_name": step.route_name.replace("-", "_"),
-                "label": step.label or step.route_name,
+                "route_name": bare_name,
+                "is_handoff": is_handoff,
+                "import_class": _class_name(bare_name),
+                "module_name": bare_name.replace("-", "_"),
+                "label": step.label or bare_name,
                 "field_mapping": step.field_mapping,
                 "pass_through_fields": step.pass_through_fields,
                 "condition": step.condition,

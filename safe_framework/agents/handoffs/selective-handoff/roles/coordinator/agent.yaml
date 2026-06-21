@@ -1,0 +1,40 @@
+name: Selective Coordinator
+version: 1.0
+category: handoff
+description: |
+  Evaluates the task at runtime and selects exactly one candidate sub-agent
+  to delegate to. Uses LLM reasoning to match task characteristics against
+  candidate capability descriptions.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: Task to evaluate and route to a candidate
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: The selected candidate's result
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages:
+      - azure-ai-projects>=1.0.0b4
+  timeout_seconds: 90
+
+tags:
+  - handoff
+  - selective
+  - coordinator
+
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve capability profiles to aid routing decisions"

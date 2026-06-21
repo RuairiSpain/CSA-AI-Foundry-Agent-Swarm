@@ -10,8 +10,13 @@ from typing import Any, Dict
 import logging
 
 from semantic_kernel import Kernel
+from azure.ai.projects.aio import AIProjectClient
 {% for step in steps %}
+{% if step.is_handoff %}
+from handoffs.{{ step.module_name }}.handoff import {{ step.import_class }}Handoff
+{% else %}
 from routes.{{ step.module_name }}.route import {{ step.import_class }}Route
+{% endif %}
 {% endfor %}
 
 logger = logging.getLogger(__name__)
@@ -30,9 +35,13 @@ class {{ class_name }}Chain:
     Created       : {{ created_at }}
     """
 
-    def __init__(self, kernel: Kernel) -> None:
+    def __init__(self, kernel: Kernel, client: AIProjectClient | None = None) -> None:
 {% for step in steps %}
+{% if step.is_handoff %}
+        self._step_{{ loop.index0 }} = {{ step.import_class }}Handoff(client)
+{% else %}
         self._step_{{ loop.index0 }} = {{ step.import_class }}Route(kernel)
+{% endif %}
 {% endfor %}
         self._timeout = {{ timeout_seconds }}
 

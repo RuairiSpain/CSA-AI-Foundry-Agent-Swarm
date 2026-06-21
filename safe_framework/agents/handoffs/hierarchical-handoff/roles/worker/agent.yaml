@@ -1,0 +1,39 @@
+name: Hierarchical Worker
+version: 1.0
+category: handoff
+description: |
+  Executes a subtask delegated by the manager agent. May itself delegate
+  to sub-workers if max_depth allows. Returns its result to the manager.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: Subtask delegated by the manager
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: Subtask result returned to the manager
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages:
+      - azure-ai-projects>=1.0.0b4
+  timeout_seconds: 60
+
+tags:
+  - handoff
+  - hierarchical
+  - worker
+
+tools:
+  - id: iq-foundry
+    purpose: "Domain knowledge for subtask execution"
