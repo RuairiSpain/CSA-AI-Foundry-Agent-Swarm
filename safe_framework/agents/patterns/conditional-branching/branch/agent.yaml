@@ -1,0 +1,55 @@
+name: Branch Agent
+version: 1.0
+category: branch
+description: |
+  Processes requests on a specific conditional branch
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Request routed to this branch
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request data
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Branch processing result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Handle requests on a specific conditional path
+    - Branch-specific processing logic
+  example:
+    input: {data: {type: "urgent"}}
+    output: {result: {handled: true}}
+  limitations:
+    - Only activated when its branch condition is met
+
+tags:
+  - branch
+  - conditional-branching
+
+pattern_roles: []

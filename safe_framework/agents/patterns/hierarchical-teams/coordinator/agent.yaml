@@ -1,0 +1,55 @@
+name: Team Coordinator
+version: 1.0
+category: coordinator
+description: |
+  Coordinates hierarchical teams by assigning sub-requests to each team supervisor
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Top-level request to decompose
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request payload
+
+  outputs:
+    - name: coordinator_output
+      type: object
+      required: true
+      description: Team assignments mapping team keys to sub-requests
+      schema:
+        type: object
+        required_fields: [team_assignments]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 45
+
+documentation:
+  use_cases:
+    - Decompose complex tasks across teams
+    - Top-level orchestration in hierarchical pattern
+  example:
+    input: {data: {project: "analysis"}}
+    output: {team_assignments: {team_0: {subtask: "..."}, team_1: {subtask: "..."}}}
+  limitations:
+    - Decomposition is task-specific
+
+tags:
+  - coordinator
+  - hierarchical-teams
+
+pattern_roles: []

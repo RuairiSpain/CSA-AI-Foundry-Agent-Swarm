@@ -1,0 +1,55 @@
+name: Right Processor
+version: 1.0
+category: processor
+description: |
+  Processes the right branch in a diamond pattern
+
+contract:
+  inputs:
+    - name: right_input
+      type: object
+      required: true
+      description: Right branch input from splitter
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Right branch data
+
+  outputs:
+    - name: right_result
+      type: object
+      required: true
+      description: Right branch processing result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Right-path processing in diamond pattern
+    - Parallel processing with left processor
+  example:
+    input: {data: {half: "B"}}
+    output: {result: {processed: "B'"}}
+  limitations:
+    - Processes only the right branch
+
+tags:
+  - processor
+  - diamond
+
+pattern_roles: []

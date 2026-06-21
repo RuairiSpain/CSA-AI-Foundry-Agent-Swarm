@@ -1,0 +1,55 @@
+name: Primary Agent
+version: 1.0
+category: primary
+description: |
+  Primary agent that is tried first in a fallback chain
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Request to process
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request payload
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Processed result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - First attempt in a fallback chain
+    - Primary processing path
+  example:
+    input: {data: {task: "process"}}
+    output: {result: {status: "done"}}
+  limitations:
+    - May fail, triggering fallback agents
+
+tags:
+  - primary
+  - fallback-chain
+
+pattern_roles: []

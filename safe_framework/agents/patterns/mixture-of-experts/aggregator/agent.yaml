@@ -1,0 +1,55 @@
+name: Expert Aggregator
+version: 1.0
+category: aggregator
+description: |
+  Combines weighted expert outputs into a single final answer
+
+contract:
+  inputs:
+    - name: expert_outputs
+      type: array
+      required: true
+      description: List of expert outputs with weights
+      schema:
+        type: object
+        required_fields: [expert_outputs]
+        field_definitions:
+          expert_outputs:
+            type: array
+            description: List of {expert, output, weight} objects
+
+  outputs:
+    - name: final_output
+      type: object
+      required: true
+      description: Combined expert result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 45
+
+documentation:
+  use_cases:
+    - Combine weighted expert opinions
+    - Final aggregation in mixture-of-experts
+  example:
+    input: {expert_outputs: [{expert: "e0", output: {}, weight: 0.9}]}
+    output: {result: {answer: "..."}}
+  limitations:
+    - Requires at least one valid expert output
+
+tags:
+  - aggregator
+  - mixture-of-experts
+
+pattern_roles: []

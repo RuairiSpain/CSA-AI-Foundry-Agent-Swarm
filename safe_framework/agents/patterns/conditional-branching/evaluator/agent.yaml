@@ -1,0 +1,55 @@
+name: Condition Evaluator
+version: 1.0
+category: evaluator
+description: |
+  Evaluates input conditions to determine which branch to route to
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Request to evaluate for routing
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request data
+
+  outputs:
+    - name: eval_output
+      type: object
+      required: true
+      description: Evaluation result with branch key
+      schema:
+        type: object
+        required_fields: [branch]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Route requests to appropriate branches
+    - Condition evaluation for dynamic branching
+  example:
+    input: {data: {type: "urgent"}}
+    output: {branch: "branch_0"}
+  limitations:
+    - Branch key must match an available branch agent
+
+tags:
+  - evaluator
+  - conditional-branching
+
+pattern_roles: []

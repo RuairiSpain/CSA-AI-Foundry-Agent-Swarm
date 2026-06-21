@@ -1,0 +1,55 @@
+name: Tree Leaf Agent
+version: 1.0
+category: leaf
+description: |
+  Leaf-level agent that processes input as the first stage of a tree-reduce
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Input request to process at leaf level
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request data
+
+  outputs:
+    - name: leaf_result
+      type: object
+      required: true
+      description: Leaf processing result for reduction
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Initial parallel processing in tree-reduce
+    - Leaf node in reduction tree
+  example:
+    input: {data: {segment: "part A"}}
+    output: {result: {processed: "..."}}
+  limitations:
+    - Produces intermediate results for reduction
+
+tags:
+  - leaf
+  - tree-reduce
+
+pattern_roles: []

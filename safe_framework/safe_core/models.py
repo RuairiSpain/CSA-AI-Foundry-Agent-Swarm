@@ -22,6 +22,14 @@ class RoutePattern(str, Enum):
     FAN_OUT_FAN_IN = "fan-out-fan-in"
     MAP_REDUCE = "map-reduce"
     SEQUENTIAL_PIPELINE = "sequential-pipeline"
+    ROUND_ROBIN = "round-robin"
+    MIXTURE_OF_EXPERTS = "mixture-of-experts"
+    HIERARCHICAL_TEAMS = "hierarchical-teams"
+    FALLBACK_CHAIN = "fallback-chain"
+    RETRY_LOOP = "retry-loop"
+    DIAMOND = "diamond"
+    CONDITIONAL_BRANCHING = "conditional-branching"
+    TREE_REDUCE = "tree-reduce"
 
 
 @dataclass

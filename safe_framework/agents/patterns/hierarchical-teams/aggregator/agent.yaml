@@ -1,0 +1,55 @@
+name: Team Results Aggregator
+version: 1.0
+category: aggregator
+description: |
+  Aggregates results from all team supervisors into a final combined output
+
+contract:
+  inputs:
+    - name: team_results
+      type: object
+      required: true
+      description: Results from all team supervisors
+      schema:
+        type: object
+        required_fields: [team_results]
+        field_definitions:
+          team_results:
+            type: object
+            description: Dict mapping team_key to team result
+
+  outputs:
+    - name: final_output
+      type: object
+      required: true
+      description: Combined team results
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 45
+
+documentation:
+  use_cases:
+    - Combine results from multiple teams
+    - Final synthesis in hierarchical pattern
+  example:
+    input: {team_results: {team_0: {result: "..."}, team_1: {result: "..."}}}
+    output: {result: {combined: "..."}}
+  limitations:
+    - Requires at least one team result
+
+tags:
+  - aggregator
+  - hierarchical-teams
+
+pattern_roles: []

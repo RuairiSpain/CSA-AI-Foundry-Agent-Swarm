@@ -1,0 +1,55 @@
+name: Fallback Agent
+version: 1.0
+category: fallback
+description: |
+  Fallback agent used when primary or earlier agents in the chain fail
+
+contract:
+  inputs:
+    - name: request
+      type: object
+      required: true
+      description: Request to process as fallback
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Request payload
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Fallback processed result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Fallback processing when primary fails
+    - Alternative agent in fallback chain
+  example:
+    input: {data: {task: "process"}}
+    output: {result: {status: "done"}}
+  limitations:
+    - May also fail, triggering next fallback
+
+tags:
+  - fallback
+  - fallback-chain
+
+pattern_roles: []

@@ -1,0 +1,55 @@
+name: Left Processor
+version: 1.0
+category: processor
+description: |
+  Processes the left branch in a diamond pattern
+
+contract:
+  inputs:
+    - name: left_input
+      type: object
+      required: true
+      description: Left branch input from splitter
+      schema:
+        type: object
+        required_fields: [data]
+        field_definitions:
+          data:
+            type: object
+            description: Left branch data
+
+  outputs:
+    - name: left_result
+      type: object
+      required: true
+      description: Left branch processing result
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Left-path processing in diamond pattern
+    - Parallel processing with right processor
+  example:
+    input: {data: {half: "A"}}
+    output: {result: {processed: "A'"}}
+  limitations:
+    - Processes only the left branch
+
+tags:
+  - processor
+  - diamond
+
+pattern_roles: []

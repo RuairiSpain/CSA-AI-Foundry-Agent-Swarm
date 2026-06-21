@@ -686,6 +686,590 @@ patterns:
         placeholder: stage1
         is_default: true
 
+  # Round-Robin pattern agents
+  round-robin:
+
+    - id: round-robin_dispatcher
+      placeholder: dispatcher
+      name: Round-Robin Dispatcher
+      version: 1.0
+      category: dispatcher
+      description: Dispatches requests to workers in round-robin order
+
+      contract:
+        inputs: [request]
+        outputs: [worker_index]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 30
+
+      discovery:
+        keywords: [dispatcher, round-robin, load-balance]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 89
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: round-robin
+        placeholder: dispatcher
+        is_default: true
+
+    - id: round-robin_worker
+      placeholder: worker
+      name: Round-Robin Worker
+      version: 1.0
+      category: worker
+      description: Processes requests assigned by round-robin dispatcher
+
+      contract:
+        inputs: [request]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [worker, round-robin, processing]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 134
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: round-robin
+        placeholder: worker
+        is_default: true
+
+  # Mixture-of-Experts pattern agents
+  mixture-of-experts:
+
+    - id: mixture-of-experts_router
+      placeholder: router
+      name: Expert Router
+      version: 1.0
+      category: router
+      description: Assigns relevance weights to domain experts
+
+      contract:
+        inputs: [request]
+        outputs: [expert_weights]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 30
+
+      discovery:
+        keywords: [router, expert, mixture-of-experts, weights]
+        complexity: advanced
+        quality_rating: 4.8
+        usage_count: 76
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: mixture-of-experts
+        placeholder: router
+        is_default: true
+
+    - id: mixture-of-experts_expert
+      placeholder: expert
+      name: Domain Expert
+      version: 1.0
+      category: expert
+      description: Domain expert that processes requests within its area of specialisation
+
+      contract:
+        inputs: [request]
+        outputs: [expert_output]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [expert, domain, mixture-of-experts]
+        complexity: advanced
+        quality_rating: 4.9
+        usage_count: 112
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: mixture-of-experts
+        placeholder: expert
+        is_default: true
+
+    - id: mixture-of-experts_aggregator
+      placeholder: aggregator
+      name: Expert Aggregator
+      version: 1.0
+      category: aggregation
+      description: Combines weighted expert outputs into a unified final answer
+
+      contract:
+        inputs: [expert_outputs]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+
+      discovery:
+        keywords: [aggregator, expert, mixture-of-experts, combine]
+        complexity: advanced
+        quality_rating: 4.8
+        usage_count: 98
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: mixture-of-experts
+        placeholder: aggregator
+        is_default: true
+
+  # Hierarchical-Teams pattern agents
+  hierarchical-teams:
+
+    - id: hierarchical-teams_coordinator
+      placeholder: coordinator
+      name: Team Coordinator
+      version: 1.0
+      category: coordinator
+      description: Coordinates hierarchical teams by assigning sub-requests to each team supervisor
+
+      contract:
+        inputs: [request]
+        outputs: [team_assignments]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+
+      discovery:
+        keywords: [coordinator, hierarchical, teams]
+        complexity: advanced
+        quality_rating: 4.8
+        usage_count: 67
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: hierarchical-teams
+        placeholder: coordinator
+        is_default: true
+
+    - id: hierarchical-teams_team_supervisor
+      placeholder: team_supervisor
+      name: Team Supervisor
+      version: 1.0
+      category: team_supervisor
+      description: Supervises a team of agents to complete an assigned sub-task
+
+      contract:
+        inputs: [sub_request]
+        outputs: [team_result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [team_supervisor, team, hierarchical]
+        complexity: advanced
+        quality_rating: 4.7
+        usage_count: 89
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: hierarchical-teams
+        placeholder: team_supervisor
+        is_default: true
+
+    - id: hierarchical-teams_aggregator
+      placeholder: aggregator
+      name: Team Results Aggregator
+      version: 1.0
+      category: aggregation
+      description: Aggregates results from all team supervisors into a final combined output
+
+      contract:
+        inputs: [team_results]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+
+      discovery:
+        keywords: [aggregator, teams, hierarchical, combine]
+        complexity: advanced
+        quality_rating: 4.8
+        usage_count: 78
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: hierarchical-teams
+        placeholder: aggregator
+        is_default: true
+
+  # Fallback-Chain pattern agents
+  fallback-chain:
+
+    - id: fallback-chain_primary
+      placeholder: primary
+      name: Primary Agent
+      version: 1.0
+      category: primary
+      description: Primary agent that is tried first in a fallback chain
+
+      contract:
+        inputs: [request]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [primary, fallback-chain, resilience]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 145
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: fallback-chain
+        placeholder: primary
+        is_default: true
+
+    - id: fallback-chain_fallback
+      placeholder: fallback
+      name: Fallback Agent
+      version: 1.0
+      category: fallback
+      description: Fallback agent used when primary or earlier agents fail
+
+      contract:
+        inputs: [request]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [fallback, fallback-chain, resilience]
+        complexity: intermediate
+        quality_rating: 4.6
+        usage_count: 123
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: fallback-chain
+        placeholder: fallback
+        is_default: true
+
+  # Retry-Loop pattern agents
+  retry-loop:
+
+    - id: retry-loop_worker
+      placeholder: worker
+      name: Retry Worker
+      version: 1.0
+      category: worker
+      description: Worker agent that attempts task execution in a retry loop
+
+      contract:
+        inputs: [request]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [worker, retry-loop, retry]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 167
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: retry-loop
+        placeholder: worker
+        is_default: true
+
+    - id: retry-loop_validator
+      placeholder: validator
+      name: Result Validator
+      version: 1.0
+      category: validator
+      description: Validates worker results and determines whether retry is needed
+
+      contract:
+        inputs: [result, attempt]
+        outputs: [valid]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 30
+
+      discovery:
+        keywords: [validator, retry-loop, quality-gate]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 134
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: retry-loop
+        placeholder: validator
+        is_default: true
+
+  # Diamond pattern agents
+  diamond:
+
+    - id: diamond_splitter
+      placeholder: splitter
+      name: Diamond Splitter
+      version: 1.0
+      category: splitter
+      description: Splits input into left and right branches for parallel diamond processing
+
+      contract:
+        inputs: [request]
+        outputs: [left, right]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 30
+
+      discovery:
+        keywords: [splitter, diamond, bifurcate]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 56
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: diamond
+        placeholder: splitter
+        is_default: true
+
+    - id: diamond_left_processor
+      placeholder: left_processor
+      name: Left Processor
+      version: 1.0
+      category: processing
+      description: Processes the left branch in a diamond pattern
+
+      contract:
+        inputs: [left_input]
+        outputs: [left_result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [left_processor, diamond, parallel]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 56
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: diamond
+        placeholder: left_processor
+        is_default: true
+
+    - id: diamond_right_processor
+      placeholder: right_processor
+      name: Right Processor
+      version: 1.0
+      category: processing
+      description: Processes the right branch in a diamond pattern
+
+      contract:
+        inputs: [right_input]
+        outputs: [right_result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [right_processor, diamond, parallel]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 56
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: diamond
+        placeholder: right_processor
+        is_default: true
+
+    - id: diamond_merger
+      placeholder: merger
+      name: Diamond Merger
+      version: 1.0
+      category: merger
+      description: Merges left and right branch results into a unified output
+
+      contract:
+        inputs: [left_result, right_result]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+
+      discovery:
+        keywords: [merger, diamond, combine]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 56
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: diamond
+        placeholder: merger
+        is_default: true
+
+  # Conditional-Branching pattern agents
+  conditional-branching:
+
+    - id: conditional-branching_evaluator
+      placeholder: evaluator
+      name: Condition Evaluator
+      version: 1.0
+      category: evaluator
+      description: Evaluates input conditions to determine which branch to route to
+
+      contract:
+        inputs: [request]
+        outputs: [branch]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 30
+
+      discovery:
+        keywords: [evaluator, conditional, branching, routing]
+        complexity: advanced
+        quality_rating: 4.8
+        usage_count: 102
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: conditional-branching
+        placeholder: evaluator
+        is_default: true
+
+    - id: conditional-branching_branch
+      placeholder: branch
+      name: Branch Agent
+      version: 1.0
+      category: branch
+      description: Processes requests on a specific conditional branch
+
+      contract:
+        inputs: [request]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [branch, conditional, routing]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 145
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: conditional-branching
+        placeholder: branch
+        is_default: true
+
+  # Tree-Reduce pattern agents
+  tree-reduce:
+
+    - id: tree-reduce_leaf
+      placeholder: leaf
+      name: Tree Leaf Agent
+      version: 1.0
+      category: leaf
+      description: Leaf-level agent that processes input as the first stage of a tree-reduce
+
+      contract:
+        inputs: [request]
+        outputs: [leaf_result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 60
+
+      discovery:
+        keywords: [leaf, tree-reduce, parallel]
+        complexity: intermediate
+        quality_rating: 4.7
+        usage_count: 78
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: tree-reduce
+        placeholder: leaf
+        is_default: true
+
+    - id: tree-reduce_reducer
+      placeholder: reducer
+      name: Tree Reducer
+      version: 1.0
+      category: reducer
+      description: Pairwise reducer that combines two inputs in each level of the reduction tree
+
+      contract:
+        inputs: [left, right]
+        outputs: [result]
+
+      metadata:
+        author: SAFE Team
+        license: MIT
+        timeout_seconds: 45
+
+      discovery:
+        keywords: [reducer, tree-reduce, pairwise]
+        complexity: intermediate
+        quality_rating: 4.8
+        usage_count: 89
+        maintained_by: SAFE Team
+
+      pattern_assignment:
+        pattern: tree-reduce
+        placeholder: reducer
+        is_default: true
+
 # ============================================================================
 # STATISTICS
 # ============================================================================

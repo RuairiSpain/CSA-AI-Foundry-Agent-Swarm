@@ -1,0 +1,58 @@
+name: Diamond Merger
+version: 1.0
+category: merger
+description: |
+  Merges left and right branch results into a unified output
+
+contract:
+  inputs:
+    - name: merge_input
+      type: object
+      required: true
+      description: Left and right branch results
+      schema:
+        type: object
+        required_fields: [left_result, right_result]
+        field_definitions:
+          left_result:
+            type: object
+            description: Result from left processor
+          right_result:
+            type: object
+            description: Result from right processor
+
+  outputs:
+    - name: merged_output
+      type: object
+      required: true
+      description: Merged result from both branches
+      schema:
+        type: object
+        required_fields: [result]
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 45
+
+documentation:
+  use_cases:
+    - Combine dual-path processing results
+    - Final stage in diamond pattern
+  example:
+    input: {left_result: {processed: "A'"}, right_result: {processed: "B'"}}
+    output: {result: {combined: "A'+B'"}}
+  limitations:
+    - Requires both branch results
+
+tags:
+  - merger
+  - diamond
+
+pattern_roles: []

@@ -9,10 +9,18 @@ from .models import RouteDefinition, GeneratedRoute, RoutePattern
 _PATTERNS_DIR = Path(__file__).parent.parent / "agents" / "patterns"
 
 _PATTERN_TEMPLATE_DIRS = {
-    RoutePattern.SUPERVISOR_MANAGER: _PATTERNS_DIR / "supervisor-manager",
-    RoutePattern.FAN_OUT_FAN_IN:     _PATTERNS_DIR / "fan-out-fan-in",
-    RoutePattern.MAP_REDUCE:         _PATTERNS_DIR / "map-reduce",
-    RoutePattern.SEQUENTIAL_PIPELINE: _PATTERNS_DIR / "sequential-pipeline",
+    RoutePattern.SUPERVISOR_MANAGER:   _PATTERNS_DIR / "supervisor-manager",
+    RoutePattern.FAN_OUT_FAN_IN:       _PATTERNS_DIR / "fan-out-fan-in",
+    RoutePattern.MAP_REDUCE:           _PATTERNS_DIR / "map-reduce",
+    RoutePattern.SEQUENTIAL_PIPELINE:  _PATTERNS_DIR / "sequential-pipeline",
+    RoutePattern.ROUND_ROBIN:          _PATTERNS_DIR / "round-robin",
+    RoutePattern.MIXTURE_OF_EXPERTS:   _PATTERNS_DIR / "mixture-of-experts",
+    RoutePattern.HIERARCHICAL_TEAMS:   _PATTERNS_DIR / "hierarchical-teams",
+    RoutePattern.FALLBACK_CHAIN:       _PATTERNS_DIR / "fallback-chain",
+    RoutePattern.RETRY_LOOP:           _PATTERNS_DIR / "retry-loop",
+    RoutePattern.DIAMOND:              _PATTERNS_DIR / "diamond",
+    RoutePattern.CONDITIONAL_BRANCHING: _PATTERNS_DIR / "conditional-branching",
+    RoutePattern.TREE_REDUCE:          _PATTERNS_DIR / "tree-reduce",
 }
 
 def _get_template(pattern: RoutePattern):
@@ -35,6 +43,22 @@ class RouteCodeGenerator:
             return RouteCodeGenerator._generate_map_reduce(route_def)
         elif route_def.pattern == RoutePattern.SEQUENTIAL_PIPELINE:
             return RouteCodeGenerator._generate_sequential_pipeline(route_def)
+        elif route_def.pattern == RoutePattern.ROUND_ROBIN:
+            return RouteCodeGenerator._generate_round_robin(route_def)
+        elif route_def.pattern == RoutePattern.MIXTURE_OF_EXPERTS:
+            return RouteCodeGenerator._generate_mixture_of_experts(route_def)
+        elif route_def.pattern == RoutePattern.HIERARCHICAL_TEAMS:
+            return RouteCodeGenerator._generate_hierarchical_teams(route_def)
+        elif route_def.pattern == RoutePattern.FALLBACK_CHAIN:
+            return RouteCodeGenerator._generate_fallback_chain(route_def)
+        elif route_def.pattern == RoutePattern.RETRY_LOOP:
+            return RouteCodeGenerator._generate_retry_loop(route_def)
+        elif route_def.pattern == RoutePattern.DIAMOND:
+            return RouteCodeGenerator._generate_diamond(route_def)
+        elif route_def.pattern == RoutePattern.CONDITIONAL_BRANCHING:
+            return RouteCodeGenerator._generate_conditional_branching(route_def)
+        elif route_def.pattern == RoutePattern.TREE_REDUCE:
+            return RouteCodeGenerator._generate_tree_reduce(route_def)
         else:
             raise NotImplementedError(f"Pattern {route_def.pattern} not yet implemented")
 
@@ -200,6 +224,323 @@ class RouteCodeGenerator:
         )
 
     @staticmethod
+    def _generate_round_robin(route_def: RouteDefinition) -> GeneratedRoute:
+        dispatcher_key = "dispatcher"
+        worker_keys = sorted(k for k in route_def.agents if k.startswith("worker_"))
+
+        dispatcher = route_def.agents.get(dispatcher_key)
+        input_required = dispatcher.input_schema.get("required", []) if dispatcher else []
+        first_worker = route_def.agents.get(worker_keys[0]) if worker_keys else None
+        output_required = first_worker.output_schema.get("required", []) if first_worker else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "dispatcher_key": dispatcher_key,
+            "worker_keys": worker_keys,
+            "worker_count": len(worker_keys),
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.ROUND_ROBIN).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
+    def _generate_mixture_of_experts(route_def: RouteDefinition) -> GeneratedRoute:
+        router_key = "router"
+        aggregator_key = "aggregator"
+        expert_keys = sorted(k for k in route_def.agents if k.startswith("expert_"))
+
+        router = route_def.agents.get(router_key)
+        input_required = router.input_schema.get("required", []) if router else []
+        aggregator = route_def.agents.get(aggregator_key)
+        output_required = aggregator.output_schema.get("required", []) if aggregator else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "router_key": router_key,
+            "expert_keys": expert_keys,
+            "expert_count": len(expert_keys),
+            "aggregator_key": aggregator_key,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.MIXTURE_OF_EXPERTS).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
+    def _generate_hierarchical_teams(route_def: RouteDefinition) -> GeneratedRoute:
+        coordinator_key = "coordinator"
+        aggregator_key = "aggregator"
+        team_keys = sorted(k for k in route_def.agents if k.startswith("team_"))
+
+        coordinator = route_def.agents.get(coordinator_key)
+        input_required = coordinator.input_schema.get("required", []) if coordinator else []
+        aggregator = route_def.agents.get(aggregator_key)
+        output_required = aggregator.output_schema.get("required", []) if aggregator else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "coordinator_key": coordinator_key,
+            "team_keys": team_keys,
+            "team_count": len(team_keys),
+            "aggregator_key": aggregator_key,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.HIERARCHICAL_TEAMS).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
+    def _generate_fallback_chain(route_def: RouteDefinition) -> GeneratedRoute:
+        chain_keys = ["primary"] + sorted(k for k in route_def.agents if k.startswith("fallback_"))
+
+        primary = route_def.agents.get("primary")
+        input_required = primary.input_schema.get("required", []) if primary else []
+        output_required = primary.output_schema.get("required", []) if primary else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "chain_keys": chain_keys,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.FALLBACK_CHAIN).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
+    def _generate_retry_loop(route_def: RouteDefinition) -> GeneratedRoute:
+        worker_key = "worker"
+        validator_key = "validator"
+        max_retries = 3
+
+        worker = route_def.agents.get(worker_key)
+        input_required = worker.input_schema.get("required", []) if worker else []
+        output_required = worker.output_schema.get("required", []) if worker else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "worker_key": worker_key,
+            "validator_key": validator_key,
+            "max_retries": max_retries,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.RETRY_LOOP).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
+    def _generate_diamond(route_def: RouteDefinition) -> GeneratedRoute:
+        splitter_key = "splitter"
+        left_key = "left_processor"
+        right_key = "right_processor"
+        merger_key = "merger"
+
+        splitter = route_def.agents.get(splitter_key)
+        input_required = splitter.input_schema.get("required", []) if splitter else []
+        merger = route_def.agents.get(merger_key)
+        output_required = merger.output_schema.get("required", []) if merger else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "splitter_key": splitter_key,
+            "left_key": left_key,
+            "right_key": right_key,
+            "merger_key": merger_key,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.DIAMOND).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
+    def _generate_conditional_branching(route_def: RouteDefinition) -> GeneratedRoute:
+        evaluator_key = "evaluator"
+        branch_keys = sorted(k for k in route_def.agents if k.startswith("branch_"))
+        condition_field = "branch"
+
+        evaluator = route_def.agents.get(evaluator_key)
+        input_required = evaluator.input_schema.get("required", []) if evaluator else []
+        first_branch = route_def.agents.get(branch_keys[0]) if branch_keys else None
+        output_required = first_branch.output_schema.get("required", []) if first_branch else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "evaluator_key": evaluator_key,
+            "branch_keys": branch_keys,
+            "branch_count": len(branch_keys),
+            "condition_field": condition_field,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.CONDITIONAL_BRANCHING).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
+    def _generate_tree_reduce(route_def: RouteDefinition) -> GeneratedRoute:
+        reducer_key = "reducer"
+        leaf_keys = sorted(k for k in route_def.agents if k.startswith("leaf_"))
+
+        first_leaf = route_def.agents.get(leaf_keys[0]) if leaf_keys else None
+        input_required = first_leaf.input_schema.get("required", []) if first_leaf else []
+        reducer = route_def.agents.get(reducer_key)
+        output_required = reducer.output_schema.get("required", []) if reducer else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "leaf_keys": leaf_keys,
+            "leaf_count": len(leaf_keys),
+            "reducer_key": reducer_key,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+
+        route_code = _get_template(RoutePattern.TREE_REDUCE).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+            }
+        )
+
+    @staticmethod
     def _generate_requirements(route_def: RouteDefinition) -> str:
         requirements = [
             "semantic-kernel>=0.4.0",
@@ -273,6 +614,75 @@ metadata:
                     "name": "test_case_1",
                     "input": {"input_data": {"field": "value"}},
                     "expected": {"output_data": {}},
+                },
+            ]
+        elif pattern == RoutePattern.ROUND_ROBIN:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"task": "process item 1"}},
+                    "expected": {"result": {}},
+                },
+                {
+                    "name": "test_case_2",
+                    "input": {"data": {"task": "process item 2"}},
+                    "expected": {"result": {}},
+                },
+            ]
+        elif pattern == RoutePattern.MIXTURE_OF_EXPERTS:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"query": "finance question"}},
+                    "expected": {"result": {}},
+                },
+            ]
+        elif pattern == RoutePattern.HIERARCHICAL_TEAMS:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"project": "multi-team analysis"}},
+                    "expected": {"result": {}},
+                },
+            ]
+        elif pattern == RoutePattern.FALLBACK_CHAIN:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"task": "process with fallback"}},
+                    "expected": {"result": {}},
+                },
+            ]
+        elif pattern == RoutePattern.RETRY_LOOP:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"task": "process with retry"}},
+                    "expected": {"result": {}},
+                },
+            ]
+        elif pattern == RoutePattern.DIAMOND:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"payload": "split and merge"}},
+                    "expected": {"result": {}},
+                },
+            ]
+        elif pattern == RoutePattern.CONDITIONAL_BRANCHING:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"type": "urgent", "content": "process me"}},
+                    "expected": {"result": {}},
+                },
+            ]
+        elif pattern == RoutePattern.TREE_REDUCE:
+            test_data = [
+                {
+                    "name": "test_case_1",
+                    "input": {"data": {"segments": ["A", "B", "C", "D"]}},
+                    "expected": {"result": {}},
                 },
             ]
         else:

@@ -328,3 +328,345 @@ agents:
       required: [reduced_result]
       properties:
         reduced_result: {type: object}
+
+  # ── round-robin: dispatcher role ─────────────────────────────────────────────
+
+  - name: round-robin-dispatcher
+    category: dispatcher
+    version: "1.0"
+    description: Dispatches requests to workers in round-robin order
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [worker_index]
+      properties:
+        worker_index: {type: integer}
+
+  # ── round-robin: worker role ──────────────────────────────────────────────────
+
+  - name: round-robin-worker
+    category: worker
+    version: "1.0"
+    description: Processes requests assigned by round-robin dispatcher
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── mixture-of-experts: router role ──────────────────────────────────────────
+
+  - name: expert-router
+    category: router
+    version: "1.0"
+    description: Assigns relevance weights to domain experts for mixture-of-experts routing
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [expert_weights]
+      properties:
+        expert_weights: {type: object}
+
+  # ── mixture-of-experts: expert role ──────────────────────────────────────────
+
+  - name: domain-expert
+    category: expert
+    version: "1.0"
+    description: Domain expert that processes requests within its area of specialisation
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── mixture-of-experts + hierarchical-teams: aggregator (expert_outputs) ─────
+
+  - name: expert-aggregator
+    category: aggregator
+    version: "1.0"
+    description: Combines weighted expert outputs into a unified final answer
+    input_schema:
+      type: object
+      required: [expert_outputs]
+      properties:
+        expert_outputs: {type: array}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── hierarchical-teams: coordinator role ─────────────────────────────────────
+
+  - name: team-coordinator
+    category: coordinator
+    version: "1.0"
+    description: Coordinates hierarchical teams by assigning sub-requests to each team supervisor
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [team_assignments]
+      properties:
+        team_assignments: {type: object}
+
+  # ── hierarchical-teams: team_supervisor role ──────────────────────────────────
+
+  - name: team-supervisor
+    category: team_supervisor
+    version: "1.0"
+    description: Supervises a team of agents to complete an assigned sub-task
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── hierarchical-teams: aggregator (team_results) ─────────────────────────────
+
+  - name: team-results-aggregator
+    category: aggregator
+    version: "1.0"
+    description: Aggregates results from all team supervisors into a final combined output
+    input_schema:
+      type: object
+      required: [team_results]
+      properties:
+        team_results: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── fallback-chain: primary role ──────────────────────────────────────────────
+
+  - name: primary-agent
+    category: primary
+    version: "1.0"
+    description: Primary agent that is tried first in a fallback chain
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── fallback-chain: fallback role ─────────────────────────────────────────────
+
+  - name: fallback-agent
+    category: fallback
+    version: "1.0"
+    description: Fallback agent used when primary or earlier agents in the chain fail
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── retry-loop: worker role ────────────────────────────────────────────────────
+
+  - name: retry-worker
+    category: worker
+    version: "1.0"
+    description: Worker agent that attempts task execution in a retry loop
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── retry-loop: validator role ────────────────────────────────────────────────
+
+  - name: result-validator
+    category: validator
+    version: "1.0"
+    description: Validates worker results and determines whether retry is needed
+    input_schema:
+      type: object
+      required: [result, attempt]
+      properties:
+        result: {type: object}
+        attempt: {type: integer}
+    output_schema:
+      type: object
+      required: [valid]
+      properties:
+        valid: {type: boolean}
+
+  # ── diamond: splitter role ────────────────────────────────────────────────────
+
+  - name: diamond-splitter
+    category: splitter
+    version: "1.0"
+    description: Splits input into left and right branches for parallel diamond processing
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [left, right]
+      properties:
+        left: {type: object}
+        right: {type: object}
+
+  # ── diamond: processor roles ──────────────────────────────────────────────────
+
+  - name: left-processor
+    category: processor
+    version: "1.0"
+    description: Processes the left branch in a diamond pattern
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  - name: right-processor
+    category: processor
+    version: "1.0"
+    description: Processes the right branch in a diamond pattern
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── diamond: merger role ──────────────────────────────────────────────────────
+
+  - name: diamond-merger
+    category: merger
+    version: "1.0"
+    description: Merges left and right branch results into a unified output
+    input_schema:
+      type: object
+      required: [left_result, right_result]
+      properties:
+        left_result: {type: object}
+        right_result: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── conditional-branching: evaluator role ─────────────────────────────────────
+
+  - name: condition-evaluator
+    category: evaluator
+    version: "1.0"
+    description: Evaluates input conditions to determine which branch to route to
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [branch]
+      properties:
+        branch: {type: string}
+
+  # ── conditional-branching: branch role ───────────────────────────────────────
+
+  - name: branch-agent
+    category: branch
+    version: "1.0"
+    description: Processes requests on a specific conditional branch
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── tree-reduce: leaf role ────────────────────────────────────────────────────
+
+  - name: tree-leaf-agent
+    category: leaf
+    version: "1.0"
+    description: Leaf-level agent that processes input as the first stage of a tree-reduce
+    input_schema:
+      type: object
+      required: [data]
+      properties:
+        data: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
+
+  # ── tree-reduce: reducer role ─────────────────────────────────────────────────
+
+  - name: tree-reducer
+    category: reducer
+    version: "1.0"
+    description: Pairwise reducer that combines two inputs in each level of the reduction tree
+    input_schema:
+      type: object
+      required: [left, right]
+      properties:
+        left: {type: object}
+        right: {type: object}
+    output_schema:
+      type: object
+      required: [result]
+      properties:
+        result: {type: object}
