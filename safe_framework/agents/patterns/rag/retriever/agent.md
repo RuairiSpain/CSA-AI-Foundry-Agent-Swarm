@@ -43,6 +43,28 @@ flowchart LR
 | `iq-web` | Web IQ | Live public web and news via Bing grounding | Public web retrieval via Bing grounding |
 | `azure-cosmos-db` | Azure Cosmos DB | Vector + document store; hybrid search | Vector search over operational / transactional data |
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.RAG,
+    agents={"retriever": Agent(
+        name="Retriever",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **Policy lookup**

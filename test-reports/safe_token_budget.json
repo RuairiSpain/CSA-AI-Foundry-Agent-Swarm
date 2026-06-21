@@ -1,0 +1,520 @@
+{
+  "suite": "safe_md",
+  "budget_per_file": 8000,
+  "total_files": 85,
+  "files_over_budget": 0,
+  "max_tokens": 1004,
+  "avg_tokens": 653.8,
+  "entries": [
+    {
+      "file": "patterns/adaptive-routing/performance_tracker/agent.md",
+      "tokens": 690,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/adaptive-routing/router/agent.md",
+      "tokens": 637,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/adaptive-routing/worker/agent.md",
+      "tokens": 648,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/agent-as-a-tool/orchestrator/agent.md",
+      "tokens": 595,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/agent-as-a-tool/sub_agent/agent.md",
+      "tokens": 658,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/budget-aware-routing/cost_estimator/agent.md",
+      "tokens": 660,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/budget-aware-routing/executor/agent.md",
+      "tokens": 606,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/budget-aware-routing/model_router/agent.md",
+      "tokens": 686,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/checkpoint-resume/checkpoint_store/agent.md",
+      "tokens": 672,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/checkpoint-resume/coordinator/agent.md",
+      "tokens": 684,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/checkpoint-resume/worker/agent.md",
+      "tokens": 654,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/conditional-branching/branch/agent.md",
+      "tokens": 673,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/conditional-branching/evaluator/agent.md",
+      "tokens": 778,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/debate/challenger/agent.md",
+      "tokens": 630,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/debate/judge/agent.md",
+      "tokens": 619,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/debate/proposer/agent.md",
+      "tokens": 619,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/diamond/left_processor/agent.md",
+      "tokens": 572,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/diamond/merger/agent.md",
+      "tokens": 633,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/diamond/right_processor/agent.md",
+      "tokens": 576,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/diamond/splitter/agent.md",
+      "tokens": 656,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/evaluator-optimizer/evaluator/agent.md",
+      "tokens": 483,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/evaluator-optimizer/generator/agent.md",
+      "tokens": 437,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/evaluator-optimizer/optimizer/agent.md",
+      "tokens": 439,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/event-driven/handler/agent.md",
+      "tokens": 714,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/event-driven/listener/agent.md",
+      "tokens": 608,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/event-driven/router/agent.md",
+      "tokens": 613,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/fallback-chain/fallback/agent.md",
+      "tokens": 722,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/fallback-chain/primary/agent.md",
+      "tokens": 611,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/fan-out-fan-in/aggregator/agent.md",
+      "tokens": 712,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/fan-out-fan-in/processor/agent.md",
+      "tokens": 698,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/fan-out-fan-in/worker/agent.md",
+      "tokens": 706,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/gate-guard/guard/agent.md",
+      "tokens": 619,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/gate-guard/processor/agent.md",
+      "tokens": 570,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/hierarchical-teams/aggregator/agent.md",
+      "tokens": 631,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/hierarchical-teams/coordinator/agent.md",
+      "tokens": 751,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/hierarchical-teams/team_supervisor/agent.md",
+      "tokens": 704,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/human-in-the-loop/human_gate/agent.md",
+      "tokens": 524,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/human-in-the-loop/post_processor/agent.md",
+      "tokens": 507,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/human-in-the-loop/pre_validator/agent.md",
+      "tokens": 486,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/map-reduce/final/agent.md",
+      "tokens": 584,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/map-reduce/mapper/agent.md",
+      "tokens": 573,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/map-reduce/reducer/agent.md",
+      "tokens": 576,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/map-reduce/shuffle/agent.md",
+      "tokens": 539,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/map-reduce/splitter/agent.md",
+      "tokens": 628,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/memory-augmented/memory_reader/agent.md",
+      "tokens": 607,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/memory-augmented/memory_writer/agent.md",
+      "tokens": 623,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/memory-augmented/processor/agent.md",
+      "tokens": 618,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/mixture-of-experts/aggregator/agent.md",
+      "tokens": 614,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/mixture-of-experts/expert/agent.md",
+      "tokens": 739,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/mixture-of-experts/router/agent.md",
+      "tokens": 693,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/orchestrator-workers/orchestrator/agent.md",
+      "tokens": 591,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/orchestrator-workers/synthesizer/agent.md",
+      "tokens": 591,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/orchestrator-workers/worker/agent.md",
+      "tokens": 645,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/planning/executor/agent.md",
+      "tokens": 527,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/planning/planner/agent.md",
+      "tokens": 620,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/planning/reviewer/agent.md",
+      "tokens": 591,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/rag/generator/agent.md",
+      "tokens": 528,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/rag/reranker/agent.md",
+      "tokens": 522,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/rag/retriever/agent.md",
+      "tokens": 702,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/reflection/critic/agent.md",
+      "tokens": 593,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/reflection/generator/agent.md",
+      "tokens": 539,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/reflection/refiner/agent.md",
+      "tokens": 528,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/retry-loop/validator/agent.md",
+      "tokens": 716,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/retry-loop/worker/agent.md",
+      "tokens": 687,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/round-robin/dispatcher/agent.md",
+      "tokens": 712,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/round-robin/worker/agent.md",
+      "tokens": 588,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/self-consistency/voter/agent.md",
+      "tokens": 571,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/self-consistency/worker/agent.md",
+      "tokens": 590,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/sequential-pipeline/stage1/agent.md",
+      "tokens": 795,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/supervisor-manager/aggregator/agent.md",
+      "tokens": 677,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/supervisor-manager/supervisor/agent.md",
+      "tokens": 778,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/tree-reduce/leaf/agent.md",
+      "tokens": 636,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/tree-reduce/reducer/agent.md",
+      "tokens": 655,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/document-writer/agent.md",
+      "tokens": 1004,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/empty-agent/agent.md",
+      "tokens": 489,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/presenter-code/agent.md",
+      "tokens": 793,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/presenter-html/agent.md",
+      "tokens": 802,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/presenter-markdown/agent.md",
+      "tokens": 658,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/presenter-word/agent.md",
+      "tokens": 730,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/rag-query/agent.md",
+      "tokens": 985,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/researcher/agent.md",
+      "tokens": 975,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/reviewer/agent.md",
+      "tokens": 866,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/semantic-search/agent.md",
+      "tokens": 889,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/summarizer/agent.md",
+      "tokens": 889,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "standalone/web-query/agent.md",
+      "tokens": 836,
+      "budget": 8000,
+      "over_budget": false
+    }
+  ]
+}

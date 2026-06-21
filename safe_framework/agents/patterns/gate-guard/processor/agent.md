@@ -36,6 +36,28 @@ flowchart LR
 | `iq-foundry` | Foundry IQ | Indexed org knowledge via Azure AI Search | Process request grounded in org knowledge |
 | `iq-fabric` | Fabric IQ | OneLake, Power BI semantic models and datasets | Access structured business data for processing |
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.GATE_GUARD,
+    agents={"processor": Agent(
+        name="Processor",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **Post-approval processing**

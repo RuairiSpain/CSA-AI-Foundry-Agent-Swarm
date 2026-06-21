@@ -39,6 +39,28 @@ flowchart LR
 |---|---|---|---|
 | `iq-work` | Work IQ | M365 signals — meetings, chats, emails, documents | Compare against internal standards and past approved versions |
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.REFLECTION,
+    agents={"critic": Agent(
+        name="Critic",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **Quality assurance**

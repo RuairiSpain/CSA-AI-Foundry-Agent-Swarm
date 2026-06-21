@@ -41,6 +41,28 @@ flowchart LR
 |---|---|---|---|
 | `safe-durable-task` | SAFE Durable Task | Checkpoint / suspend / resume long-running workflows | Manages step graph, checkpoints every state transition |
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.CHECKPOINT_RESUME,
+    agents={"coordinator": Agent(
+        name="Coordinator",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **Long-running ETL coordination**

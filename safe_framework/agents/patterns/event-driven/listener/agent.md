@@ -40,6 +40,28 @@ flowchart LR
 
 No external tools — normalisation only.
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.EVENT_DRIVEN,
+    agents={"listener": Agent(
+        name="Listener",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **Invoice received event**

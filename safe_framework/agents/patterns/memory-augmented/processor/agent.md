@@ -39,6 +39,28 @@ flowchart LR
 |---|---|---|---|
 | `iq-foundry` | Foundry IQ | Indexed org knowledge via Azure AI Search | Combine recalled memory with authoritative org knowledge |
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.MEMORY_AUGMENTED,
+    agents={"processor": Agent(
+        name="Processor",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **Context-aware Q&A**

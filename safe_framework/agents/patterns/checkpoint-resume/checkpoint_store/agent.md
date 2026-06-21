@@ -40,6 +40,28 @@ flowchart LR
 |---|---|---|---|
 | `safe-durable-task` | SAFE Durable Task | Checkpoint / suspend / resume long-running workflows | Azure Durable Task — durable storage backend (Storage / Cosmos / MSSQL) |
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.CHECKPOINT_RESUME,
+    agents={"checkpoint_store": Agent(
+        name="Checkpoint Store",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **State persistence between steps**

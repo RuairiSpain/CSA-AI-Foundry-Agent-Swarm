@@ -29,3 +29,7 @@ safe = "safe_cli.main:app"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]
+markers = [
+    "safe_md: SAFE framework agent.md analysis (section checks + token budgets)",
+    "project_md: Engineer project MD analysis under routes/ (section checks + token budgets)",
+]

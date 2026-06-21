@@ -42,6 +42,28 @@ flowchart LR
 | `iq-fabric` | Fabric IQ | OneLake, Power BI semantic models and datasets | Execute data-oriented subtasks against OneLake |
 | `iq-web` | Web IQ | Live public web and news via Bing grounding | Execute research-oriented subtasks using web search |
 
+
+## Usage
+
+```python
+from safe_framework.safe_core.code_generator import RouteCodeGenerator
+from safe_framework.safe_core.models import RouteDefinition, RoutePattern, Agent
+
+route = RouteDefinition(
+    name="my-route",
+    pattern=RoutePattern.ORCHESTRATOR_WORKERS,
+    agents={"worker": Agent(
+        name="Worker",
+        category="test",
+        version="1.0",
+        input_schema={"type": "object", "properties": {}},
+        output_schema={"type": "object", "properties": {}},
+    )},
+    description="Example route using this role",
+)
+generated = RouteCodeGenerator.generate(route)
+```
+
 ## Use Cases
 
 1. **Financial sub-analysis**
