@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 from jinja2 import Environment, FileSystemLoader
 from .models import RouteDefinition, GeneratedRoute, RoutePattern
 
@@ -58,68 +59,10 @@ class RouteCodeGenerator:
     @staticmethod
     def generate(route_def: RouteDefinition) -> GeneratedRoute:
         """Generate complete route from definition"""
-        if route_def.pattern == RoutePattern.SUPERVISOR_MANAGER:
-            return RouteCodeGenerator._generate_supervisor_manager(route_def)
-        elif route_def.pattern == RoutePattern.FAN_OUT_FAN_IN:
-            return RouteCodeGenerator._generate_fan_out_fan_in(route_def)
-        elif route_def.pattern == RoutePattern.MAP_REDUCE:
-            return RouteCodeGenerator._generate_map_reduce(route_def)
-        elif route_def.pattern == RoutePattern.SEQUENTIAL_PIPELINE:
-            return RouteCodeGenerator._generate_sequential_pipeline(route_def)
-        elif route_def.pattern == RoutePattern.ROUND_ROBIN:
-            return RouteCodeGenerator._generate_round_robin(route_def)
-        elif route_def.pattern == RoutePattern.MIXTURE_OF_EXPERTS:
-            return RouteCodeGenerator._generate_mixture_of_experts(route_def)
-        elif route_def.pattern == RoutePattern.HIERARCHICAL_TEAMS:
-            return RouteCodeGenerator._generate_hierarchical_teams(route_def)
-        elif route_def.pattern == RoutePattern.FALLBACK_CHAIN:
-            return RouteCodeGenerator._generate_fallback_chain(route_def)
-        elif route_def.pattern == RoutePattern.RETRY_LOOP:
-            return RouteCodeGenerator._generate_retry_loop(route_def)
-        elif route_def.pattern == RoutePattern.DIAMOND:
-            return RouteCodeGenerator._generate_diamond(route_def)
-        elif route_def.pattern == RoutePattern.CONDITIONAL_BRANCHING:
-            return RouteCodeGenerator._generate_conditional_branching(route_def)
-        elif route_def.pattern == RoutePattern.TREE_REDUCE:
-            return RouteCodeGenerator._generate_tree_reduce(route_def)
-        elif route_def.pattern == RoutePattern.EVALUATOR_OPTIMIZER:
-            return RouteCodeGenerator._generate_evaluator_optimizer(route_def)
-        elif route_def.pattern == RoutePattern.HUMAN_IN_THE_LOOP:
-            return RouteCodeGenerator._generate_human_in_the_loop(route_def)
-        elif route_def.pattern == RoutePattern.REFLECTION:
-            return RouteCodeGenerator._generate_reflection(route_def)
-        elif route_def.pattern == RoutePattern.ORCHESTRATOR_WORKERS:
-            return RouteCodeGenerator._generate_orchestrator_workers(route_def)
-        elif route_def.pattern == RoutePattern.RAG:
-            return RouteCodeGenerator._generate_rag(route_def)
-        elif route_def.pattern == RoutePattern.PLANNING:
-            return RouteCodeGenerator._generate_planning(route_def)
-        elif route_def.pattern == RoutePattern.GATE_GUARD:
-            return RouteCodeGenerator._generate_gate_guard(route_def)
-        elif route_def.pattern == RoutePattern.SELF_CONSISTENCY:
-            return RouteCodeGenerator._generate_self_consistency(route_def)
-        elif route_def.pattern == RoutePattern.DEBATE:
-            return RouteCodeGenerator._generate_debate(route_def)
-        elif route_def.pattern == RoutePattern.AGENT_AS_A_TOOL:
-            return RouteCodeGenerator._generate_agent_as_a_tool(route_def)
-        elif route_def.pattern == RoutePattern.MEMORY_AUGMENTED:
-            return RouteCodeGenerator._generate_memory_augmented(route_def)
-        elif route_def.pattern == RoutePattern.EVENT_DRIVEN:
-            return RouteCodeGenerator._generate_event_driven(route_def)
-        elif route_def.pattern == RoutePattern.CHECKPOINT_RESUME:
-            return RouteCodeGenerator._generate_checkpoint_resume(route_def)
-        elif route_def.pattern == RoutePattern.BUDGET_AWARE_ROUTING:
-            return RouteCodeGenerator._generate_budget_aware_routing(route_def)
-        elif route_def.pattern == RoutePattern.ADAPTIVE_ROUTING:
-            return RouteCodeGenerator._generate_adaptive_routing(route_def)
-        elif route_def.pattern == RoutePattern.PLANNER_GENERATOR_EVALUATOR:
-            return RouteCodeGenerator._generate_planner_generator_evaluator(route_def)
-        elif route_def.pattern == RoutePattern.LATS:
-            return RouteCodeGenerator._generate_lats(route_def)
-        elif route_def.pattern == RoutePattern.RALPH_LOOP:
-            return RouteCodeGenerator._generate_ralph_loop(route_def)
-        else:
+        generator = _GENERATORS.get(route_def.pattern)
+        if generator is None:
             raise NotImplementedError(f"Pattern {route_def.pattern} not yet implemented")
+        return generator(route_def)
 
     @staticmethod
     def _class_name(route_name: str) -> str:
@@ -866,175 +809,195 @@ metadata:
 
     @staticmethod
     def _generate_test_data(route_def: RouteDefinition) -> str:
-        pattern = route_def.pattern
-
-        if pattern == RoutePattern.SUPERVISOR_MANAGER:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"amount": 100000, "loan_type": "mortgage", "credit_score": 750},
-                    "expected": {"decision": "approved"},
-                },
-                {
-                    "name": "test_case_2",
-                    "input": {"amount": 30000, "loan_type": "auto", "credit_score": 680},
-                    "expected": {"decision": "approved"},
-                },
-            ]
-        elif pattern == RoutePattern.FAN_OUT_FAN_IN:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"id": 1, "payload": "sample"}},
-                    "expected": {"combined_result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.MAP_REDUCE:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": [{"item": i} for i in range(5)], "chunk_size": 2},
-                    "expected": {"reduced_result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.SEQUENTIAL_PIPELINE:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"input_data": {"field": "value"}},
-                    "expected": {"output_data": {}},
-                },
-            ]
-        elif pattern == RoutePattern.ROUND_ROBIN:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"task": "process item 1"}},
-                    "expected": {"result": {}},
-                },
-                {
-                    "name": "test_case_2",
-                    "input": {"data": {"task": "process item 2"}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.MIXTURE_OF_EXPERTS:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"query": "finance question"}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.HIERARCHICAL_TEAMS:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"project": "multi-team analysis"}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.FALLBACK_CHAIN:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"task": "process with fallback"}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.RETRY_LOOP:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"task": "process with retry"}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.DIAMOND:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"payload": "split and merge"}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.CONDITIONAL_BRANCHING:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"type": "urgent", "content": "process me"}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.TREE_REDUCE:
-            test_data = [
-                {
-                    "name": "test_case_1",
-                    "input": {"data": {"segments": ["A", "B", "C", "D"]}},
-                    "expected": {"result": {}},
-                },
-            ]
-        elif pattern == RoutePattern.EVALUATOR_OPTIMIZER:
-            test_data = [{"name": "test_case_1",
-                          "input": {"payload": {"task": "write a contract clause"}},
-                          "expected": {"result": {}, "quality_score": 0.9}}]
-        elif pattern == RoutePattern.HUMAN_IN_THE_LOOP:
-            test_data = [{"name": "test_case_1",
-                          "input": {"payload": {"request": "approve budget of $50k"}},
-                          "expected": {"decision": "approved"}}]
-        elif pattern == RoutePattern.REFLECTION:
-            test_data = [{"name": "test_case_1",
-                          "input": {"payload": {"task": "summarise this document"}},
-                          "expected": {"result": {}}}]
-        elif pattern == RoutePattern.ORCHESTRATOR_WORKERS:
-            test_data = [{"name": "test_case_1",
-                          "input": {"task": "analyse Q2 performance across all regions"},
-                          "expected": {"synthesis": {}}}]
-        elif pattern == RoutePattern.RAG:
-            test_data = [{"name": "test_case_1",
-                          "input": {"query": "What is the vendor onboarding process?"},
-                          "expected": {"answer": ""}}]
-        elif pattern == RoutePattern.PLANNING:
-            test_data = [{"name": "test_case_1",
-                          "input": {"goal": "prepare an RFP response by Friday"},
-                          "expected": {"review_result": {}}}]
-        elif pattern == RoutePattern.GATE_GUARD:
-            test_data = [{"name": "test_case_1",
-                          "input": {"payload": {"content": "process this document"}},
-                          "expected": {"result": {}}}]
-        elif pattern == RoutePattern.SELF_CONSISTENCY:
-            test_data = [{"name": "test_case_1",
-                          "input": {"question": "What is 15% of 240?"},
-                          "expected": {"answer": "36"}}]
-        elif pattern == RoutePattern.DEBATE:
-            test_data = [{"name": "test_case_1",
-                          "input": {"topic": "Should we expand to APAC in Q3?"},
-                          "expected": {"verdict": {}}}]
-        elif pattern == RoutePattern.AGENT_AS_A_TOOL:
-            test_data = [{"name": "test_case_1",
-                          "input": {"task": "analyse and summarise the attached contract"},
-                          "expected": {"result": {}}}]
-        elif pattern == RoutePattern.MEMORY_AUGMENTED:
-            test_data = [{"name": "test_case_1",
-                          "input": {"session_id": "sess-001", "query": "What did we decide last week?"},
-                          "expected": {"result": {}}}]
-        elif pattern == RoutePattern.EVENT_DRIVEN:
-            test_data = [{"name": "test_case_1",
-                          "input": {"event_type": "invoice_received", "payload": {"invoice_id": "INV-001"}},
-                          "expected": {"handled": True}}]
-        elif pattern == RoutePattern.CHECKPOINT_RESUME:
-            test_data = [{"name": "test_case_1",
-                          "input": {"workflow_id": "wf-001", "payload": {"steps": ["a", "b", "c"]}},
-                          "expected": {"status": "completed"}}]
-        elif pattern == RoutePattern.BUDGET_AWARE_ROUTING:
-            test_data = [{"name": "test_case_1",
-                          "input": {"prompt": "Summarise this 10-page report", "budget_usd": 0.10},
-                          "expected": {"result": {}}}]
-        elif pattern == RoutePattern.ADAPTIVE_ROUTING:
-            test_data = [{"name": "test_case_1",
-                          "input": {"query": "Classify this support ticket", "input_type": "support"},
-                          "expected": {"result": {}}}]
-        else:
-            test_data = [{"name": "test_case_1", "input": {}, "expected": {}}]
-
+        _default = [{"name": "test_case_1", "input": {}, "expected": {}}]
+        test_data = _TEST_DATA.get(route_def.pattern, _default)
         return json.dumps(test_data, indent=2) + "\n"
+
+
+# ---------------------------------------------------------------------------
+# Dispatch tables — adding a new pattern only requires entries here and in
+# _PATTERN_TEMPLATE_DIRS above. The generate() and _generate_test_data()
+# methods never need to change.
+# ---------------------------------------------------------------------------
+
+_GENERATORS: dict[RoutePattern, Callable[[RouteDefinition], GeneratedRoute]] = {
+    RoutePattern.SUPERVISOR_MANAGER:    RouteCodeGenerator._generate_supervisor_manager,
+    RoutePattern.FAN_OUT_FAN_IN:        RouteCodeGenerator._generate_fan_out_fan_in,
+    RoutePattern.MAP_REDUCE:            RouteCodeGenerator._generate_map_reduce,
+    RoutePattern.SEQUENTIAL_PIPELINE:   RouteCodeGenerator._generate_sequential_pipeline,
+    RoutePattern.ROUND_ROBIN:           RouteCodeGenerator._generate_round_robin,
+    RoutePattern.MIXTURE_OF_EXPERTS:    RouteCodeGenerator._generate_mixture_of_experts,
+    RoutePattern.HIERARCHICAL_TEAMS:    RouteCodeGenerator._generate_hierarchical_teams,
+    RoutePattern.FALLBACK_CHAIN:        RouteCodeGenerator._generate_fallback_chain,
+    RoutePattern.RETRY_LOOP:            RouteCodeGenerator._generate_retry_loop,
+    RoutePattern.DIAMOND:               RouteCodeGenerator._generate_diamond,
+    RoutePattern.CONDITIONAL_BRANCHING: RouteCodeGenerator._generate_conditional_branching,
+    RoutePattern.TREE_REDUCE:           RouteCodeGenerator._generate_tree_reduce,
+    RoutePattern.EVALUATOR_OPTIMIZER:   RouteCodeGenerator._generate_evaluator_optimizer,
+    RoutePattern.HUMAN_IN_THE_LOOP:     RouteCodeGenerator._generate_human_in_the_loop,
+    RoutePattern.REFLECTION:            RouteCodeGenerator._generate_reflection,
+    RoutePattern.ORCHESTRATOR_WORKERS:  RouteCodeGenerator._generate_orchestrator_workers,
+    RoutePattern.RAG:                   RouteCodeGenerator._generate_rag,
+    RoutePattern.PLANNING:              RouteCodeGenerator._generate_planning,
+    RoutePattern.GATE_GUARD:            RouteCodeGenerator._generate_gate_guard,
+    RoutePattern.SELF_CONSISTENCY:      RouteCodeGenerator._generate_self_consistency,
+    RoutePattern.DEBATE:                RouteCodeGenerator._generate_debate,
+    RoutePattern.AGENT_AS_A_TOOL:       RouteCodeGenerator._generate_agent_as_a_tool,
+    RoutePattern.MEMORY_AUGMENTED:      RouteCodeGenerator._generate_memory_augmented,
+    RoutePattern.EVENT_DRIVEN:          RouteCodeGenerator._generate_event_driven,
+    RoutePattern.CHECKPOINT_RESUME:     RouteCodeGenerator._generate_checkpoint_resume,
+    RoutePattern.BUDGET_AWARE_ROUTING:  RouteCodeGenerator._generate_budget_aware_routing,
+    RoutePattern.ADAPTIVE_ROUTING:            RouteCodeGenerator._generate_adaptive_routing,
+    RoutePattern.PLANNER_GENERATOR_EVALUATOR: RouteCodeGenerator._generate_planner_generator_evaluator,
+    RoutePattern.LATS:                        RouteCodeGenerator._generate_lats,
+    RoutePattern.RALPH_LOOP:                  RouteCodeGenerator._generate_ralph_loop,
+}
+
+_TEST_DATA: dict[RoutePattern, list] = {
+    RoutePattern.SUPERVISOR_MANAGER: [
+        {"name": "test_case_1",
+         "input": {"amount": 100000, "loan_type": "mortgage", "credit_score": 750},
+         "expected": {"decision": "approved"}},
+        {"name": "test_case_2",
+         "input": {"amount": 30000, "loan_type": "auto", "credit_score": 680},
+         "expected": {"decision": "approved"}},
+    ],
+    RoutePattern.FAN_OUT_FAN_IN: [
+        {"name": "test_case_1",
+         "input": {"data": {"id": 1, "payload": "sample"}},
+         "expected": {"combined_result": {}}},
+    ],
+    RoutePattern.MAP_REDUCE: [
+        {"name": "test_case_1",
+         "input": {"data": [{"item": i} for i in range(5)], "chunk_size": 2},
+         "expected": {"reduced_result": {}}},
+    ],
+    RoutePattern.SEQUENTIAL_PIPELINE: [
+        {"name": "test_case_1",
+         "input": {"input_data": {"field": "value"}},
+         "expected": {"output_data": {}}},
+    ],
+    RoutePattern.ROUND_ROBIN: [
+        {"name": "test_case_1",
+         "input": {"data": {"task": "process item 1"}},
+         "expected": {"result": {}}},
+        {"name": "test_case_2",
+         "input": {"data": {"task": "process item 2"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.MIXTURE_OF_EXPERTS: [
+        {"name": "test_case_1",
+         "input": {"data": {"query": "finance question"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.HIERARCHICAL_TEAMS: [
+        {"name": "test_case_1",
+         "input": {"data": {"project": "multi-team analysis"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.FALLBACK_CHAIN: [
+        {"name": "test_case_1",
+         "input": {"data": {"task": "process with fallback"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.RETRY_LOOP: [
+        {"name": "test_case_1",
+         "input": {"data": {"task": "process with retry"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.DIAMOND: [
+        {"name": "test_case_1",
+         "input": {"data": {"payload": "split and merge"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.CONDITIONAL_BRANCHING: [
+        {"name": "test_case_1",
+         "input": {"data": {"type": "urgent", "content": "process me"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.TREE_REDUCE: [
+        {"name": "test_case_1",
+         "input": {"data": {"segments": ["A", "B", "C", "D"]}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.EVALUATOR_OPTIMIZER: [
+        {"name": "test_case_1",
+         "input": {"payload": {"task": "write a contract clause"}},
+         "expected": {"result": {}, "quality_score": 0.9}},
+    ],
+    RoutePattern.HUMAN_IN_THE_LOOP: [
+        {"name": "test_case_1",
+         "input": {"payload": {"request": "approve budget of $50k"}},
+         "expected": {"decision": "approved"}},
+    ],
+    RoutePattern.REFLECTION: [
+        {"name": "test_case_1",
+         "input": {"payload": {"task": "summarise this document"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.ORCHESTRATOR_WORKERS: [
+        {"name": "test_case_1",
+         "input": {"task": "analyse Q2 performance across all regions"},
+         "expected": {"synthesis": {}}},
+    ],
+    RoutePattern.RAG: [
+        {"name": "test_case_1",
+         "input": {"query": "What is the vendor onboarding process?"},
+         "expected": {"answer": ""}},
+    ],
+    RoutePattern.PLANNING: [
+        {"name": "test_case_1",
+         "input": {"goal": "prepare an RFP response by Friday"},
+         "expected": {"review_result": {}}},
+    ],
+    RoutePattern.GATE_GUARD: [
+        {"name": "test_case_1",
+         "input": {"payload": {"content": "process this document"}},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.SELF_CONSISTENCY: [
+        {"name": "test_case_1",
+         "input": {"question": "What is 15% of 240?"},
+         "expected": {"answer": "36"}},
+    ],
+    RoutePattern.DEBATE: [
+        {"name": "test_case_1",
+         "input": {"topic": "Should we expand to APAC in Q3?"},
+         "expected": {"verdict": {}}},
+    ],
+    RoutePattern.AGENT_AS_A_TOOL: [
+        {"name": "test_case_1",
+         "input": {"task": "analyse and summarise the attached contract"},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.MEMORY_AUGMENTED: [
+        {"name": "test_case_1",
+         "input": {"session_id": "sess-001", "query": "What did we decide last week?"},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.EVENT_DRIVEN: [
+        {"name": "test_case_1",
+         "input": {"event_type": "invoice_received", "payload": {"invoice_id": "INV-001"}},
+         "expected": {"handled": True}},
+    ],
+    RoutePattern.CHECKPOINT_RESUME: [
+        {"name": "test_case_1",
+         "input": {"workflow_id": "wf-001", "payload": {"steps": ["a", "b", "c"]}},
+         "expected": {"status": "completed"}},
+    ],
+    RoutePattern.BUDGET_AWARE_ROUTING: [
+        {"name": "test_case_1",
+         "input": {"prompt": "Summarise this 10-page report", "budget_usd": 0.10},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.ADAPTIVE_ROUTING: [
+        {"name": "test_case_1",
+         "input": {"query": "Classify this support ticket", "input_type": "support"},
+         "expected": {"result": {}}},
+    ],
+    RoutePattern.RALPH_LOOP: [
+        {"name": "test_case_1",
+         "input": {"spec_path": "/workspace/spec.md", "state_path": "/workspace/.ralph_state.json"},
+         "expected": {"passed": True}},
+    ],
+}
