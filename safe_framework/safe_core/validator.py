@@ -7,28 +7,48 @@ class ContractValidator:
     """Validates route and agent contracts"""
     
     @staticmethod
-    def validate_route(route_def: RouteDefinition) -> List[ValidationError]:
-        """Validate complete route definition"""
+    def validate_route(
+        route_def: RouteDefinition,
+        *,
+        ignore_handoff_refs: bool = True,
+    ) -> List[ValidationError]:
+        """Validate complete route definition.
+
+        Args:
+            route_def: The route to validate.
+            ignore_handoff_refs: When True (default), agents that declare a
+                ``handoff_ref`` are excluded from input/output contract checks.
+                Their declared output schema is taken at face value. Set to
+                False to also run HandoffValidator on each referenced handoff
+                (requires the handoff config.yaml to be on disk).
+        """
         errors = []
-        
+
+        agents_to_validate = (
+            {k: v for k, v in route_def.agents.items() if not v.handoff_ref}
+            if ignore_handoff_refs
+            else route_def.agents
+        )
+
         # Validate timeouts
         timeout_errors = ContractValidator.validate_timeouts(
             route_def.timeout_seconds,
             route_def.per_agent_timeout_seconds
         )
         errors.extend(timeout_errors)
-        
-        # Validate agent contracts match pattern
+
+        # Validate agent contracts match pattern (using filtered agent set)
         contract_errors = ContractValidator.validate_agent_contracts(
             route_def.pattern,
-            route_def.agents
+            agents_to_validate
         )
         errors.extend(contract_errors)
-        
-        # Validate no circular dependencies
+
+        # Validate no circular dependencies (full agent set — handoff agents
+        # still participate in the route dependency graph)
         circular_errors = ContractValidator.validate_no_cycles(route_def.agents)
         errors.extend(circular_errors)
-        
+
         return errors
     
     @staticmethod

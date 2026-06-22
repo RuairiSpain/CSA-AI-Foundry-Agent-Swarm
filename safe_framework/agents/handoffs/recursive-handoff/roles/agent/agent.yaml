@@ -1,0 +1,40 @@
+name: Recursive Agent
+version: 1.0
+category: handoff
+description: |
+  Self-similar agent that can spawn copies of itself via ConnectedAgentTool
+  to solve sub-problems of the same type. Recursion terminates at max_depth
+  or when the agent determines no further delegation is needed.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: Task or sub-task to process (may delegate further)
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: Processed result (from self or from recursive sub-agent)
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages:
+      - azure-ai-projects>=1.0.0b4
+  timeout_seconds: 60
+
+tags:
+  - handoff
+  - recursive
+  - agent
+
+tools:
+  - id: iq-foundry
+    purpose: "Knowledge retrieval for self-similar task processing"

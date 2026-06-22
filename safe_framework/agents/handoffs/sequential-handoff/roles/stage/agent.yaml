@@ -1,0 +1,40 @@
+name: Sequential Stage
+version: 1.0
+category: handoff
+description: |
+  One stage in a sequential handoff pipeline. Receives the previous stage's
+  output as input, processes it, and passes the result to the next stage.
+  Stages are connected in order via ConnectedAgentTool.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: Output from the previous stage (or original task for stage_0)
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: Processed result to pass to the next stage
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages:
+      - azure-ai-projects>=1.0.0b4
+  timeout_seconds: 60
+
+tags:
+  - handoff
+  - sequential
+  - stage
+
+tools:
+  - id: iq-foundry
+    purpose: "Stage-specific knowledge retrieval"

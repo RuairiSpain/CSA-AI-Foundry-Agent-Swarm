@@ -1,0 +1,39 @@
+name: Direct Delegate
+version: 1.0
+category: handoff
+description: |
+  Specialist sub-agent that receives the full delegated task from the parent agent.
+  Implements the work the parent decided to hand off entirely.
+
+contract:
+  inputs:
+    - name: task
+      type: string
+      required: true
+      description: The complete task delegated from the parent agent
+  outputs:
+    - name: result
+      type: string
+      required: true
+      description: The completed result to return to the parent
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages:
+      - azure-ai-projects>=1.0.0b4
+  timeout_seconds: 90
+
+tags:
+  - handoff
+  - direct
+  - delegate
+
+tools:
+  - id: iq-foundry
+    purpose: "Access knowledge base for task completion"
