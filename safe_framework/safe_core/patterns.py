@@ -1012,6 +1012,89 @@ TREE_REDUCE = PatternTemplate(
 
 
 # ============================================================================
+# PATTERN 13: RALPH LOOP
+# ============================================================================
+
+RALPH_LOOP = PatternTemplate(
+    pattern_id="ralph-loop",
+    name="Ralph Loop",
+    version="1.0",
+    category=PatternCategory.SEQUENTIAL,
+    complexity=PatternComplexity.ADVANCED,
+    description=(
+        "Autonomous iteration with fresh context per round: planner reads spec from disk, "
+        "implementer makes changes, verifier runs machine checks (tests/linter). "
+        "Loops until verifier passes or spawn budget exhausted. "
+        "Named after Geoffrey Huntley's Ralph Wiggum loop pattern."
+    ),
+    use_cases=[
+        "Overnight autonomous coding — run until all tests pass",
+        "Self-healing pipelines that fix their own failures",
+        "Spec-driven implementation where completion is machine-verifiable",
+        "Iterative document generation against a compliance checklist",
+        "Autonomous refactoring with linter/type-check exit criteria",
+    ],
+    diagram_ascii="""
+    [Spec / State on Disk]
+          ↓
+    [Planner] (reads spec fresh)
+          ↓
+    next_task → [Implementer]
+          ↓
+    result → [Verifier] (machine checks)
+          ↓
+    passed? ✓ → [Output]
+          ↓
+    fail? → write diagnostics → next iteration (fresh context)
+          ↓
+    budget exhausted? → [Error]
+    """,
+    placeholders=[
+        PlaceholderNode(
+            id="planner",
+            name="Planner",
+            description="Reads spec and state from disk; selects the next task for this iteration",
+            stage="input",
+            required=True
+        ),
+        PlaceholderNode(
+            id="implementer",
+            name="Implementer",
+            description="Executes the planned task and writes changes to the filesystem",
+            stage="processing",
+            required=True
+        ),
+        PlaceholderNode(
+            id="verifier",
+            name="Verifier",
+            description="Runs machine checks (tests, linter, type checker) and outputs passed boolean",
+            stage="output",
+            required=True
+        ),
+    ],
+    variables=[
+        VariableParameter(
+            name="spawn_budget",
+            display_name="Spawn Budget",
+            description="Maximum iterations before giving up (1-50)",
+            param_type="integer",
+            default=10,
+            min_value=1,
+            max_value=50
+        ),
+    ],
+    code_template="pattern_templates/ralph_loop.py.jinja2",
+    example_workflow={
+        "name": "autonomous-coder",
+        "planner": "SpecPlannerAgent",
+        "implementer": "CodeImplementerAgent",
+        "verifier": "TestRunnerAgent",
+        "spawn_budget": 10,
+    }
+)
+
+
+# ============================================================================
 # PATTERN REGISTRY
 # ============================================================================
 
@@ -1037,6 +1120,7 @@ class PatternRegistry:
             DIAMOND,
             CONDITIONAL_BRANCHING,
             TREE_REDUCE,
+            RALPH_LOOP,
         ]
 
         for pattern in builtin_patterns:

@@ -38,7 +38,7 @@ Patterns define **roles** (e.g., `worker`, `aggregator`, `supervisor`). When you
 | **Sequential** | Linear flow — each step feeds the next | sequential-pipeline, planning |
 | **Parallel** | Multiple agents run concurrently | fan-out-fan-in, map-reduce, orchestrator-workers, self-consistency, debate |
 | **Routing** | Dynamic decision determines which agent runs | supervisor-manager, mixture-of-experts, conditional-branching, gate-guard, event-driven, budget-aware-routing, adaptive-routing, round-robin |
-| **Iterative** | Loop until a condition is met | retry-loop, evaluator-optimizer, reflection |
+| **Iterative** | Loop until a condition is met | retry-loop, evaluator-optimizer, reflection, ralph-loop |
 | **Convergent** | Multiple paths merge | diamond, tree-reduce, fan-out-fan-in |
 | **Memory** | State persists across calls | memory-augmented, checkpoint-resume |
 | **Human** | Workflow pauses for human input | human-in-the-loop |
@@ -390,6 +390,35 @@ Performance tracker monitors latency/quality, router updates model selection in 
 
 ---
 
+#### ralph-loop
+
+Planner reads spec and state fresh from disk each iteration (context reset), implementer makes changes, verifier runs machine checks (tests, linter, type checker). Loops until `passed=true` or spawn budget exhausted.
+
+**Roles:** `planner`, `implementer`, `verifier`
+**Use when:** Completion is machine-verifiable (test suite, linter, compliance scanner) and the task may need multiple autonomous iterations — especially for overnight or unattended runs.
+
+**Files:** [`safe_framework/agents/patterns/ralph-loop/`](../safe_framework/agents/patterns/ralph-loop/)
+
+**Requires:** `safe-durable-task` MCP (filesystem state between iterations)
+
+```mermaid
+flowchart LR
+    Spec[(Spec on Disk)] --> Planner
+    State[(State on Disk)] --> Planner
+    Planner -- next_task --> Implementer
+    Planner -- done=true --> Output([Output])
+    Implementer --> Verifier
+    Verifier -- passed=true --> Output
+    Verifier -- passed=false, diagnostics --> State
+    State --> Planner
+```
+
+> **vs retry-loop:** retry-loop retries a single failing call with backoff in the same context window. Ralph loop resets context every iteration, uses the filesystem as memory, and exits only when a machine check passes.
+
+> **vs reflection:** reflection uses an LLM critic within the same session. Ralph loop exits on deterministic external tool results, not LLM self-assessment.
+
+---
+
 ## Choosing a Pattern
 
 ```mermaid
@@ -397,6 +426,7 @@ flowchart TD
     Start([What does your workflow need?]) --> Q1{Human approval<br>required?}
     Q1 -- Yes --> HITL[human-in-the-loop]
     Q1 -- No --> Q2{Quality iteration<br>needed?}
+    Q2 -- Yes, machine-verifiable exit --> RL[ralph-loop]
     Q2 -- Yes, with external judge --> EO[evaluator-optimizer]
     Q2 -- Yes, self-critique --> Ref[reflection]
     Q2 -- No --> Q3{Parallel or sequential?}

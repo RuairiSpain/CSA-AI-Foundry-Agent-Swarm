@@ -13,10 +13,13 @@ This file merges two groups of models:
 # SECTION A — p4 RUNTIME MODELS (dataclass-based)
 # =============================================================================
 
+import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Literal
 from enum import Enum
 from datetime import datetime
+
+_AGENT_DEFAULT_TIMEOUT_SECONDS = int(os.environ.get("SAFE_AGENT_DEFAULT_TIMEOUT_SECONDS", "3600"))
 
 from .chain_models import RouteChain, RouteChainStep  # noqa: F401 — re-export
 
@@ -53,6 +56,7 @@ class RoutePattern(str, Enum):
     ADAPTIVE_ROUTING              = "adaptive-routing"
     PLANNER_GENERATOR_EVALUATOR   = "planner-generator-evaluator"
     LATS                          = "lats"
+    RALPH_LOOP                    = "ralph-loop"
 
 
 @dataclass
@@ -157,7 +161,7 @@ class AgentConfig(BaseModel):
         default=ErrorPolicy.FAIL_HARD,
         description="How to handle failures",
     )
-    timeout_seconds: int = Field(default=3600, description="Timeout in seconds")
+    timeout_seconds: int = Field(default=_AGENT_DEFAULT_TIMEOUT_SECONDS, description="Timeout in seconds")
 
 
 class ConditionalRoute(BaseModel):

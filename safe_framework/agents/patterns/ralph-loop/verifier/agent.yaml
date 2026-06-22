@@ -1,0 +1,96 @@
+name: Ralph Verifier
+version: 1.0
+category: verifier
+description: |
+  Runs machine-verifiable checks (test suite, linter, type checker, compliance
+  scanner) on the Implementer's output. The 'passed' boolean field is the
+  exit criterion for the Ralph loop — when true, the loop terminates
+  successfully.
+
+contract:
+  inputs:
+    - name: verify_request
+      type: object
+      required: true
+      description: Implementer result to verify plus the original spec path
+      schema:
+        type: object
+        required_fields: [result, spec_path, iteration]
+        field_definitions:
+          result:
+            type: object
+            description: The Implementer's output from this iteration
+          spec_path:
+            type: string
+            description: Path to the task spec used to cross-check acceptance criteria
+          iteration:
+            type: integer
+            description: Current iteration index (0-based)
+
+  outputs:
+    - name: verify_output
+      type: object
+      required: true
+      description: Machine verification result
+      schema:
+        type: object
+        required_fields: [passed]
+        field_definitions:
+          passed:
+            type: boolean
+            description: True when all machine checks pass — terminates the Ralph loop
+          diagnostics:
+            type: array
+            description: List of failure messages / check output (empty when passed=true)
+          checks_run:
+            type: array
+            description: Names of checks executed (e.g. pytest, ruff, mypy)
+          summary:
+            type: string
+            description: Human-readable summary of verification outcome
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Run pytest / jest and report pass/fail
+    - Execute ruff / eslint and surface violations as diagnostics
+    - Run mypy / tsc type checking
+    - Validate output against a compliance checklist
+  example:
+    input:
+      result:
+        status: "implemented"
+        files_changed: ["src/auth.py"]
+      spec_path: "/workspace/spec.md"
+      iteration: 0
+    output:
+      passed: false
+      diagnostics:
+        - "tests/test_auth.py::test_login FAILED — AssertionError: expected 200, got 401"
+      checks_run: ["pytest", "ruff"]
+      summary: "1 test failed, 0 linter errors"
+  limitations:
+    - Verification criteria are domain-specific and must be configured per route
+    - Cannot guarantee correctness beyond what the check suite covers
+
+tags:
+  - verifier
+  - ralph-loop
+  - machine-verification
+
+pattern_roles: []
+tools:
+  - id: safe-durable-task
+    purpose: "Write diagnostics to durable state so the Planner reads them on the next iteration"
+  - id: iq-foundry
+    purpose: "Cross-check output against org standards and acceptance criteria in the knowledge base"

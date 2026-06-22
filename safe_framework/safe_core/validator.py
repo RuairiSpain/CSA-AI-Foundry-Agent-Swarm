@@ -374,6 +374,24 @@ class ContractValidator:
                     suggested_solutions=["Add agents with keys branch_0, branch_1, …"]
                 ))
 
+        elif pattern == RoutePattern.RALPH_LOOP:
+            for role in ("planner", "implementer", "verifier"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for ralph-loop pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+            verifier = agents.get("verifier")
+            if verifier:
+                verifier_output_props = verifier.output_schema.get("properties", {})
+                if "passed" not in verifier_output_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Verifier '{verifier.name}' must output a 'passed' field (boolean)",
+                        suggested_solutions=["Choose a verifier whose output schema includes 'passed'"]
+                    ))
+
         elif pattern == RoutePattern.TREE_REDUCE:
             leaf_keys = [k for k in agents if k.startswith("leaf_")]
             if len(leaf_keys) < 2:

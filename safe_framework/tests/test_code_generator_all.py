@@ -185,6 +185,11 @@ PATTERN_AGENTS = {
         "evaluator": make_agent("Evaluator", outputs=["value", "terminal"]),
         "reflector": make_agent("Reflector", outputs=["reflection"]),
     },
+    RoutePattern.RALPH_LOOP: {
+        "planner": make_agent("Planner", inputs=["spec_path"], outputs=["next_task"]),
+        "implementer": make_agent("Implementer", outputs=["result"]),
+        "verifier": make_agent("Verifier", outputs=["passed"]),
+    },
 }
 
 
