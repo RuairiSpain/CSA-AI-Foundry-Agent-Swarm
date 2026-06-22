@@ -1,0 +1,89 @@
+name: Code Coverage
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  coverage:
+    name: Run tests with coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: safe_framework
+        run: pip install -e ".[dev]"
+
+      - name: Run tests with coverage
+        working-directory: safe_framework
+        run: |
+          python -m pytest tests/ -q \
+            --cov=safe_core \
+            --cov-report=term-missing \
+            --cov-report=json:coverage.json
+
+      - name: Build coverage summary
+        working-directory: safe_framework
+        run: |
+          python - <<'EOF'
+          import json, os
+
+          with open("coverage.json") as f:
+              data = json.load(f)
+
+          totals = data["totals"]
+          pct = totals["percent_covered_display"]
+          stmts = totals["num_statements"]
+          missing = totals["missing_lines"]
+          covered = stmts - missing
+
+          rows = []
+          for path, info in sorted(data["files"].items()):
+              name = path.replace("safe_core/", "")
+              p = info["summary"]["percent_covered_display"]
+              m = info["summary"]["missing_lines"]
+              rows.append(f"| `{name}` | {p}% | {m} |")
+
+          table = "\n".join(rows)
+
+          summary = f"""## Code Coverage Report
+
+          | Metric | Value |
+          |--------|-------|
+          | **Total coverage** | **{pct}%** |
+          | Statements covered | {covered} / {stmts} |
+          | Missing lines | {missing} |
+
+          <details>
+          <summary>Per-file breakdown ({len(rows)} files)</summary>
+
+          | File | Coverage | Missing lines |
+          |------|----------|---------------|
+          {table}
+          </details>
+          """
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write(summary)
+
+          with open("coverage-summary.md", "w") as f:
+              f.write(summary)
+
+          print(f"Total coverage: {pct}%")
+          EOF
+
+      - name: Post coverage comment on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: safe_framework/coverage-summary.md
