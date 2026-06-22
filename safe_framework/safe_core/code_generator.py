@@ -1,10 +1,14 @@
 """Code generation from route definitions"""
 
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from .models import RouteDefinition, GeneratedRoute, RoutePattern
+
+_RETRY_LOOP_MAX_RETRIES = int(os.environ.get("SAFE_RETRY_LOOP_MAX_RETRIES", "3"))
+_RALPH_LOOP_SPAWN_BUDGET = int(os.environ.get("SAFE_RALPH_LOOP_SPAWN_BUDGET", "10"))
 
 _PATTERNS_DIR = Path(__file__).parent.parent / "agents" / "patterns"
 
@@ -438,7 +442,7 @@ class RouteCodeGenerator:
     def _generate_retry_loop(route_def: RouteDefinition) -> GeneratedRoute:
         worker_key = "worker"
         validator_key = "validator"
-        max_retries = 3
+        max_retries = _RETRY_LOOP_MAX_RETRIES
 
         worker = route_def.agents.get(worker_key)
         input_required = worker.input_schema.get("required", []) if worker else []
@@ -788,7 +792,7 @@ class RouteCodeGenerator:
         planner_key = "planner"
         implementer_key = "implementer"
         verifier_key = "verifier"
-        spawn_budget = 10
+        spawn_budget = _RALPH_LOOP_SPAWN_BUDGET
 
         planner = route_def.agents.get(planner_key)
         input_required = planner.input_schema.get("required", []) if planner else []
