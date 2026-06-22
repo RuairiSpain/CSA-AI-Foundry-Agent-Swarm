@@ -190,6 +190,19 @@ PATTERN_AGENTS = {
         "implementer": make_agent("Implementer", outputs=["result"]),
         "verifier": make_agent("Verifier", outputs=["passed"]),
     },
+    # Agent-loop patterns
+    RoutePattern.REACT_LOOP: {
+        "thinker": make_agent("Thinker", inputs=["context"], outputs=["thought", "next_action"]),
+        "actor": make_agent("Actor", inputs=["next_action"], outputs=["action_result"]),
+        "observer": make_agent("Observer", inputs=["action_result"], outputs=["done", "observation"]),
+    },
+    RoutePattern.GOAL_DRIVEN_LOOP: {
+        "worker": make_agent("Worker", inputs=["data"], outputs=["result"]),
+        "goal_verifier": make_agent("GoalVerifier", inputs=["output", "iteration"], outputs=["done", "reason"]),
+    },
+    RoutePattern.INTERVAL_LOOP: {
+        "worker": make_agent("Worker", inputs=["data"], outputs=["result"]),
+    },
 }
 
 

@@ -535,3 +535,57 @@ class TestValidateRoute:
         r = route(RoutePattern.SUPERVISOR_MANAGER, agents, total=5, per_agent=60)
         errors = ContractValidator.validate_route(r)
         assert len(errors) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Pre-existing uncovered branches (mixture-of-experts, hierarchical-teams, diamond)
+# ---------------------------------------------------------------------------
+
+class TestMixtureOfExpertsMissingAggregator:
+    def test_missing_aggregator_error(self):
+        agents = {
+            "router": make_agent("Router"),
+            "expert_0": make_agent("ExpertA"),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.MIXTURE_OF_EXPERTS, agents)
+        assert any("aggregator" in e.message for e in errors)
+
+
+class TestHierarchicalTeamsMissingTeams:
+    def test_fewer_than_two_teams_error(self):
+        agents = {
+            "coordinator": make_agent("Coord"),
+            "team_0": make_agent("Team0"),
+            "aggregator": make_agent("Agg", inputs=["team_results"]),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.HIERARCHICAL_TEAMS, agents)
+        assert any("team_*" in e.message or "2 team_*" in e.message for e in errors)
+
+
+class TestDiamondMissingProcessorsAndMerger:
+    def test_missing_left_processor_error(self):
+        agents = {
+            "splitter": make_agent("Splitter", outputs=["left", "right"]),
+            "right_processor": make_agent("RightProc"),
+            "merger": make_agent("Merger", inputs=["left_result", "right_result"]),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.DIAMOND, agents)
+        assert any("left_processor" in e.message for e in errors)
+
+    def test_missing_right_processor_error(self):
+        agents = {
+            "splitter": make_agent("Splitter", outputs=["left", "right"]),
+            "left_processor": make_agent("LeftProc"),
+            "merger": make_agent("Merger", inputs=["left_result", "right_result"]),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.DIAMOND, agents)
+        assert any("right_processor" in e.message for e in errors)
+
+    def test_missing_merger_error(self):
+        agents = {
+            "splitter": make_agent("Splitter", outputs=["left", "right"]),
+            "left_processor": make_agent("LeftProc"),
+            "right_processor": make_agent("RightProc"),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.DIAMOND, agents)
+        assert any("merger" in e.message for e in errors)

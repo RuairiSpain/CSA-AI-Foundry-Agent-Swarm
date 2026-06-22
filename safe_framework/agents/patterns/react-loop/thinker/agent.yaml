@@ -1,0 +1,56 @@
+name: ReAct Thinker
+version: 1.0
+category: reasoning
+description: |
+  Think step of a ReAct loop. Analyses the current context and produces a
+  structured thought describing what to do next.
+
+contract:
+  inputs:
+    - name: context
+      type: object
+      required: true
+      description: Current loop context including task and prior observations
+
+  outputs:
+    - name: thought
+      type: string
+      required: true
+      description: Reasoning about the next action to take
+    - name: next_action
+      type: string
+      required: true
+      description: Name of the action to execute
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Autonomous research agents
+    - Code-generation loops
+    - Iterative problem solving
+  example:
+    input: {context: {task: "find the best model for summarisation"}}
+    output: {thought: "I should search the catalog first", next_action: "search_catalog"}
+  limitations:
+    - Thought quality depends on prompt quality
+
+tags:
+  - reasoning
+  - react-loop
+
+pattern_roles:
+  - react-loop/thinker
+
+tools:
+  - id: iq-foundry
+    purpose: "Ground reasoning in the knowledge base"

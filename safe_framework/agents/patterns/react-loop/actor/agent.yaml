@@ -1,0 +1,57 @@
+name: ReAct Actor
+version: 1.0
+category: execution
+description: |
+  Act step of a ReAct loop. Executes the action chosen by the Thinker and
+  returns a structured result for the Observer to evaluate.
+
+contract:
+  inputs:
+    - name: next_action
+      type: string
+      required: true
+      description: Action name selected by the Thinker
+    - name: context
+      type: object
+      required: true
+      description: Current loop context
+
+  outputs:
+    - name: action_result
+      type: object
+      required: true
+      description: Raw result of executing the action
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Tool invocation inside a ReAct loop
+    - API calls, database queries, file operations
+  example:
+    input: {next_action: "search_catalog", context: {task: "find summarisation model"}}
+    output: {action_result: {matches: ["claude-haiku-4-5", "gpt-4o-mini"]}}
+  limitations:
+    - Actions must be registered in the tool catalog
+
+tags:
+  - execution
+  - react-loop
+
+pattern_roles:
+  - react-loop/actor
+
+tools:
+  - id: iq-foundry
+    purpose: "Execute tool calls against the knowledge base"
+  - id: safe-durable-task
+    purpose: "Checkpoint action state for safe retries"

@@ -45,6 +45,10 @@ _PATTERN_TEMPLATE_DIRS = {
     RoutePattern.PLANNER_GENERATOR_EVALUATOR: _PATTERNS_DIR / "planner-generator-evaluator",
     RoutePattern.LATS:                        _PATTERNS_DIR / "lats",
     RoutePattern.RALPH_LOOP:                  _PATTERNS_DIR / "ralph-loop",
+    # Agent-loop patterns
+    RoutePattern.REACT_LOOP:                  _PATTERNS_DIR / "react-loop",
+    RoutePattern.GOAL_DRIVEN_LOOP:            _PATTERNS_DIR / "goal-driven-loop",
+    RoutePattern.INTERVAL_LOOP:               _PATTERNS_DIR / "interval-loop",
 }
 
 def _get_template(pattern: RoutePattern):
@@ -690,6 +694,134 @@ class RouteCodeGenerator:
                      "worker_keys": worker_keys})
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.ADAPTIVE_ROUTING)
 
+    # ------------------------------------------------------------------
+    # Agent-loop pattern generators
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _generate_react_loop(route_def: RouteDefinition) -> GeneratedRoute:
+        lc = route_def.loop_config
+        max_iterations = lc.max_iterations if lc else 10
+        stuck_threshold = lc.stuck_detection_threshold if lc else 3
+        on_stuck = lc.on_stuck if lc else "graceful_degradation"
+
+        thinker = route_def.agents.get("thinker")
+        input_required = thinker.input_schema.get("required", []) if thinker else []
+        observer = route_def.agents.get("observer")
+        output_required = observer.output_schema.get("required", []) if observer else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "max_iterations": max_iterations,
+            "stuck_threshold": stuck_threshold,
+            "on_stuck": on_stuck,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+        route_code = _get_template(RoutePattern.REACT_LOOP).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+                "max_iterations": max_iterations,
+            },
+        )
+
+    @staticmethod
+    def _generate_goal_driven_loop(route_def: RouteDefinition) -> GeneratedRoute:
+        lc = route_def.loop_config
+        max_iterations = lc.max_iterations if lc else 10
+        goal_expression = lc.goal_expression if lc else ""
+        stuck_threshold = lc.stuck_detection_threshold if lc else 3
+        on_stuck = lc.on_stuck if lc else "graceful_degradation"
+
+        worker = route_def.agents.get("worker")
+        input_required = worker.input_schema.get("required", []) if worker else []
+        gv = route_def.agents.get("goal_verifier")
+        output_required = gv.output_schema.get("required", []) if gv else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "max_iterations": max_iterations,
+            "goal_expression": goal_expression,
+            "stuck_threshold": stuck_threshold,
+            "on_stuck": on_stuck,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+        route_code = _get_template(RoutePattern.GOAL_DRIVEN_LOOP).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+                "max_iterations": max_iterations,
+                "goal_expression": goal_expression,
+            },
+        )
+
+    @staticmethod
+    def _generate_interval_loop(route_def: RouteDefinition) -> GeneratedRoute:
+        lc = route_def.loop_config
+        max_iterations = lc.max_iterations if lc else 10
+        interval_seconds = lc.tick_interval_seconds if lc else 60
+
+        worker = route_def.agents.get("worker")
+        input_required = worker.input_schema.get("required", []) if worker else []
+        output_required = worker.output_schema.get("required", []) if worker else []
+
+        context = {
+            "route_name": route_def.name,
+            "class_name": RouteCodeGenerator._class_name(route_def.name),
+            "description": route_def.description,
+            "pattern": route_def.pattern.value,
+            "agent_names": ", ".join(route_def.agents.keys()),
+            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "agents": route_def.agents,
+            "max_iterations": max_iterations,
+            "interval_seconds": interval_seconds,
+            "required_input_fields": json.dumps(input_required),
+            "required_output_fields": json.dumps(output_required),
+        }
+        route_code = _get_template(RoutePattern.INTERVAL_LOOP).render(**context)
+        return GeneratedRoute(
+            route_code=route_code,
+            requirements_txt=RouteCodeGenerator._generate_requirements(route_def),
+            config_yaml=RouteCodeGenerator._generate_config(route_def),
+            test_data_json=RouteCodeGenerator._generate_test_data(route_def),
+            metadata={
+                "pattern": route_def.pattern.value,
+                "agents": list(route_def.agents.keys()),
+                "created_at": datetime.now().isoformat(),
+                "version": "v1.0",
+                "max_iterations": max_iterations,
+                "interval_seconds": interval_seconds,
+            },
+        )
+
     @staticmethod
     def _generate_lats(route_def: RouteDefinition) -> GeneratedRoute:
         expander = route_def.agents.get("expander")
@@ -851,6 +983,10 @@ _GENERATORS: dict[RoutePattern, Callable[[RouteDefinition], GeneratedRoute]] = {
     RoutePattern.PLANNER_GENERATOR_EVALUATOR: RouteCodeGenerator._generate_planner_generator_evaluator,
     RoutePattern.LATS:                        RouteCodeGenerator._generate_lats,
     RoutePattern.RALPH_LOOP:                  RouteCodeGenerator._generate_ralph_loop,
+    # Agent-loop patterns
+    RoutePattern.REACT_LOOP:                  RouteCodeGenerator._generate_react_loop,
+    RoutePattern.GOAL_DRIVEN_LOOP:            RouteCodeGenerator._generate_goal_driven_loop,
+    RoutePattern.INTERVAL_LOOP:               RouteCodeGenerator._generate_interval_loop,
 }
 
 _TEST_DATA: dict[RoutePattern, list] = {
@@ -999,5 +1135,20 @@ _TEST_DATA: dict[RoutePattern, list] = {
         {"name": "test_case_1",
          "input": {"spec_path": "/workspace/spec.md", "state_path": "/workspace/.ralph_state.json"},
          "expected": {"passed": True}},
+    ],
+    RoutePattern.REACT_LOOP: [
+        {"name": "test_case_1",
+         "input": {"task": "research and summarise AI agent loop patterns"},
+         "expected": {"done": True}},
+    ],
+    RoutePattern.GOAL_DRIVEN_LOOP: [
+        {"name": "test_case_1",
+         "input": {"data": {"task": "iterate until quality threshold met"}},
+         "expected": {"done": True}},
+    ],
+    RoutePattern.INTERVAL_LOOP: [
+        {"name": "test_case_1",
+         "input": {"data": {"task": "poll for status"}},
+         "expected": {"result": {}}},
     ],
 }

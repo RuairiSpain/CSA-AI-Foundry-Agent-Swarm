@@ -1,0 +1,61 @@
+name: Context Compactor
+version: 1.0
+category: utility
+description: |
+  Summarises prior loop iterations into a compact state dict when the token
+  budget approaches threshold. Keeps the last N iterations in full; replaces
+  older history with a dense summary.
+
+contract:
+  inputs:
+    - name: history
+      type: array
+      required: true
+      description: Full iteration history to compact
+    - name: preserve_last_n
+      type: integer
+      required: true
+      description: Number of recent iterations to keep verbatim
+
+  outputs:
+    - name: compacted_history
+      type: array
+      required: true
+      description: Compacted iteration history
+    - name: tokens_saved
+      type: integer
+      required: true
+      description: Estimated tokens freed by compaction
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 20
+
+documentation:
+  use_cases:
+    - Context window management in long-running loops
+    - Cost reduction for loops with 20+ iterations
+  example:
+    input: {history: [{}, {}, {}], preserve_last_n: 2}
+    output: {compacted_history: [{"type": "summary"}, {}], tokens_saved: 1200}
+  limitations:
+    - Summaries lose detail — set preserve_last_n >= 2 to retain recent context
+
+tags:
+  - utility
+  - compaction
+  - goal-driven-loop
+
+pattern_roles:
+  - goal-driven-loop/context_compactor
+
+tools:
+  - id: safe-token-metrics
+    purpose: "Query current token usage to decide whether compaction is needed"
