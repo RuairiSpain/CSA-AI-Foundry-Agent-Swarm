@@ -1,11 +1,53 @@
 {
   "suite": "safe_md",
   "budget_per_file": 8000,
-  "total_files": 85,
+  "total_files": 95,
   "files_over_budget": 0,
   "max_tokens": 1004,
-  "avg_tokens": 653.8,
+  "avg_tokens": 644.9,
   "entries": [
+    {
+      "file": "handoffs/direct-handoff/roles/delegate/agent.md",
+      "tokens": 404,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "handoffs/hierarchical-handoff/roles/manager/agent.md",
+      "tokens": 417,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "handoffs/hierarchical-handoff/roles/worker/agent.md",
+      "tokens": 341,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "handoffs/recursive-handoff/roles/agent/agent.md",
+      "tokens": 488,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "handoffs/selective-handoff/roles/candidate/agent.md",
+      "tokens": 356,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "handoffs/selective-handoff/roles/coordinator/agent.md",
+      "tokens": 460,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "handoffs/sequential-handoff/roles/stage/agent.md",
+      "tokens": 385,
+      "budget": 8000,
+      "over_budget": false
+    },
     {
       "file": "patterns/adaptive-routing/performance_tracker/agent.md",
       "tokens": 690,
@@ -357,6 +399,24 @@
     {
       "file": "patterns/rag/retriever/agent.md",
       "tokens": 702,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/ralph-loop/implementer/agent.md",
+      "tokens": 894,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/ralph-loop/planner/agent.md",
+      "tokens": 1002,
+      "budget": 8000,
+      "over_budget": false
+    },
+    {
+      "file": "patterns/ralph-loop/verifier/agent.md",
+      "tokens": 949,
       "budget": 8000,
       "over_budget": false
     },
