@@ -1,4 +1,4 @@
-"""Parametrised code-generation tests covering all 27 RoutePattern values."""
+"""Parametrised code-generation tests covering all RoutePattern values."""
 
 import ast
 import pytest
@@ -173,6 +173,17 @@ PATTERN_AGENTS = {
         "performance_tracker": make_agent("PerfTracker", outputs=["metrics"]),
         "router": make_agent("Router", outputs=["route"]),
         "worker_0": make_agent("Worker0", outputs=["result"]),
+    },
+    RoutePattern.PLANNER_GENERATOR_EVALUATOR: {
+        "planner": make_agent("Planner", outputs=["sprints"]),
+        "generator": make_agent("Generator", outputs=["sprint_delivery"]),
+        "evaluator": make_agent("Evaluator", outputs=["approved"]),
+    },
+    RoutePattern.LATS: {
+        "expander":  make_agent("Expander",  outputs=["actions"]),
+        "executor":  make_agent("Executor",  outputs=["next_state"]),
+        "evaluator": make_agent("Evaluator", outputs=["value", "terminal"]),
+        "reflector": make_agent("Reflector", outputs=["reflection"]),
     },
 }
 

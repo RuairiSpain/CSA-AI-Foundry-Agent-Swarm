@@ -49,8 +49,10 @@ class RoutePattern(str, Enum):
     MEMORY_AUGMENTED     = "memory-augmented"
     EVENT_DRIVEN         = "event-driven"
     CHECKPOINT_RESUME    = "checkpoint-resume"
-    BUDGET_AWARE_ROUTING = "budget-aware-routing"
-    ADAPTIVE_ROUTING     = "adaptive-routing"
+    BUDGET_AWARE_ROUTING          = "budget-aware-routing"
+    ADAPTIVE_ROUTING              = "adaptive-routing"
+    PLANNER_GENERATOR_EVALUATOR   = "planner-generator-evaluator"
+    LATS                          = "lats"
 
 
 @dataclass
