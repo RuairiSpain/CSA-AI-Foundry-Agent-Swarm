@@ -466,14 +466,22 @@ class RouteCodeGenerator:
             extra_metadata={"max_iterations": max_iterations, "interval_seconds": interval_seconds},
         )
 
+    # Pattern groups that need extra Azure Search / memory deps
+    _RAG_PATTERNS = frozenset({
+        RoutePattern.RAG,
+        RoutePattern.MEMORY_AUGMENTED,
+    })
+
     @staticmethod
     def _generate_requirements(route_def: RouteDefinition) -> str:
         requirements = [
-            "semantic-kernel>=0.4.0",
-            "azure-ai>=1.0.0",
+            "semantic-kernel>=1.0.0",
+            "azure-ai-projects>=1.0.0",
+            "azure-identity>=1.6.0",
             "pydantic>=2.0.0",
-            "python-dateutil>=2.8.0",
         ]
+        if route_def.pattern in RouteCodeGenerator._RAG_PATTERNS:
+            requirements.append("azure-search-documents>=11.4.0")
         return "\n".join(requirements) + "\n"
 
     @staticmethod
