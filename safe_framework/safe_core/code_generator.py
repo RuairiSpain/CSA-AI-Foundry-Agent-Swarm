@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 from jinja2 import Environment, FileSystemLoader
-from .models import RouteDefinition, GeneratedRoute, RoutePattern
+from .models import RouteDefinition, GeneratedRoute, RoutePattern, ValidationError
 from .config import config
 
 _PATTERNS_DIR = Path(__file__).parent.parent / "agents" / "patterns"
@@ -58,8 +58,21 @@ class RouteCodeGenerator:
     """Generates production-ready route code from definitions"""
 
     @staticmethod
-    def generate(route_def: RouteDefinition) -> GeneratedRoute:
-        """Generate complete route from definition"""
+    def generate(route_def: RouteDefinition, *, skip_validation: bool = False) -> GeneratedRoute:
+        """Generate complete route from definition.
+
+        Runs ContractValidator before rendering so that a missing required agent
+        raises a structured ValueError instead of a bare KeyError deep inside a
+        _generate_* method.
+        """
+        from .validator import ContractValidator
+
+        if not skip_validation:
+            errors = ContractValidator.validate_route(route_def)
+            if errors:
+                messages = "; ".join(e.message for e in errors)
+                raise ValueError(f"Route '{route_def.name}' failed validation: {messages}")
+
         generator = _GENERATORS.get(route_def.pattern)
         if generator is None:
             raise NotImplementedError(f"Pattern {route_def.pattern} not yet implemented")

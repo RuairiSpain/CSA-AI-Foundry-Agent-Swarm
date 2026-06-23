@@ -2,8 +2,10 @@
 
 import ast
 import pytest
-from safe_core.models import Agent, RouteDefinition, RoutePattern
+from safe_core.models import Agent, RouteDefinition, RoutePattern, LoopConfig
 from safe_core.code_generator import RouteCodeGenerator
+
+_LOOP_PATTERNS = {RoutePattern.REACT_LOOP, RoutePattern.GOAL_DRIVEN_LOOP, RoutePattern.INTERVAL_LOOP}
 
 
 def make_agent(name, inputs=None, outputs=None):
@@ -30,6 +32,7 @@ def base_route(pattern, agents):
         description="Test route",
         timeout_seconds=120,
         per_agent_timeout_seconds=60,
+        loop_config=LoopConfig() if pattern in _LOOP_PATTERNS else None,
     )
 
 
@@ -267,6 +270,44 @@ def test_generate_config_yaml(pattern):
 
     assert "test-route" in generated.config_yaml
     assert pattern.value in generated.config_yaml
+
+
+class TestGenerateValidation:
+    """generate() must raise ValueError with a clear message, never a bare KeyError."""
+
+    def test_missing_supervisor_raises_valueerror(self):
+        route = RouteDefinition(
+            name="bad-route",
+            pattern=RoutePattern.SUPERVISOR_MANAGER,
+            agents={},  # "supervisor" missing
+            timeout_seconds=60,
+        )
+        with pytest.raises(ValueError, match="failed validation"):
+            RouteCodeGenerator.generate(route)
+
+    def test_missing_map_reduce_agents_raises_valueerror(self):
+        route = RouteDefinition(
+            name="bad-route",
+            pattern=RoutePattern.MAP_REDUCE,
+            agents={},
+            timeout_seconds=60,
+        )
+        with pytest.raises(ValueError, match="failed validation"):
+            RouteCodeGenerator.generate(route)
+
+    def test_skip_validation_flag_bypasses_check(self):
+        """skip_validation=True lets callers bypass validation for testing."""
+        route = RouteDefinition(
+            name="bad-route",
+            pattern=RoutePattern.SUPERVISOR_MANAGER,
+            agents={
+                "supervisor": make_agent("S", outputs=["x"]),
+                "aggregator": make_agent("A", outputs=["result"]),
+            },
+            timeout_seconds=60,
+        )
+        generated = RouteCodeGenerator.generate(route, skip_validation=True)
+        assert generated.route_code
 
 
 class TestClassNameHelper:
