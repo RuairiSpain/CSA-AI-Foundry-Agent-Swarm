@@ -1,3 +1,5 @@
+# Coordinator — Selective Handoff
+
 ## Overview
 
 The **coordinator** role in `selective-handoff` evaluates the incoming task and delegates it to exactly one of the registered candidate sub-agents. The selection is made by the coordinator's LLM at runtime based on the task content and the candidate descriptions provided as ConnectedAgentTool metadata.

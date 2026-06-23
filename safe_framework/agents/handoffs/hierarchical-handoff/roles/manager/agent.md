@@ -1,3 +1,5 @@
+# Manager — Hierarchical Handoff
+
 ## Overview
 
 The **manager** in `hierarchical-handoff` sits at the root (or an intermediate node) of the delegation tree. It decomposes the incoming task into subtasks, dispatches each subtask to a `worker_*` sub-agent, and aggregates results. Workers can themselves be managers in deeper hierarchies, up to `max_depth`.

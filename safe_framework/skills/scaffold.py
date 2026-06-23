@@ -15,6 +15,7 @@ skill catalog lives at: safe_framework/skills/catalog.yaml
 
 from __future__ import annotations
 
+import functools
 import re
 from pathlib import Path
 from typing import Any
@@ -36,6 +37,7 @@ def _save_catalog(catalog: dict[str, Any]) -> None:
     with _CATALOG_PATH.open("w", encoding="utf-8") as f:
         # PyYAML does not preserve comments; section comments must be re-added manually after this write.
         yaml.dump(catalog, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
+    known_skill_ids.cache_clear()
 
 
 def _find_skill(catalog: dict[str, Any], skill_id: str) -> dict[str, Any] | None:
@@ -120,6 +122,7 @@ def create_skill(
     return new_skill
 
 
+@functools.lru_cache(maxsize=1)
 def known_skill_ids() -> set[str]:
     """Return the set of all skill IDs in the catalog — used by validators."""
     catalog = _load_catalog()

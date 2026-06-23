@@ -13,6 +13,7 @@ context compaction when token budget approaches threshold.
 from __future__ import annotations
 
 import asyncio
+import functools
 import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
@@ -118,7 +119,7 @@ def is_stuck(
     threshold: int,
 ) -> bool:
     """Return True when the last *threshold* outputs are identical."""
-    if len(history) < threshold:
+    if threshold <= 1 or len(history) < threshold:
         return False
     tail = history[-threshold:]
     return all(item == tail[0] for item in tail[1:])
@@ -128,12 +129,18 @@ def is_stuck(
 # Goal verification
 # ---------------------------------------------------------------------------
 
+@functools.lru_cache(maxsize=128)
+def _compile_goal(expr: str):
+    return compile(expr, "<goal_expression>", "eval")
+
+
 def evaluate_goal(output: Dict[str, Any], goal_expression: str) -> bool:
     """Evaluate *goal_expression* against *output* via a restricted eval."""
     if not goal_expression:
         return False
     try:
-        return bool(eval(goal_expression, {"__builtins__": {}}, {"output": output}))  # noqa: S307
+        code = _compile_goal(goal_expression)
+        return bool(eval(code, {"__builtins__": {}}, {"output": output}))  # noqa: S307
     except Exception as exc:
         logger.warning("Goal expression evaluation failed: %s", exc)
         return False
@@ -159,11 +166,12 @@ class LoopRunner:
         agent_invoker: Callable[[str, Dict[str, Any]], Any],
         initial_input: Dict[str, Any],
     ) -> LoopRunResult:
-        """Run until the goal expression is satisfied or max_iterations hit."""
+        """Run until the goal_verifier agent signals done or max_iterations hit."""
         cfg = self._config
         history: List[Dict[str, Any]] = []
         compactions = 0
         errors: List[str] = []
+        last_output: Dict[str, Any] = {}
 
         for iteration in range(cfg.max_iterations):
             logger.info("goal-loop iteration %d/%d", iteration + 1, cfg.max_iterations)
@@ -173,8 +181,9 @@ class LoopRunner:
                 err = f"iteration {iteration + 1}: {exc}"
                 errors.append(err)
                 logger.warning(err)
-                output = {}
+                continue  # skip history, stuck, and goal checks — error must not pollute state
 
+            last_output = output
             history.append(dict(output))
 
             if cfg.compaction and _should_compact(iteration, cfg.compaction):
@@ -186,26 +195,43 @@ class LoopRunner:
                 return self._handle_stuck(
                     cfg.on_stuck,
                     iteration + 1,
-                    output,
+                    last_output,
                     compactions,
                     errors,
                 )
 
-            if evaluate_goal(output, cfg.goal_expression):
+            # Primary termination: delegate to the goal_verifier agent
+            try:
+                verifier_result = await agent_invoker(
+                    "goal_verifier", {"output": output, "iteration": iteration + 1}
+                )
+                if verifier_result.get("done"):
+                    return LoopRunResult(
+                        success=True,
+                        iterations=iteration + 1,
+                        final_output=last_output,
+                        stop_reason="goal_met",
+                        compactions=compactions,
+                        errors=errors,
+                    )
+            except Exception as exc:
+                logger.warning("goal_verifier error at iteration %d: %s", iteration + 1, exc)
+
+            # Fallback: evaluate goal expression when no agent verdict available
+            if cfg.goal_expression and evaluate_goal(output, cfg.goal_expression):
                 return LoopRunResult(
                     success=True,
                     iterations=iteration + 1,
-                    final_output=output,
+                    final_output=last_output,
                     stop_reason="goal_met",
                     compactions=compactions,
                     errors=errors,
                 )
 
-        last = history[-1] if history else {}
         return LoopRunResult(
             success=False,
             iterations=cfg.max_iterations,
-            final_output=last,
+            final_output=last_output,
             stop_reason="max_iterations_reached",
             compactions=compactions,
             errors=errors,
@@ -315,15 +341,8 @@ class LoopRunner:
                 history = compact_history(history, cfg.compaction)
                 compactions += 1
 
-            if is_stuck(history, cfg.stuck_detection_threshold):
-                return self._handle_stuck(
-                    cfg.on_stuck,
-                    iteration + 1,
-                    context,
-                    compactions,
-                    errors,
-                )
-
+            # Done check MUST come before stuck: if done=True repeats stuck_threshold
+            # times, stuck would fire first without this ordering.
             if observation.get("done"):
                 return LoopRunResult(
                     success=True,
@@ -332,6 +351,15 @@ class LoopRunner:
                     stop_reason="done_signal",
                     compactions=compactions,
                     errors=errors,
+                )
+
+            if is_stuck(history, cfg.stuck_detection_threshold):
+                return self._handle_stuck(
+                    cfg.on_stuck,
+                    iteration + 1,
+                    context,
+                    compactions,
+                    errors,
                 )
 
         return LoopRunResult(

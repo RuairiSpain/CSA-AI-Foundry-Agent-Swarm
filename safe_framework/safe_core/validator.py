@@ -583,6 +583,7 @@ class ContractValidator:
             RoutePattern.REACT_LOOP,
             RoutePattern.GOAL_DRIVEN_LOOP,
             RoutePattern.INTERVAL_LOOP,
+            RoutePattern.RALPH_LOOP,
         }
 
         if pattern not in loop_patterns:
@@ -601,6 +602,20 @@ class ContractValidator:
                 error_type="invalid_loop_config",
                 message="max_iterations must be >= 1",
                 suggested_solutions=["Set max_iterations to a positive integer"]
+            ))
+
+        if loop_config.timeout_seconds < 1:
+            errors.append(ValidationError(
+                error_type="invalid_loop_config",
+                message="timeout_seconds must be >= 1",
+                suggested_solutions=["Set timeout_seconds to a positive value"]
+            ))
+
+        if loop_config.tick_interval_seconds < 1:
+            errors.append(ValidationError(
+                error_type="invalid_loop_config",
+                message="tick_interval_seconds must be >= 1",
+                suggested_solutions=["Set tick_interval_seconds to at least 1"]
             ))
 
         if loop_config.stuck_detection_threshold < 2:

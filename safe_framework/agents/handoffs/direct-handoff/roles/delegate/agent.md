@@ -1,3 +1,5 @@
+# Delegate — Direct Handoff
+
 ## Overview
 
 The **delegate** role in `direct-handoff` receives the complete task from the parent agent and executes it in full. The parent has already decided that this sub-agent is the right one for the job; the delegate does not route or delegate further.

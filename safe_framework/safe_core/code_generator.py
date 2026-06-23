@@ -8,8 +8,8 @@ from typing import Callable
 from jinja2 import Environment, FileSystemLoader
 from .models import RouteDefinition, GeneratedRoute, RoutePattern
 
-_RETRY_LOOP_MAX_RETRIES = int(os.environ.get("SAFE_RETRY_LOOP_MAX_RETRIES", "3"))
-_RALPH_LOOP_SPAWN_BUDGET = int(os.environ.get("SAFE_RALPH_LOOP_SPAWN_BUDGET", "10"))
+_RETRY_LOOP_MAX_RETRIES = max(1, int(os.environ.get("SAFE_RETRY_LOOP_MAX_RETRIES", "3")))
+_RALPH_LOOP_SPAWN_BUDGET = max(1, int(os.environ.get("SAFE_RALPH_LOOP_SPAWN_BUDGET", "10")))
 
 _PATTERNS_DIR = Path(__file__).parent.parent / "agents" / "patterns"
 
@@ -788,6 +788,8 @@ class RouteCodeGenerator:
         lc = route_def.loop_config
         max_iterations = lc.max_iterations if lc else 10
         interval_seconds = lc.tick_interval_seconds if lc else 60
+        stuck_threshold = lc.stuck_detection_threshold if lc else 3
+        on_stuck = lc.on_stuck if lc else "graceful_degradation"
 
         worker = route_def.agents.get("worker")
         input_required = worker.input_schema.get("required", []) if worker else []
@@ -803,6 +805,8 @@ class RouteCodeGenerator:
             "agents": route_def.agents,
             "max_iterations": max_iterations,
             "interval_seconds": interval_seconds,
+            "stuck_threshold": stuck_threshold,
+            "on_stuck": on_stuck,
             "required_input_fields": json.dumps(input_required),
             "required_output_fields": json.dumps(output_required),
         }

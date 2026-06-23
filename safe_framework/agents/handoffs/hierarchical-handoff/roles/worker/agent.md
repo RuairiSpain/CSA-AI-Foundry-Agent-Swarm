@@ -1,3 +1,5 @@
+# Worker — Hierarchical Handoff
+
 ## Overview
 
 A **worker** in `hierarchical-handoff` executes one subtask assigned by the manager. Workers are leaf nodes by default, but when `max_depth > 2`, a worker can itself act as a manager for deeper sub-workers.

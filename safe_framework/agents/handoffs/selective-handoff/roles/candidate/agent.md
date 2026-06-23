@@ -1,3 +1,5 @@
+# Candidate — Selective Handoff
+
 ## Overview
 
 A **candidate** in `selective-handoff` is one specialist sub-agent in the coordinator's pool. Candidates are registered as ConnectedAgentTools on the coordinator. Only the candidate whose description best matches the task at runtime will be invoked.

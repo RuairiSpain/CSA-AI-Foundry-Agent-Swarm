@@ -1,3 +1,5 @@
+# Stage — Sequential Handoff
+
 ## Overview
 
 A **stage** in `sequential-handoff` processes the previous stage's output and passes its result to the next stage. Unlike `sequential-pipeline` (which is statically wired), each stage here is a ConnectedAgentTool — the handoff between stages happens at runtime through the Azure AI Foundry agent framework.

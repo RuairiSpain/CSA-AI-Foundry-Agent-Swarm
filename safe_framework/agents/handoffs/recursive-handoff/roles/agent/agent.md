@@ -1,3 +1,5 @@
+# Agent — Recursive Handoff
+
 ## Overview
 
 The **agent** role in `recursive-handoff` is a self-similar agent connected to another instance of itself via ConnectedAgentTool. It processes the task directly if it determines no further breakdown is needed, or delegates a sub-problem to its connected sibling. Recursion is bounded by `max_depth`.
