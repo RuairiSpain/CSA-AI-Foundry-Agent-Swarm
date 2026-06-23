@@ -43,8 +43,9 @@ class TestGovernanceModels:
         assert request.request_id == "apr-test-001"
         assert request.status == ApprovalStatus.PENDING
 
-    def test_approval_submission(self):
-        """Test submitting approval"""
+    def test_add_approval_records_vote_without_changing_status(self):
+        """add_approval() only records the vote; status stays PENDING until the
+        engine checks the quorum threshold via submit_approval()."""
         request = ApprovalRequest(
             request_id="apr-test-001",
             route_name="test-route",
@@ -53,11 +54,11 @@ class TestGovernanceModels:
             approvers=["approver@example.com"],
         )
 
-        # Add approval
         request.add_approval("approver@example.com", True, "Looks good")
 
         assert request.approval_count == 1
-        assert request.is_approved
+        assert request.status == ApprovalStatus.PENDING
+        assert not request.is_approved
 
 
 class TestApprovalEngine:
@@ -472,6 +473,88 @@ class TestApprovalEngineEdgeCases:
         engine = ApprovalEngine(policy)
         result = await engine.revoke_approval("does-not-exist", reason="test")
         assert result is False
+
+    @pytest.mark.asyncio
+    async def test_multi_approver_threshold_not_bypassed_by_first_vote(self):
+        """A request with threshold=2 must NOT become APPROVED after only one vote."""
+        policy = GovernancePolicy(
+            name="Strict",
+            require_approval=True,
+            approval_threshold=2,
+            max_monthly_cost_usd=10000.0,
+        )
+        engine = ApprovalEngine(policy)
+        request = await engine.create_approval_request(
+            route_name="critical-route",
+            route_version="v1.0",
+            requester_email="dev@example.com",
+            agents=["agent-1"],
+            estimated_cost=50.0,
+            estimated_volume=100,
+        )
+        request.approvers = ["alice@example.com", "bob@example.com"]
+
+        await engine.submit_approval(
+            request_id=request.request_id,
+            approver_email="alice@example.com",
+            approved=True,
+        )
+
+        assert request.status == ApprovalStatus.PENDING
+        assert not request.is_approved
+        assert request.approval_count == 1
+
+    @pytest.mark.asyncio
+    async def test_multi_approver_threshold_met_after_both_votes(self):
+        """A request with threshold=2 becomes APPROVED only after both votes."""
+        policy = GovernancePolicy(
+            name="Strict",
+            require_approval=True,
+            approval_threshold=2,
+            max_monthly_cost_usd=10000.0,
+        )
+        engine = ApprovalEngine(policy)
+        request = await engine.create_approval_request(
+            route_name="critical-route",
+            route_version="v1.0",
+            requester_email="dev@example.com",
+            agents=["agent-1"],
+            estimated_cost=50.0,
+            estimated_volume=100,
+        )
+        request.approvers = ["alice@example.com", "bob@example.com"]
+
+        await engine.submit_approval(request.request_id, "alice@example.com", True)
+        await engine.submit_approval(request.request_id, "bob@example.com", True)
+
+        assert request.status == ApprovalStatus.APPROVED
+        assert request.is_approved
+
+    @pytest.mark.asyncio
+    async def test_single_rejection_rejects_request(self):
+        """A single rejection moves the request to REJECTED regardless of threshold."""
+        policy = GovernancePolicy(
+            name="Standard",
+            require_approval=True,
+            approval_threshold=2,
+            max_monthly_cost_usd=10000.0,
+        )
+        engine = ApprovalEngine(policy)
+        request = await engine.create_approval_request(
+            route_name="route-x",
+            route_version="v1.0",
+            requester_email="dev@example.com",
+            agents=["agent-1"],
+            estimated_cost=50.0,
+            estimated_volume=100,
+        )
+        request.approvers = ["alice@example.com", "bob@example.com"]
+
+        await engine.submit_approval(request.request_id, "alice@example.com", False, "Security concern")
+
+        assert request.status == ApprovalStatus.REJECTED
+        assert request.rejection_reason == "Security concern"
+        assert request.request_id not in engine.pending_requests
 
     @pytest.mark.asyncio
     async def test_compliance_disallowed_data_source_adds_warning(self):

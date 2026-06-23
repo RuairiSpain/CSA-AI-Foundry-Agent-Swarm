@@ -80,14 +80,19 @@ class ApprovalEngine:
             return False
         
         request.add_approval(approver_email, approved, comment)
-        
-        # Check if approval is complete
+
+        if not approved:
+            request.status = ApprovalStatus.REJECTED
+            request.rejection_reason = comment
+            self.completed_requests.append(request)
+            del self.pending_requests[request_id]
+            return True
+
         if request.approval_count >= self.policy.approval_threshold:
             request.status = ApprovalStatus.APPROVED
             self.completed_requests.append(request)
             del self.pending_requests[request_id]
-            return True
-        
+
         return True
     
     async def get_pending_requests(self, approver_email: Optional[str] = None) -> List[ApprovalRequest]:

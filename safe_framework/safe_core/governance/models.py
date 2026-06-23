@@ -74,18 +74,16 @@ class ApprovalRequest:
     deployed_at: Optional[datetime] = None
     
     def add_approval(self, approver_email: str, approved: bool, comment: str = "") -> None:
-        """Record approval/rejection from approver"""
+        """Record a single vote from an approver. Does not change status.
+
+        Status transitions are the sole responsibility of ApprovalEngine.submit_approval(),
+        which checks the quorum threshold after recording the vote.
+        """
         self.approvals[approver_email] = {
             "approved": approved,
             "comment": comment,
             "timestamp": datetime.now().isoformat(),
         }
-        
-        if approved:
-            self.status = ApprovalStatus.APPROVED
-        else:
-            self.status = ApprovalStatus.REJECTED
-            self.rejection_reason = comment
     
     @property
     def approval_count(self) -> int:
