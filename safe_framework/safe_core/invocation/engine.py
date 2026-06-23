@@ -4,7 +4,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..config import config
 from ..tracing import get_correlation_id
@@ -24,7 +24,7 @@ class ExecutionRequest:
     input_data: Dict[str, Any]
     request_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     correlation_id: str = field(default_factory=get_correlation_id)
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     timeout_seconds: int = field(default_factory=lambda: config.execution_timeout_seconds)
 
 @dataclass

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List
 
@@ -67,7 +67,7 @@ class HandoffDefinition:
     timeout_seconds: int = 120
     csa_email: str = ""
     tags: List[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     version: str = "v1.0"
 
 

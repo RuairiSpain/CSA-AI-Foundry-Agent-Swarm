@@ -1,7 +1,7 @@
 """Incident responder"""
 from typing import Dict, List
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 class IncidentSeverity(str, Enum):
@@ -22,7 +22,7 @@ class Incident:
     severity: IncidentSeverity
     status: IncidentStatus
     affected_routes: List[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 class IncidentResponder:
     def __init__(self):

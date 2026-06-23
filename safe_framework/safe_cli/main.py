@@ -636,7 +636,7 @@ def loop_sched(
     manifest = {
         "route": route_name,
         "cron": cron,
-        "created_at": __import__("datetime").datetime.now().isoformat(),
+        "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
         "type": "interval-loop",
     }
     schedule_path.write_text(_yaml.dump(manifest, sort_keys=False), encoding="utf-8")

@@ -2,7 +2,7 @@
 
 import json
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from .base import IRouteHealthStore
 from ..models import RouteHealth, HealthAlert, RouteHealthStatus
 
@@ -64,7 +64,7 @@ class SemanticKernelRouteHealthStore(IRouteHealthStore):
             snapshots = self.health_snapshots.get(key, [])
             
             # Filter by time window
-            cutoff_time = datetime.now() - timedelta(hours=hours)
+            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
             return [s for s in snapshots if s.last_check >= cutoff_time]
         except Exception as e:
             print(f"Error retrieving history: {e}")

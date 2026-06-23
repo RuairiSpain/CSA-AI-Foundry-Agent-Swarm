@@ -3,7 +3,7 @@
 import re
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ class SecurityIssue:
     severity: str  # "low", "medium", "high", "critical"
     description: str
     affected_component: str
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class SecurityValidator:
@@ -183,7 +183,7 @@ class SecurityValidator:
             by_severity[issue.severity] = by_severity.get(issue.severity, 0) + 1
 
         return {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_checks": len(self.checks_performed),
             "checks_passed": sum(1 for v in self.checks_performed.values() if v),
             "critical_issues": by_severity["critical"],

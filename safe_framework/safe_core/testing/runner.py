@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Any
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 class RunStatus(str, Enum):
@@ -21,7 +21,7 @@ class RunResult:
     status: RunStatus
     duration_ms: float = 0.0
     error_message: str = ""
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 @dataclass
 class RunSuite:

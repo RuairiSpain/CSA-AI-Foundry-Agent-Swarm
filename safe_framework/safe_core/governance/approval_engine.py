@@ -1,7 +1,7 @@
 """Approval workflow engine for Agent 365 integration"""
 
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from .models import (
     ApprovalRequest,
     ApprovalStatus,
@@ -30,7 +30,7 @@ class ApprovalEngine:
     ) -> ApprovalRequest:
         """Create new approval request"""
         
-        request_id = f"apr-{route_name}-{datetime.now().timestamp()}"
+        request_id = f"apr-{route_name}-{datetime.now(timezone.utc).timestamp()}"
         
         request = ApprovalRequest(
             request_id=request_id,

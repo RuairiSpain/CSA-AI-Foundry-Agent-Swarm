@@ -16,7 +16,7 @@ This file merges two groups of models:
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Literal
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .config import config
 
@@ -138,7 +138,7 @@ class RouteDefinition:
     # Loop lifecycle config (react-loop / goal-driven-loop / interval-loop)
     loop_config: Optional[LoopConfig] = None
 
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     version: str = "v1.0"
 
 
