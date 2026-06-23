@@ -19,6 +19,7 @@ from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from safe_core.tracing import correlation_headers
 
 mcp = FastMCP("safe-token-metrics")
 
@@ -29,7 +30,11 @@ _API_VERSION = "2025-01-01-preview"
 
 
 def _headers() -> dict[str, str]:
-    return {"api-key": _API_KEY, "Content-Type": "application/json"}
+    return {
+        "api-key": _API_KEY,
+        "Content-Type": "application/json",
+        **correlation_headers(),
+    }
 
 
 @mcp.tool()

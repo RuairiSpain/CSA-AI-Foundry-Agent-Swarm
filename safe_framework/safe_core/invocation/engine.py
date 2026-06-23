@@ -7,6 +7,7 @@ from enum import Enum
 from datetime import datetime
 
 from ..config import config
+from ..tracing import get_correlation_id
 
 class ExecutionStatus(str, Enum):
     PENDING = "pending"
@@ -22,6 +23,7 @@ class ExecutionRequest:
     route_version: str
     input_data: Dict[str, Any]
     request_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    correlation_id: str = field(default_factory=get_correlation_id)
     created_at: datetime = field(default_factory=datetime.now)
     timeout_seconds: int = field(default_factory=lambda: config.execution_timeout_seconds)
 
@@ -31,6 +33,7 @@ class ExecutionResult:
     route_name: str
     route_version: str
     status: ExecutionStatus
+    correlation_id: str = ""
     input_data: Dict[str, Any] = field(default_factory=dict)
     output_data: Dict[str, Any] = field(default_factory=dict)
     execution_time_ms: float = 0.0
