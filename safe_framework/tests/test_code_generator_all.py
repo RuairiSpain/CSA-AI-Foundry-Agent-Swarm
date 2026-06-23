@@ -349,3 +349,11 @@ class TestClassNameHelper:
     ])
     def test_class_name_conversion(self, route_name, expected):
         assert RouteCodeGenerator._class_name(route_name) == expected
+
+    def test_digit_leading_name_raises(self):
+        with pytest.raises(ValueError, match="invalid Python class name"):
+            RouteCodeGenerator._class_name("1bad-route")
+
+    def test_all_digits_raises(self):
+        with pytest.raises(ValueError, match="must not start with a digit"):
+            RouteCodeGenerator._class_name("123")

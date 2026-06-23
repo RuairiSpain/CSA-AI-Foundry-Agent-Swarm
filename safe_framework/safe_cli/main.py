@@ -708,15 +708,20 @@ def _parse_interval(interval: str) -> float:
     Supports: 30s, 5m, 2h, 1d
     """
     interval = interval.strip()
-    if interval.endswith("s"):
-        return float(interval[:-1])
-    if interval.endswith("m"):
-        return float(interval[:-1]) * 60
-    if interval.endswith("h"):
-        return float(interval[:-1]) * 3600
-    if interval.endswith("d"):
-        return float(interval[:-1]) * 86400
-    return float(interval)
+    try:
+        if interval.endswith("s"):
+            return float(interval[:-1])
+        if interval.endswith("m"):
+            return float(interval[:-1]) * 60
+        if interval.endswith("h"):
+            return float(interval[:-1]) * 3600
+        if interval.endswith("d"):
+            return float(interval[:-1]) * 86400
+        return float(interval)
+    except ValueError:
+        raise typer.BadParameter(
+            f"Invalid interval '{interval}'. Use a number followed by s/m/h/d (e.g. 30s, 5m, 2h, 1d)."
+        )
 
 
 # ── existing commands ─────────────────────────────────────────────────────────

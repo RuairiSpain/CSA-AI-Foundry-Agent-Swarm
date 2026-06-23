@@ -30,6 +30,21 @@ class TestParseInterval:
     def test_fractional(self):
         assert _parse_interval("0.5m") == 30.0
 
+    def test_invalid_suffix_raises_bad_parameter(self):
+        import typer
+        with pytest.raises(typer.BadParameter, match="Invalid interval"):
+            _parse_interval("5x")
+
+    def test_non_numeric_value_raises_bad_parameter(self):
+        import typer
+        with pytest.raises(typer.BadParameter, match="Invalid interval"):
+            _parse_interval("abcm")
+
+    def test_empty_string_raises_bad_parameter(self):
+        import typer
+        with pytest.raises(typer.BadParameter):
+            _parse_interval("")
+
 
 # ---------------------------------------------------------------------------
 # safe loop run
