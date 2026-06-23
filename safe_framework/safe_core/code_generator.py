@@ -79,7 +79,13 @@ class RouteCodeGenerator:
 
     @staticmethod
     def _class_name(route_name: str) -> str:
-        return "".join(w.capitalize() for w in route_name.replace("-", "_").split("_"))
+        cls = "".join(w.capitalize() for w in route_name.replace("-", "_").split("_"))
+        if not cls or cls[0].isdigit():
+            raise ValueError(
+                f"Route name '{route_name}' produces an invalid Python class name '{cls}'. "
+                "Route names must not start with a digit."
+            )
+        return cls
 
     @staticmethod
     def _base_context(
