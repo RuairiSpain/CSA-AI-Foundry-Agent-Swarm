@@ -310,6 +310,36 @@ class TestGenerateValidation:
         assert generated.route_code
 
 
+class TestDeterministicOutput:
+    """Generating the same RouteDefinition twice must produce identical output."""
+
+    def test_same_route_same_output(self):
+        from datetime import datetime, timezone
+        agents = PATTERN_AGENTS[RoutePattern.SUPERVISOR_MANAGER]
+        fixed_time = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        route_a = RouteDefinition(
+            name="det-route",
+            pattern=RoutePattern.SUPERVISOR_MANAGER,
+            agents=agents,
+            description="Test",
+            timeout_seconds=60,
+            created_at=fixed_time,
+        )
+        route_b = RouteDefinition(
+            name="det-route",
+            pattern=RoutePattern.SUPERVISOR_MANAGER,
+            agents=agents,
+            description="Test",
+            timeout_seconds=60,
+            created_at=fixed_time,
+        )
+        gen_a = RouteCodeGenerator.generate(route_a)
+        gen_b = RouteCodeGenerator.generate(route_b)
+        assert gen_a.route_code == gen_b.route_code
+        assert gen_a.config_yaml == gen_b.config_yaml
+        assert gen_a.metadata["created_at"] == gen_b.metadata["created_at"]
+
+
 class TestClassNameHelper:
     @pytest.mark.parametrize("route_name,expected", [
         ("my-route", "MyRoute"),
