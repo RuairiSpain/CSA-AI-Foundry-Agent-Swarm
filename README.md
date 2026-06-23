@@ -1,385 +1,201 @@
-Here is a clean, consolidated, GitHub‑ready README for your project. I’ve merged your material into a single, coherent, enterprise-grade document aligned to how you typically position solutions with customers (clear architecture, value, and execution). 
+# CSA Customer Call Copilot (C3 Copilot)
+
+An AI-powered assistant for Cloud Solution Architects (CSAs) that listens to customer conversations and delivers real-time guidance, discovery prompts, and solution recommendations.
+
+---
+
+## Overview
+
+C3 Copilot is an Azure AI Foundry-based multi-agent system designed to assist CSAs during live customer interactions (Teams calls, workshops, or transcript-driven sessions). It transforms conversation streams into actionable intelligence:
+
+- Suggested open-ended discovery questions
+- Solution architectures and Azure opportunities
+- Risk identification (security, cost, governance, reliability)
+- Executive-ready talk tracks and next-step recommendations
+
+---
+
+## Architecture
+
+```
+Audio Input (Teams / Mic / Transcript)
+        ↓
+Azure Speech SDK (optional)
+        ↓
+Listener Agent (WebSocket / MCP)
+        ↓
+AI Foundry Endpoint
+        ↓
+Enterprise Agent Swarm
+        ↓
+Guidance Cards + Talk Tracks
+```
 
+**Core concept:** Copilot UX → MCP Server → AI Foundry (multi-agent reasoning)
 
-🧠 CSA Customer Call Copilot (C3 Copilot)
+---
 
-An AI‑powered assistant for Cloud Solution Architects (CSAs) that listens to customer conversations and delivers real‑time guidance, discovery prompts, and solution recommendations. 
+## Repository Structure
 
+```
+safe_framework/              # SAFE code-generation framework (main package)
+  safe_core/                 # Validators, code generator, patterns, runtime modules
+    audit/                   # Immutable audit trail
+    execution/               # Execution engine with retry logic
+    governance/              # Approval gates and policy engine
+    health/                  # Health checks and monitoring
+    invocation/              # Route invocation engine
+    lifecycle/               # Route registration and promotion
+    monitoring/              # Dashboard and metrics aggregation
+    release/                 # Release manager with governance gate
+    results/                 # Result tracking
+    security/                # Input validation, PII detection, injection blocking
+    templates/               # Jinja2 templates for code generation
+  agents/                    # Agent catalog and pattern templates
+  tools/                     # MCP servers and tool catalog
+    mcp/                     # Custom MCP servers (durable-task, model-router, token-metrics)
+  tests/                     # pytest test suite
+  pyproject.toml
+SAFE-Complete-Phases-1-9/    # Phase-by-phase design documentation
+docs/                        # Additional guides and references
+.github/
+  workflows/
+    coverage.yml             # PR coverage reporting
+    freeze-check.yml         # Dependency freeze validation
+```
 
-📌 Overview
+---
 
-CSA Customer Call Copilot (C3 Copilot) is an Azure AI Foundry-based multi-agent system designed to assist CSAs during live customer interactions (Teams calls, workshops, or calls with transcripts). 
-It transforms conversation streams into actionable intelligence: 
-Suggested open-ended discovery questions 
+## Getting Started
 
-Solution architectures and Azure opportunities 
+### Prerequisites
 
-Risk identification (security, cost, governance, reliability) 
+- Python 3.11+
+- Azure AI Foundry project with model deployments configured
+- (Optional) Azure Durable Functions app for long-running orchestrations
 
-Executive-ready talk tracks and next-step recommendations 
+### Install
 
+```bash
+cd safe_framework
+pip install -e ".[dev]"
+```
 
+### Configure
 
-🎯 Key Value
-Capability
-Outcome
-Real-time call guidance
-Stronger discovery and positioning
-Multi-agent reasoning
-Higher-quality, consistent architecture advice
-Topic-aware coaching
-Adaptive conversation style (technical / executive / consultative)
-Enterprise guardrails
-Designs always include security, networking, cost and governance
-Automated talk-tracks
-Faster CSA responses and sharper messaging
+Copy and fill in the environment variables:
 
+```bash
+cp .env.example .env
+# edit .env with your Azure endpoint, API key, and approver emails
+```
 
-🏗️ Architecture Overview
+### CLI commands
 
-The system follows a modular architecture aligned to Microsoft’s Copilot + Foundry pattern:
-Audio Input (Teams / Mic / Transcript)<ctmzNwLn>        ↓<ctmzNwLn>Azure Speech SDK (optional)<ctmzNwLn>        ↓<ctmzNwLn>Listener Agent (WebSocket / MCP)<ctmzNwLn>        ↓<ctmzNwLn>AI Foundry Endpoint<ctmzNwLn>        ↓<ctmzNwLn>Enterprise Agent Swarm<ctmzNwLn>        ↓<ctmzNwLn>Guidance Cards + Talk Tracks<ctmzNwLn>
-Core Concept
+```bash
+safe catalog [query]          # search available agents
+safe route                    # interactive route creation wizard
+safe chain                    # interactive multi-pattern chain wizard
+safe chain list               # list saved chains
+safe chain validate <name>    # validate field mappings
+safe chain generate <name>    # regenerate chain.py from saved YAML
+safe tool list                # list all MCP tools
+safe tool info <id>           # show full catalog entry
+```
 
+### Run tests
 
-Copilot UX → MCP Server → AI Foundry (multi-agent “brain”)
+```bash
+cd safe_framework
+pytest tests/                 # full suite
+pytest tests/ -m safe_md      # agent.md section + token budget checks
+pytest tests/ -m project_md   # engineer project MD under routes/
+python -m coverage run --source=safe_core -m pytest tests/ -q
+python -m coverage report --show-missing
+```
 
+---
 
+## Core Components
 
-🔩 Core Components
+### Listener Agent
 
-1. Listener Agent (Real-Time Engine)
+Ingests conversation data and generates live guidance via:
 
-Responsible for ingesting conversation data and generating live guidance. 
-Supports: 
-WebSocket streaming (/listener/ws) 
+- WebSocket streaming (`/listener/ws`)
+- MCP tools (JSON-RPC)
 
-MCP tools (JSON-RPC) 
+Outputs per interaction: key insight, suggested question, solution hint, critical gap, structured extracted facts.
 
-Outputs per interaction: 
-Key insight 
+### MCP Server (Integration Layer)
 
-Suggested question 
+Implements the Model Context Protocol: `initialize`, `tools/list`, `tools/call`, `resources/*`, `prompts/*`.
 
-Solution hint 
+Enables integration with Copilot in VS Code, Copilot in GitHub, and custom clients.
 
-Critical gap 
+### Enterprise Agent Swarm
 
-Structured extracted facts 
+```
+Planner → Specialists → Principal Review → Verifier → Diagram Lint → Report
+```
 
+Specialist agents cover: security & network architecture, reliability, FinOps, data governance, DevSecOps, threat modelling, diagnostics, and report writing.
 
+### Topic-Aware Intelligence
 
-2. MCP Server (Integration Layer)
+Dynamically classifies conversations and adapts behaviour across topics (security, architecture, FinOps, observability, data/AI, delivery) and modes (consultative, technical, executive).
 
-Implements the Model Context Protocol (MCP): 
-initialize 
+---
 
-tools/list 
-
-tools/call 
-
-resources/* 
-
-prompts/* 
-
-Enables integration with: 
-Copilot in VS Code 
-
-Copilot in GitHub 
-
-Custom clients 
-
-
-
-3. Enterprise Agent Swarm
-
-A structured, multi-agent system:
-Planner → Specialists → Principal Review → Verifier → Diagram Lint → Report<ctmzNwLn>
-Agent Types
-
-AI Factory Pillar Agents 
-Model steward 
-
-Knowledge/toolsmith 
-
-Customisation engineer 
-
-Orchestration conductor 
-
-Observability SRE 
-
-Trust guardian 
-
-Enterprise Specialists 
-Security & network architect 
-
-Reliability & resilience 
-
-FinOps cost optimisation 
-
-Data governance 
-
-DevSecOps platform 
-
-Threat modelling (red team) 
-
-Diagnostics debugger 
-
-Principal CSA reviewer 
-
-Professional report writer 
-
-
-
-4. Topic-Aware Listener Intelligence
-
-The system dynamically classifies conversations and adapts behaviour. 
-Topics
-
-Security & compliance 
-
-Architecture & networking 
-
-Cost / FinOps 
-
-Observability / operations 
-
-Data & AI 
-
-Requirements discovery 
-
-Delivery / next steps 
-
-Modes (auto-switched)
-
-Consultative → discovery 
-
-Technical → architecture deep dive 
-
-Executive → decisions, ROI, next steps 
-
-
-
-🎴 Guidance Cards (Real-Time UX)
+## Guidance Cards
 
 Each interaction produces a structured response:
-{<ctmzNwLn>  "key_insight": "...",<ctmzNwLn>  "suggested_question": "...",<ctmzNwLn>  "solution_hint": "...",<ctmzNwLn>  "critical_gap": "...",<ctmzNwLn>  "_card": {<ctmzNwLn>    "schema": "csa.card.security_compliance.v1",<ctmzNwLn>    "sections": {<ctmzNwLn>      "risk": "...",<ctmzNwLn>      "controls": "...",<ctmzNwLn>      "ask": "...",<ctmzNwLn>      "next_step": "..."<ctmzNwLn>    }<ctmzNwLn>  }<ctmzNwLn>}<ctmzNwLn>
-Topic-Specific Card Formats
-Topic
-Sections
-Security
-Risk → Controls → Ask → Next step
-Networking
-Constraint → Options → Trade-off → Ask
-FinOps
-Cost driver → Guardrail → Ask → Next step
-Observability
-Signal → SLO → Instrumentation → Ask
-Data/AI
-Data → Retrieval → Evaluation → Ask
-Delivery
-Decision → Owner → Date → Next step
-Discovery
-Goal → Pain → Constraints → Ask
 
+```json
+{
+  "key_insight": "...",
+  "suggested_question": "...",
+  "solution_hint": "...",
+  "critical_gap": "...",
+  "_card": {
+    "schema": "csa.card.security_compliance.v1",
+    "sections": { "risk": "...", "controls": "...", "ask": "...", "next_step": "..." }
+  }
+}
+```
 
-🗣️ Talk Track Generation
-
-Two modes: 
-Template-based (default)
-
-Deterministic, low latency 
-
-Mirrors card structure 
-
-LLM-generated (optional)
-
-Enable:
-LISTENER_TALKTRACK_LLM=true<ctmzNwLn>
-Returns:
-{<ctmzNwLn>  "talk_track": [...],<ctmzNwLn>  "one_liner": "..."<ctmzNwLn>}<ctmzNwLn>
---- 
-🔄 Real-Time Processing Model
-Stage
-Behaviour
-FAST
-Immediate guidance from partial transcripts
-DEEP
-Structured reasoning on finalised speech
-AUTO-MODE
-Adjusts style/persona/topic
-
-
-🔐 Enterprise Design Principles
-
-Every output enforces: 
-Identity & access (RBAC / Entra ID) 
-
-Networking (VNet, Private Link) 
-
-Observability (logging, tracing, evals) 
-
-Cost controls (routing, caching, quotas) 
-
-Resilience (HA/DR, RTO/RPO) 
-
-Governance & compliance 
-
-Security threat modelling 
-
-
-
-🔧 MCP Tools
-
-Available via JSON-RPC: 
-swarm.run 
-
-foundry.ask 
-
-debug.triage 
-
-security.review 
-
-report.generate 
-
-diagram.lint 
-
-Listener Tools
-
-listener.start 
-
-listener.ingest 
-
-listener.state 
-
-listener.reset 
-
-listener.talktrack 
-
-
-
-📂 Repository Structure
-AI-Foundry/<ctmzNwLn>Copilot-VSCode/<ctmzNwLn>Copilot-GitHub/<ctmzNwLn>
-Each root contains:
-
-MCP server (/mcp) 
-
-Multi-agent swarm 
-
-Skills (/skills, /agents) 
-
-Prompts (/prompts) 
-
-Tool registry (tools.yaml) 
-
-Environment config (.env.example) 
-
-
-
-🚀 Getting Started
-
-1. Run the server
-cd AI-Foundry<ctmzNwLn>python -m venv .venv<ctmzNwLn>source .venv/bin/activate<ctmzNwLn>pip install -r requirements.txt<ctmzNwLn>cp .env.example .env<ctmzNwLn>python -m uvicorn AI_Foundry.server.app:app --host 127.0.0.1 --port 8001<ctmzNwLn>
 ---
 
-2. Start streaming transcript
+## MCP Tools
 
-WebSocket:
-{<ctmzNwLn>  "session_id": "...",<ctmzNwLn>  "text": "Customer requires global deployment with strict data residency.",<ctmzNwLn>  "speaker": "customer",<ctmzNwLn>  "is_final": true<ctmzNwLn>}<ctmzNwLn>
---- 
-3. Run swarm (batch mode)
-tools/call → swarm.run<ctmzNwLn>
+Available via JSON-RPC:
+
+| Tool | Description |
+|------|-------------|
+| `swarm.run` | Run the full enterprise agent swarm |
+| `foundry.ask` | Direct Foundry model query |
+| `debug.triage` | Diagnostic triage |
+| `security.review` | Security review pass |
+| `report.generate` | Generate final report |
+| `diagram.lint` | Validate and fix Mermaid diagrams |
+| `listener.start` / `listener.ingest` / `listener.state` | Listener lifecycle |
+
 ---
 
-🎤 Audio Input Options
-Source
-Supported
-Microphone (Speech SDK)
-✅
-Teams transcripts (Graph API)
-✅
-Post-meeting VTT ingestion
-✅
-Real-time Teams media bot
-⚠️ advanced only
+## Enterprise Design Principles
 
+Every output enforces: identity & access (RBAC / Entra ID), networking (VNet, Private Link), observability (logging, tracing, evals), cost controls (routing, caching, quotas), resilience (HA/DR, RTO/RPO), governance & compliance, and security threat modelling.
 
-🔗 Teams Integration
+---
 
-Recommended Pattern: Post-meeting transcripts
+## Limitations
 
-Fetch transcript via Microsoft Graph 
+- No direct real-time Teams audio capture (requires specific APIs)
+- Requires transcript or audio-to-text input
+- Azure Foundry models must be configured via environment variables (see `.env.example`)
 
-Parse VTT 
+---
 
-Stream into Listener 
+## Author
 
-Generate insights and talk-track 
-
-
-
-📊 Diagram Generation & Linting
-
-All Mermaid diagrams are: 
-Generated during swarm execution 
-
-Validated via diagram.lint 
-
-Corrected before report output 
-
-
-
-🧪 Example Use Cases
-
-Customer discovery calls 
-
-Architecture workshops 
-
-Executive briefings 
-
-Pre-sales solution design 
-
-Follow-up report generation 
-
-
-
-⚠️ Limitations
-
-No direct real-time Teams audio capture (requires specific APIs) 
-
-Requires transcript or audio-to-text input 
-
-Foundry models must be configured via environment variables 
-
-
-
-🔮 Roadmap (Next Enhancements)
-
-Latency-aware multi-agent routing 
-
-Topic-aware talk-track tuning 
-
-Teams live integration via Graph subscriptions 
-
-Persistent session memory and learning 
-
-Multi-language support 
-
-
-
-✅ Summary
-
-C3 Copilot provides: 
-✅ Real-time customer call intelligence ✅ Enterprise-grade architecture reasoning ✅ Guided discovery and positioning ✅ Consistent CSA best practices ✅ Tight integration with Microsoft Copilot ecosystem 
-
-
-👤 Author
-
-Cloud Solution Architecture – Cloud & AI Microsoft 
-
-
-💡 Positioning (CSA Narrative)
-
-
-“This solution acts as a real-time CSA co-pilot—combining Azure AI Foundry, Copilot extensibility, and multi-agent reasoning to drive higher-quality customer outcomes during live engagements.”
-
+Cloud Solution Architecture — Cloud & AI, Microsoft
