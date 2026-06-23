@@ -114,13 +114,18 @@ class TestLoopSchedCommand:
 # ---------------------------------------------------------------------------
 
 class TestLoopStatusCommand:
-    def test_status_exits_cleanly(self):
+    def test_status_exits_nonzero_until_implemented(self):
+        """Command must NOT silently succeed — it exits 1 until wired to backend."""
         result = runner.invoke(app, ["loop", "status", "run-abc123"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1
 
     def test_status_shows_run_id(self):
         result = runner.invoke(app, ["loop", "status", "run-abc123"])
         assert "run-abc123" in result.output
+
+    def test_status_warns_not_implemented(self):
+        result = runner.invoke(app, ["loop", "status", "run-abc123"])
+        assert "not implemented" in result.output.lower()
 
 
 # ---------------------------------------------------------------------------
@@ -128,14 +133,15 @@ class TestLoopStatusCommand:
 # ---------------------------------------------------------------------------
 
 class TestLoopStopCommand:
-    def test_stop_exits_cleanly(self):
+    def test_stop_exits_nonzero_until_implemented(self):
+        """Command must NOT silently succeed — it exits 1 until wired to backend."""
         result = runner.invoke(app, ["loop", "stop", "run-xyz"])
-        assert result.exit_code == 0
+        assert result.exit_code == 1
 
     def test_stop_shows_run_id(self):
         result = runner.invoke(app, ["loop", "stop", "run-xyz"])
         assert "run-xyz" in result.output
 
-    def test_stop_shows_confirmation(self):
+    def test_stop_warns_not_implemented(self):
         result = runner.invoke(app, ["loop", "stop", "run-xyz"])
-        assert "Stop signal sent" in result.output or "stop" in result.output.lower()
+        assert "not implemented" in result.output.lower()

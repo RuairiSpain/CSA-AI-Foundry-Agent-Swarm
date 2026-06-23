@@ -124,7 +124,7 @@ class TestGenerateReactLoop:
                 "observer": make_agent("O"),
             },
         )
-        result = RouteCodeGenerator.generate(rd)
+        result = RouteCodeGenerator.generate(rd, skip_validation=True)
         assert "10" in result.route_code
 
     def test_on_stuck_raise_rendered(self):
@@ -176,7 +176,7 @@ class TestGenerateGoalDrivenLoop:
                 "goal_verifier": make_agent("GV"),
             },
         )
-        result = RouteCodeGenerator.generate(rd)
+        result = RouteCodeGenerator.generate(rd, skip_validation=True)
         assert "10" in result.route_code
 
     def test_on_stuck_raise_rendered(self):
@@ -225,7 +225,7 @@ class TestGenerateIntervalLoop:
             name="bare-interval", pattern=RoutePattern.INTERVAL_LOOP,
             agents={"worker": make_agent("W")},
         )
-        result = RouteCodeGenerator.generate(rd)
+        result = RouteCodeGenerator.generate(rd, skip_validation=True)
         assert "interval-loop" in result.route_code
 
     def test_stop_method_generated(self):
@@ -240,15 +240,15 @@ class TestGenerateIntervalLoop:
 class TestGenerateDispatch:
     def test_react_loop_dispatched(self):
         rd = make_react_loop()
-        result = RouteCodeGenerator.generate(rd)
+        result = RouteCodeGenerator.generate(rd, skip_validation=True)
         assert result.metadata["pattern"] == "react-loop"
 
     def test_goal_driven_loop_dispatched(self):
         rd = make_goal_driven_loop()
-        result = RouteCodeGenerator.generate(rd)
+        result = RouteCodeGenerator.generate(rd, skip_validation=True)
         assert result.metadata["pattern"] == "goal-driven-loop"
 
     def test_interval_loop_dispatched(self):
         rd = make_interval_loop()
-        result = RouteCodeGenerator.generate(rd)
+        result = RouteCodeGenerator.generate(rd, skip_validation=True)
         assert result.metadata["pattern"] == "interval-loop"

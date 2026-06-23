@@ -657,16 +657,23 @@ def loop_status(
     """Show the current status of a running loop.
 
     \b
-    Displays iteration count, token spend, last output, and stop reason for
-    a loop run managed by the SAFE durable-task backend.
+    Queries the safe-durable-task backend (FOUNDRY_ENDPOINT + FOUNDRY_API_KEY).
+    This command is not yet implemented — set FOUNDRY_ENDPOINT and FOUNDRY_API_KEY
+    and wire to the durable-task MCP before use.
 
     \b
     Example:
       safe loop status run-abc123
     """
-    typer.echo(f"\n  Loop run: {run_id}")
-    typer.echo("  Status   : (connect to safe-durable-task backend to query live state)")
-    typer.echo("  Use FOUNDRY_ENDPOINT + FOUNDRY_API_KEY to retrieve live metrics.\n")
+    typer.echo(
+        typer.style(
+            f"\n  [not implemented] safe loop status is not yet wired to the backend.\n"
+            f"  Run ID: {run_id}\n"
+            f"  Set FOUNDRY_ENDPOINT + FOUNDRY_API_KEY and implement the durable-task query.\n",
+            fg=typer.colors.YELLOW,
+        )
+    )
+    raise typer.Exit(code=1)
 
 
 @loop_app.command("stop")
@@ -677,17 +684,22 @@ def loop_stop(
 
     \b
     Signals the loop controller to stop after the current iteration completes.
-    The loop will not be killed mid-iteration.
+    This command is not yet implemented — wire to the safe-durable-task backend
+    before use.
 
     \b
     Example:
       safe loop stop run-abc123
     """
     typer.echo(
-        f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
-        f"Stop signal sent to loop run: {run_id}"
+        typer.style(
+            f"\n  [not implemented] safe loop stop is not yet wired to the backend.\n"
+            f"  Run ID: {run_id}\n"
+            f"  Implement the durable-task terminate call before using this command.\n",
+            fg=typer.colors.YELLOW,
+        )
     )
-    typer.echo("  The loop will halt after the current iteration completes.\n")
+    raise typer.Exit(code=1)
 
 
 def _parse_interval(interval: str) -> float:
