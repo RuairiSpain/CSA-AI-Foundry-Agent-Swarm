@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from enum import Enum
 from datetime import datetime, timezone
+from ..config import config as _cfg
 
 class ApprovalStatus(str, Enum):
     """Approval request status"""
@@ -38,7 +39,7 @@ class GovernancePolicy:
     compliance_level: ComplianceLevel = ComplianceLevel.STANDARD
     require_approval: bool = True
     approval_threshold: int = 1  # Number of approvers needed
-    max_monthly_cost_usd: float = 10000.0
+    max_monthly_cost_usd: float = field(default_factory=lambda: _cfg.governance_max_monthly_cost_usd)
     allowed_model_types: List[str] = field(default_factory=list)
     allowed_data_sources: List[str] = field(default_factory=list)
     require_pii_handling: bool = False

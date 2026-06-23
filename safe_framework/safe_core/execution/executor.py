@@ -5,12 +5,21 @@ import random
 from typing import Any, Callable, Dict, Optional
 from datetime import datetime, timezone
 from ..invocation.engine import ExecutionResult, ExecutionStatus
+from ..config import config as _global_config
 
 
 class RetryPolicy:
-    def __init__(self, max_retries: int = 3, base_backoff_seconds: float = 2.0, jitter: bool = True):
-        self.max_retries = max_retries
-        self.base_backoff_seconds = base_backoff_seconds
+    def __init__(
+        self,
+        max_retries: int | None = None,
+        base_backoff_seconds: float | None = None,
+        jitter: bool = True,
+    ):
+        self.max_retries = max_retries if max_retries is not None else _global_config.execution_max_retries
+        self.base_backoff_seconds = (
+            base_backoff_seconds if base_backoff_seconds is not None
+            else _global_config.execution_base_backoff_seconds
+        )
         self.jitter = jitter
 
     def backoff_for(self, attempt: int) -> float:
