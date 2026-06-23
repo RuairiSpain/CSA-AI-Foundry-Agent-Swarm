@@ -1,0 +1,53 @@
+name: Goal Loop Worker
+version: 1.0
+category: worker
+description: |
+  Worker agent in a goal-driven loop. Performs the primary task each iteration;
+  the goal_verifier agent checks termination after each run.
+
+contract:
+  inputs:
+    - name: data
+      type: object
+      required: true
+      description: Task data for this iteration
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Task output for this iteration
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - Iterative code generation until tests pass
+    - Document drafting until quality threshold met
+  example:
+    input: {data: {task: "generate unit tests"}}
+    output: {result: {tests_generated: 12, all_passing: false}}
+  limitations:
+    - Should be idempotent for safe re-runs
+
+tags:
+  - worker
+  - goal-driven-loop
+
+pattern_roles:
+  - goal-driven-loop/worker
+
+tools:
+  - id: iq-foundry
+    purpose: "Ground each iteration in the knowledge base"
+  - id: safe-durable-task
+    purpose: "Checkpoint progress between iterations"

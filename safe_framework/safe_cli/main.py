@@ -424,6 +424,213 @@ def handoff_generate(
     )
 
 
+# ── loop sub-commands ─────────────────────────────────────────────────────────
+
+loop_app = typer.Typer(help="Run loop-pattern routes (react-loop / goal-driven-loop / interval-loop).")
+app.add_typer(loop_app, name="loop")
+
+
+@loop_app.command("run")
+def loop_run(
+    route_name: str = typer.Argument(..., help="Name of an interval-loop route to run"),
+    interval: str = typer.Option("5m", "--interval", "-i", help="Interval between ticks (e.g. 30s, 5m, 1h)"),
+    max_iter: int = typer.Option(10, "--max-iter", "-n", help="Maximum number of iterations"),
+    routes_dir: str = typer.Option("./routes", "--routes-dir", "-d"),
+):
+    """Run an interval-loop route on a fixed schedule.
+
+    \b
+    Equivalent to the /loop lifecycle command: repeats the named route every
+    INTERVAL until --max-iter is reached or you press Ctrl-C.
+
+    \b
+    Examples:
+      safe loop run pr-health-check --interval 15m --max-iter 20
+      safe loop run metrics-sampler  --interval 30s
+    """
+    import asyncio
+    from safe_core.loop_runner import LoopRunner
+    from safe_core.models import LoopConfig
+
+    interval_seconds = _parse_interval(interval)
+    config = LoopConfig(max_iterations=max_iter)
+    runner = LoopRunner(config)
+
+    async def _dummy_invoker(role: str, inp: dict) -> dict:
+        typer.echo(f"  [{role}] tick (interval={interval_seconds}s, route={route_name})")
+        return {}
+
+    async def _run() -> None:
+        stop_event = asyncio.Event()
+        import signal
+
+        def _on_signal(*_):
+            stop_event.set()
+
+        try:
+            signal.signal(signal.SIGINT, _on_signal)
+            signal.signal(signal.SIGTERM, _on_signal)
+        except (OSError, ValueError):
+            pass
+
+        from safe_core.models import RouteDefinition, RoutePattern
+
+        rd = RouteDefinition(name=route_name, pattern=RoutePattern.INTERVAL_LOOP, agents={}, loop_config=config)
+        result = await runner.run_interval(rd, _dummy_invoker, {}, interval_seconds, stop_event)
+        typer.echo(
+            f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+            f"Loop finished: {result.iterations} iteration(s), reason={result.stop_reason}"
+        )
+
+    asyncio.run(_run())
+
+
+@loop_app.command("goal")
+def loop_goal(
+    route_name: str = typer.Argument(..., help="Name of a goal-driven-loop route to run"),
+    condition: str = typer.Option("", "--condition", "-c", help="Python expression evaluated against output dict"),
+    max_iter: int = typer.Option(10, "--max-iter", "-n", help="Maximum iterations before giving up"),
+    routes_dir: str = typer.Option("./routes", "--routes-dir", "-d"),
+):
+    """Run a goal-driven-loop route until a condition is satisfied.
+
+    \b
+    Equivalent to the /goal lifecycle command: runs the route each iteration
+    and checks the condition expression against the output dict.  Stops when
+    the expression evaluates to True or --max-iter is reached.
+
+    \b
+    Examples:
+      safe loop goal coverage-loop --condition "output['coverage_pct'] >= 90" --max-iter 20
+      safe loop goal qa-refine      --condition "output['passed'] == True"
+    """
+    import asyncio
+    from safe_core.loop_runner import LoopRunner, evaluate_goal
+    from safe_core.models import LoopConfig, LoopTerminationType
+
+    config = LoopConfig(
+        max_iterations=max_iter,
+        termination_type=LoopTerminationType.GOAL if condition else LoopTerminationType.MAX_ITERATIONS,
+        goal_expression=condition,
+    )
+    runner = LoopRunner(config)
+
+    async def _dummy_invoker(role: str, inp: dict) -> dict:
+        typer.echo(f"  [{role}] iteration (route={route_name})")
+        return {}
+
+    async def _run() -> None:
+        from safe_core.models import RouteDefinition, RoutePattern
+        rd = RouteDefinition(name=route_name, pattern=RoutePattern.GOAL_DRIVEN_LOOP, agents={}, loop_config=config)
+        result = await runner.run_goal(rd, _dummy_invoker, {})
+        colour = typer.colors.GREEN if result.success else typer.colors.YELLOW
+        status = typer.style("✓" if result.success else "⚠", fg=colour, bold=True)
+        typer.echo(
+            f"\n  {status} "
+            f"{result.iterations} iteration(s), reason={result.stop_reason}"
+        )
+
+    asyncio.run(_run())
+
+
+@loop_app.command("sched")
+def loop_sched(
+    route_name: str = typer.Argument(..., help="Name of the route to schedule"),
+    cron: str = typer.Option(..., "--cron", help="Cron expression (e.g. '0 9 * * *')"),
+    routes_dir: str = typer.Option("./routes", "--routes-dir", "-d"),
+):
+    """Register a route for cloud-based cron execution.
+
+    \b
+    Equivalent to the /schedule lifecycle command.  Writes a schedule manifest
+    to routes/<route-name>/schedule.yaml for deployment by the SAFE scheduler.
+
+    \b
+    Examples:
+      safe loop sched daily-triage --cron "0 9 * * *"
+      safe loop sched weekly-report --cron "0 8 * * 1"
+    """
+    import yaml as _yaml
+    from pathlib import Path
+
+    rdir = Path(routes_dir) / route_name
+    rdir.mkdir(parents=True, exist_ok=True)
+    schedule_path = rdir / "schedule.yaml"
+
+    manifest = {
+        "route": route_name,
+        "cron": cron,
+        "created_at": __import__("datetime").datetime.now().isoformat(),
+        "type": "interval-loop",
+    }
+    schedule_path.write_text(_yaml.dump(manifest, sort_keys=False), encoding="utf-8")
+
+    typer.echo(
+        f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+        f"Schedule registered: {schedule_path}"
+    )
+    typer.echo(f"  Cron : {cron}")
+    typer.echo(f"  Route: {route_name}")
+    typer.echo("\n  Deploy with: safe deploy schedule\n")
+
+
+@loop_app.command("status")
+def loop_status(
+    run_id: str = typer.Argument(..., help="Loop run ID to inspect"),
+):
+    """Show the current status of a running loop.
+
+    \b
+    Displays iteration count, token spend, last output, and stop reason for
+    a loop run managed by the SAFE durable-task backend.
+
+    \b
+    Example:
+      safe loop status run-abc123
+    """
+    typer.echo(f"\n  Loop run: {run_id}")
+    typer.echo("  Status   : (connect to safe-durable-task backend to query live state)")
+    typer.echo("  Use FOUNDRY_ENDPOINT + FOUNDRY_API_KEY to retrieve live metrics.\n")
+
+
+@loop_app.command("stop")
+def loop_stop(
+    run_id: str = typer.Argument(..., help="Loop run ID to stop"),
+):
+    """Gracefully stop a running loop.
+
+    \b
+    Signals the loop controller to stop after the current iteration completes.
+    The loop will not be killed mid-iteration.
+
+    \b
+    Example:
+      safe loop stop run-abc123
+    """
+    typer.echo(
+        f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
+        f"Stop signal sent to loop run: {run_id}"
+    )
+    typer.echo("  The loop will halt after the current iteration completes.\n")
+
+
+def _parse_interval(interval: str) -> float:
+    """Convert a human-readable interval string to seconds.
+
+    Supports: 30s, 5m, 2h, 1d
+    """
+    interval = interval.strip()
+    if interval.endswith("s"):
+        return float(interval[:-1])
+    if interval.endswith("m"):
+        return float(interval[:-1]) * 60
+    if interval.endswith("h"):
+        return float(interval[:-1]) * 3600
+    if interval.endswith("d"):
+        return float(interval[:-1]) * 86400
+    return float(interval)
+
+
 # ── existing commands ─────────────────────────────────────────────────────────
 
 

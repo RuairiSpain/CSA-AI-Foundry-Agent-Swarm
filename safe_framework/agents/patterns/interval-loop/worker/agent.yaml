@@ -1,0 +1,55 @@
+name: Interval Loop Worker
+version: 1.0
+category: worker
+description: |
+  Worker agent that runs on a fixed interval schedule. Performs a task each
+  tick; the loop controller stops execution when stop() is called or
+  max_iterations is reached.
+
+contract:
+  inputs:
+    - name: data
+      type: object
+      required: true
+      description: Task data (can reference shared state from prior ticks)
+
+  outputs:
+    - name: result
+      type: object
+      required: true
+      description: Task output for this tick
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 60
+
+documentation:
+  use_cases:
+    - CI/PR health polling
+    - Periodic report generation
+    - Metrics sampling on a fixed cadence
+  example:
+    input: {data: {pr_number: 42}}
+    output: {result: {status: "pending", checks_passing: 3, checks_failing: 1}}
+  limitations:
+    - Should be idempotent — the same input may be sent on each tick
+
+tags:
+  - worker
+  - interval-loop
+
+pattern_roles:
+  - interval-loop/worker
+
+tools:
+  - id: iq-foundry
+    purpose: "Ground each tick in the knowledge base"
+  - id: safe-durable-task
+    purpose: "Checkpoint last-known state between ticks"

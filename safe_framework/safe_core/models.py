@@ -57,6 +57,48 @@ class RoutePattern(str, Enum):
     PLANNER_GENERATOR_EVALUATOR   = "planner-generator-evaluator"
     LATS                          = "lats"
     RALPH_LOOP                    = "ralph-loop"
+    # Agent-loop patterns
+    REACT_LOOP                    = "react-loop"
+    GOAL_DRIVEN_LOOP              = "goal-driven-loop"
+    INTERVAL_LOOP                 = "interval-loop"
+
+
+class CompactionStrategy(str, Enum):
+    """How to compress context when a loop runs long."""
+    SLIDING_WINDOW         = "sliding_window"
+    SUMMARIZE_AND_REPLACE  = "summarize_and_replace"
+    HIERARCHICAL           = "hierarchical"
+
+
+class LoopTerminationType(str, Enum):
+    """What determines when a loop stops."""
+    MAX_ITERATIONS = "max_iterations"
+    GOAL           = "goal"
+    TIMEOUT        = "timeout"
+    BUDGET         = "budget"
+
+
+@dataclass
+class CompactionConfig:
+    """Declarative compaction settings attached to a loop route."""
+    strategy: CompactionStrategy = CompactionStrategy.SUMMARIZE_AND_REPLACE
+    trigger_token_pct: int = 70
+    model: str = "haiku-4-5"
+    preserve_last_n: int = 2
+
+
+@dataclass
+class LoopConfig:
+    """Loop lifecycle config: termination, stuck-detection, compaction."""
+    max_iterations: int = 10
+    termination_type: LoopTerminationType = LoopTerminationType.MAX_ITERATIONS
+    goal_expression: str = ""
+    timeout_seconds: int = 3600
+    tick_interval_seconds: int = 60
+    budget_usd: float = 0.0
+    stuck_detection_threshold: int = 3
+    on_stuck: str = "graceful_degradation"
+    compaction: Optional[CompactionConfig] = None
 
 
 @dataclass
@@ -92,6 +134,9 @@ class RouteDefinition:
     routing_field: Optional[str] = None   # For supervisor-manager
     routing_rules: Dict[str, str] = field(default_factory=dict)  # value -> agent_key
     fallback_agent: Optional[str] = None
+
+    # Loop lifecycle config (react-loop / goal-driven-loop / interval-loop)
+    loop_config: Optional[LoopConfig] = None
 
     created_at: datetime = field(default_factory=datetime.now)
     version: str = "v1.0"

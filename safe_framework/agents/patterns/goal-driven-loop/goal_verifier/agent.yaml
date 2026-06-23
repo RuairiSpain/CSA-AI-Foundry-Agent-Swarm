@@ -1,0 +1,60 @@
+name: Goal Verifier
+version: 1.0
+category: evaluation
+description: |
+  Fast, cheap model that checks whether the loop goal has been satisfied
+  after each worker iteration. Returns done: true to terminate the loop.
+
+contract:
+  inputs:
+    - name: output
+      type: object
+      required: true
+      description: Latest worker output to evaluate
+    - name: iteration
+      type: integer
+      required: true
+      description: Current iteration number (0-based)
+
+  outputs:
+    - name: done
+      type: boolean
+      required: true
+      description: True if the goal condition is satisfied
+    - name: reason
+      type: string
+      required: true
+      description: Explanation of the verification decision
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 15
+
+documentation:
+  use_cases:
+    - Quality gate in a goal-driven loop
+    - Coverage threshold verification
+    - Test-passing condition check
+  example:
+    input: {output: {coverage_pct: 92.0}, iteration: 3}
+    output: {done: true, reason: "coverage_pct 92.0 >= threshold 90.0"}
+  limitations:
+    - Use a fast/cheap model to keep per-iteration latency low
+
+tags:
+  - evaluation
+  - goal-driven-loop
+
+pattern_roles:
+  - goal-driven-loop/goal_verifier
+
+tools:
+  - id: iq-foundry
+    purpose: "Retrieve goal criteria and quality rubrics"

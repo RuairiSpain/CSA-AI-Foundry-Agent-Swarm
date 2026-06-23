@@ -1,0 +1,59 @@
+name: ReAct Observer
+version: 1.0
+category: evaluation
+description: |
+  Observe step of a ReAct loop. Evaluates the action result, updates the
+  shared context, and signals whether the goal has been reached.
+
+contract:
+  inputs:
+    - name: action_result
+      type: object
+      required: true
+      description: Output produced by the Actor
+    - name: context
+      type: object
+      required: true
+      description: Current loop context
+
+  outputs:
+    - name: done
+      type: boolean
+      required: true
+      description: True if the loop goal has been achieved
+    - name: observation
+      type: string
+      required: true
+      description: Human-readable summary of what was observed
+
+metadata:
+  author: SAFE Team
+  source:
+    repository: internal
+    license: MIT
+  dependencies: []
+  requirements:
+    python: ">=3.11"
+    packages: []
+  timeout_seconds: 30
+
+documentation:
+  use_cases:
+    - Goal verification in ReAct loops
+    - Progress assessment
+  example:
+    input: {action_result: {matches: ["claude-haiku-4-5"]}, context: {task: "find model"}}
+    output: {done: true, observation: "Found suitable model claude-haiku-4-5"}
+  limitations:
+    - Must set done: true only when goal is fully satisfied
+
+tags:
+  - evaluation
+  - react-loop
+
+pattern_roles:
+  - react-loop/observer
+
+tools:
+  - id: iq-foundry
+    purpose: "Verify results against known-good outcomes"

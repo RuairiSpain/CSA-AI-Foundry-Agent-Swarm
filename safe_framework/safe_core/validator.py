@@ -1,11 +1,18 @@
 """Contract validation for routes and agents"""
 
-from typing import List, Dict, Any
-from .models import RouteDefinition, Agent, ValidationError, RoutePattern
+from typing import List, Dict, Any, Optional
+from .models import (
+    RouteDefinition,
+    Agent,
+    ValidationError,
+    RoutePattern,
+    LoopConfig,
+    LoopTerminationType,
+)
 
 class ContractValidator:
     """Validates route and agent contracts"""
-    
+
     @staticmethod
     def validate_route(
         route_def: RouteDefinition,
@@ -18,9 +25,7 @@ class ContractValidator:
             route_def: The route to validate.
             ignore_handoff_refs: When True (default), agents that declare a
                 ``handoff_ref`` are excluded from input/output contract checks.
-                Their declared output schema is taken at face value. Set to
-                False to also run HandoffValidator on each referenced handoff
-                (requires the handoff config.yaml to be on disk).
+                Their declared output schema is taken at face value.
         """
         errors = []
 
@@ -44,18 +49,24 @@ class ContractValidator:
         )
         errors.extend(contract_errors)
 
-        # Validate no circular dependencies (full agent set — handoff agents
-        # still participate in the route dependency graph)
+        # Validate no circular dependencies (full agent set)
         circular_errors = ContractValidator.validate_no_cycles(route_def.agents)
         errors.extend(circular_errors)
 
+        # Validate loop config for loop patterns
+        loop_errors = ContractValidator.validate_loop_config(
+            route_def.pattern,
+            route_def.loop_config,
+        )
+        errors.extend(loop_errors)
+
         return errors
-    
+
     @staticmethod
     def validate_timeouts(total: int, per_agent: int) -> List[ValidationError]:
         """Validate timeout configuration"""
         errors = []
-        
+
         if total < per_agent:
             errors.append(ValidationError(
                 error_type="timeout_mismatch",
@@ -65,21 +76,21 @@ class ContractValidator:
                     f"Decrease per-agent timeout to {total // 2}s"
                 ]
             ))
-        
+
         if total < 10:
             errors.append(ValidationError(
                 error_type="timeout_too_low",
                 message=f"Total timeout too low: {total}s",
                 suggested_solutions=["Increase timeout to at least 30s"]
             ))
-        
+
         return errors
-    
+
     @staticmethod
     def validate_agent_contracts(pattern: RoutePattern, agents: Dict[str, Agent]) -> List[ValidationError]:
         """Validate that agent contracts match the pattern"""
         errors = []
-        
+
         if pattern == RoutePattern.SUPERVISOR_MANAGER:
             supervisor = agents.get("supervisor")
             if not supervisor:
@@ -111,7 +122,7 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="At least one processor_* agent is required for fan-out/fan-in pattern",
-                    suggested_solutions=["Add processor agents with keys processor_0, processor_1, …"]
+                    suggested_solutions=["Add processor agents with keys processor_0, processor_1, ..."]
                 ))
 
             aggregator = agents.get("aggregator")
@@ -182,26 +193,25 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="Sequential-pipeline pattern requires at least 2 stage_* agents",
-                    suggested_solutions=["Add agents with keys stage_0, stage_1, …"]
+                    suggested_solutions=["Add agents with keys stage_0, stage_1, ..."]
                 ))
 
-            # Check each adjacent pair: stage[i] output must cover stage[i+1] required inputs
             for i in range(len(stage_keys) - 1):
                 current = agents[stage_keys[i]]
                 nxt = agents[stage_keys[i + 1]]
                 current_output_props = current.output_schema.get("properties", {})
                 next_required = nxt.input_schema.get("required", [])
-                for field in next_required:
-                    if field not in current_output_props:
+                for fld in next_required:
+                    if fld not in current_output_props:
                         errors.append(ValidationError(
                             error_type="contract_mismatch",
                             message=(
-                                f"Stage '{current.name}' does not output '{field}' "
+                                f"Stage '{current.name}' does not output '{fld}' "
                                 f"required by next stage '{nxt.name}'"
                             ),
                             suggested_solutions=[
-                                f"Update '{current.name}' to output '{field}'",
-                                f"Choose a different agent for stage {i + 1} that doesn't require '{field}'"
+                                f"Update '{current.name}' to output '{fld}'",
+                                f"Choose a different agent for stage {i + 1} that doesn't require '{fld}'"
                             ]
                         ))
 
@@ -217,7 +227,7 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="Round-robin pattern requires at least 2 worker_* agents",
-                    suggested_solutions=["Add agents with keys worker_0, worker_1, …"]
+                    suggested_solutions=["Add agents with keys worker_0, worker_1, ..."]
                 ))
 
         elif pattern == RoutePattern.MIXTURE_OF_EXPERTS:
@@ -232,7 +242,7 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="At least one expert_* agent is required for mixture-of-experts pattern",
-                    suggested_solutions=["Add agents with keys expert_0, expert_1, …"]
+                    suggested_solutions=["Add agents with keys expert_0, expert_1, ..."]
                 ))
             aggregator = agents.get("aggregator")
             if not aggregator:
@@ -262,7 +272,7 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="Hierarchical-teams pattern requires at least 2 team_* agents",
-                    suggested_solutions=["Add agents with keys team_0, team_1, …"]
+                    suggested_solutions=["Add agents with keys team_0, team_1, ..."]
                 ))
             aggregator = agents.get("aggregator")
             if not aggregator:
@@ -292,7 +302,7 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="At least one fallback_* agent is required for fallback-chain pattern",
-                    suggested_solutions=["Add agents with keys fallback_0, fallback_1, …"]
+                    suggested_solutions=["Add agents with keys fallback_0, fallback_1, ..."]
                 ))
 
         elif pattern == RoutePattern.RETRY_LOOP:
@@ -371,7 +381,7 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="Conditional-branching pattern requires at least 2 branch_* agents",
-                    suggested_solutions=["Add agents with keys branch_0, branch_1, …"]
+                    suggested_solutions=["Add agents with keys branch_0, branch_1, ..."]
                 ))
 
         elif pattern == RoutePattern.RALPH_LOOP:
@@ -398,7 +408,7 @@ class ContractValidator:
                 errors.append(ValidationError(
                     error_type="missing_agent",
                     message="Tree-reduce pattern requires at least 2 leaf_* agents",
-                    suggested_solutions=["Add agents with keys leaf_0, leaf_1, …"]
+                    suggested_solutions=["Add agents with keys leaf_0, leaf_1, ..."]
                 ))
             reducer = agents.get("reducer")
             if not reducer:
@@ -436,14 +446,12 @@ class ContractValidator:
             evaluator = agents.get("evaluator")
             if evaluator:
                 eval_props = evaluator.output_schema.get("properties", {})
-                for field in ("value", "terminal"):
-                    if field not in eval_props:
+                for fld in ("value", "terminal"):
+                    if fld not in eval_props:
                         errors.append(ValidationError(
                             error_type="contract_mismatch",
-                            message=f"Evaluator '{evaluator.name}' must output a '{field}' field",
-                            suggested_solutions=[
-                                f"Choose an evaluator whose output schema includes '{field}'"
-                            ]
+                            message=f"Evaluator '{evaluator.name}' must output a '{fld}' field",
+                            suggested_solutions=[f"Choose an evaluator whose output schema includes '{fld}'"]
                         ))
 
             expander = agents.get("expander")
@@ -452,9 +460,7 @@ class ContractValidator:
                     errors.append(ValidationError(
                         error_type="contract_mismatch",
                         message=f"Expander '{expander.name}' must output an 'actions' field",
-                        suggested_solutions=[
-                            "Choose an expander whose output schema includes 'actions'"
-                        ]
+                        suggested_solutions=["Choose an expander whose output schema includes 'actions'"]
                     ))
 
             reflector = agents.get("reflector")
@@ -463,9 +469,7 @@ class ContractValidator:
                     errors.append(ValidationError(
                         error_type="contract_mismatch",
                         message=f"Reflector '{reflector.name}' must output a 'reflection' field",
-                        suggested_solutions=[
-                            "Choose a reflector whose output schema includes 'reflection'"
-                        ]
+                        suggested_solutions=["Choose a reflector whose output schema includes 'reflection'"]
                     ))
 
             executor = agents.get("executor")
@@ -474,9 +478,7 @@ class ContractValidator:
                     errors.append(ValidationError(
                         error_type="contract_mismatch",
                         message=f"Executor '{executor.name}' must output a 'next_state' field",
-                        suggested_solutions=[
-                            "Choose an executor whose output schema includes 'next_state'"
-                        ]
+                        suggested_solutions=["Choose an executor whose output schema includes 'next_state'"]
                     ))
 
         elif pattern == RoutePattern.PLANNER_GENERATOR_EVALUATOR:
@@ -518,17 +520,158 @@ class ContractValidator:
                         suggested_solutions=["Choose a planner whose output schema includes 'sprints'"]
                     ))
 
+        elif pattern == RoutePattern.REACT_LOOP:
+            for role in ("thinker", "actor", "observer"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for react-loop pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+            observer = agents.get("observer")
+            if observer:
+                observer_output_props = observer.output_schema.get("properties", {})
+                if "done" not in observer_output_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Observer '{observer.name}' must output a 'done' field",
+                        suggested_solutions=["Choose an observer whose output schema includes 'done'"]
+                    ))
+
+        elif pattern == RoutePattern.GOAL_DRIVEN_LOOP:
+            if "worker" not in agents:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="'worker' agent is required for goal-driven-loop pattern",
+                    suggested_solutions=["Add an agent with key 'worker'"]
+                ))
+            if "goal_verifier" not in agents:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="'goal_verifier' agent is required for goal-driven-loop pattern",
+                    suggested_solutions=["Add an agent with key 'goal_verifier'"]
+                ))
+            else:
+                gv = agents["goal_verifier"]
+                gv_output_props = gv.output_schema.get("properties", {})
+                if "done" not in gv_output_props:
+                    errors.append(ValidationError(
+                        error_type="contract_mismatch",
+                        message=f"Goal verifier '{gv.name}' must output a 'done' field",
+                        suggested_solutions=["Choose a goal_verifier whose output schema includes 'done'"]
+                    ))
+
+        elif pattern == RoutePattern.INTERVAL_LOOP:
+            if "worker" not in agents:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="'worker' agent is required for interval-loop pattern",
+                    suggested_solutions=["Add an agent with key 'worker'"]
+                ))
+
         return errors
-    
+
+    @staticmethod
+    def validate_loop_config(
+        pattern: RoutePattern,
+        loop_config: Optional[LoopConfig],
+    ) -> List[ValidationError]:
+        """Validate LoopConfig for loop-pattern routes."""
+        errors: List[ValidationError] = []
+
+        loop_patterns = {
+            RoutePattern.REACT_LOOP,
+            RoutePattern.GOAL_DRIVEN_LOOP,
+            RoutePattern.INTERVAL_LOOP,
+        }
+
+        if pattern not in loop_patterns:
+            return errors
+
+        if loop_config is None:
+            errors.append(ValidationError(
+                error_type="missing_loop_config",
+                message=f"Pattern '{pattern.value}' requires a LoopConfig",
+                suggested_solutions=["Set route_def.loop_config = LoopConfig(...)"]
+            ))
+            return errors
+
+        if loop_config.max_iterations < 1:
+            errors.append(ValidationError(
+                error_type="invalid_loop_config",
+                message="max_iterations must be >= 1",
+                suggested_solutions=["Set max_iterations to a positive integer"]
+            ))
+
+        if loop_config.stuck_detection_threshold < 2:
+            errors.append(ValidationError(
+                error_type="invalid_loop_config",
+                message="stuck_detection_threshold must be >= 2",
+                suggested_solutions=["Set stuck_detection_threshold to at least 2"]
+            ))
+
+        if loop_config.on_stuck not in ("graceful_degradation", "raise"):
+            errors.append(ValidationError(
+                error_type="invalid_loop_config",
+                message=f"on_stuck '{loop_config.on_stuck}' is not valid",
+                suggested_solutions=["Use 'graceful_degradation' or 'raise'"]
+            ))
+
+        if (
+            loop_config.termination_type == LoopTerminationType.GOAL
+            and not loop_config.goal_expression
+        ):
+            errors.append(ValidationError(
+                error_type="invalid_loop_config",
+                message="termination_type 'goal' requires goal_expression to be set",
+                suggested_solutions=["Set loop_config.goal_expression to a Python expression"]
+            ))
+
+        if (
+            loop_config.termination_type == LoopTerminationType.BUDGET
+            and loop_config.budget_usd <= 0
+        ):
+            errors.append(ValidationError(
+                error_type="invalid_loop_config",
+                message="termination_type 'budget' requires budget_usd > 0",
+                suggested_solutions=["Set loop_config.budget_usd to a positive value"]
+            ))
+
+        if loop_config.compaction is not None:
+            if loop_config.compaction.trigger_token_pct < 1 or loop_config.compaction.trigger_token_pct > 99:
+                errors.append(ValidationError(
+                    error_type="invalid_loop_config",
+                    message="compaction.trigger_token_pct must be between 1 and 99",
+                    suggested_solutions=["Set trigger_token_pct to a value between 1 and 99"]
+                ))
+            if loop_config.compaction.preserve_last_n < 1:
+                errors.append(ValidationError(
+                    error_type="invalid_loop_config",
+                    message="compaction.preserve_last_n must be >= 1",
+                    suggested_solutions=["Set preserve_last_n to at least 1"]
+                ))
+            if loop_config.compaction.preserve_last_n < loop_config.stuck_detection_threshold:
+                errors.append(ValidationError(
+                    error_type="loop_config",
+                    message=(
+                        f"compaction.preserve_last_n ({loop_config.compaction.preserve_last_n}) "
+                        f"must be >= stuck_detection_threshold ({loop_config.stuck_detection_threshold})"
+                    ),
+                    suggested_solutions=[
+                        f"Set preserve_last_n to at least {loop_config.stuck_detection_threshold}",
+                        "Decrease stuck_detection_threshold to match preserve_last_n",
+                    ]
+                ))
+
+        return errors
+
     @staticmethod
     def validate_no_cycles(agents: Dict[str, Agent]) -> List[ValidationError]:
         """Validate no circular dependencies using depth-first search."""
         errors = []
 
-        # Map agent names back to their dict keys for dependency resolution
         name_to_key = {agent.name: key for key, agent in agents.items()}
 
-        # Build adjacency: key -> list of dependency keys (skip unknown deps)
         graph: Dict[str, List[str]] = {
             key: [name_to_key[dep] for dep in agent.dependencies if dep in name_to_key]
             for key, agent in agents.items()
@@ -559,4 +702,3 @@ class ContractValidator:
                 dfs(key)
 
         return errors
-
