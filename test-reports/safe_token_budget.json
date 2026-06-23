@@ -4,47 +4,47 @@
   "total_files": 95,
   "files_over_budget": 0,
   "max_tokens": 1004,
-  "avg_tokens": 644.9,
+  "avg_tokens": 645.5,
   "entries": [
     {
       "file": "handoffs/direct-handoff/roles/delegate/agent.md",
-      "tokens": 404,
+      "tokens": 411,
       "budget": 8000,
       "over_budget": false
     },
     {
       "file": "handoffs/hierarchical-handoff/roles/manager/agent.md",
-      "tokens": 417,
+      "tokens": 426,
       "budget": 8000,
       "over_budget": false
     },
     {
       "file": "handoffs/hierarchical-handoff/roles/worker/agent.md",
-      "tokens": 341,
+      "tokens": 350,
       "budget": 8000,
       "over_budget": false
     },
     {
       "file": "handoffs/recursive-handoff/roles/agent/agent.md",
-      "tokens": 488,
+      "tokens": 496,
       "budget": 8000,
       "over_budget": false
     },
     {
       "file": "handoffs/selective-handoff/roles/candidate/agent.md",
-      "tokens": 356,
+      "tokens": 364,
       "budget": 8000,
       "over_budget": false
     },
     {
       "file": "handoffs/selective-handoff/roles/coordinator/agent.md",
-      "tokens": 460,
+      "tokens": 469,
       "budget": 8000,
       "over_budget": false
     },
     {
       "file": "handoffs/sequential-handoff/roles/stage/agent.md",
-      "tokens": 385,
+      "tokens": 393,
       "budget": 8000,
       "over_budget": false
     },
