@@ -12,6 +12,7 @@ Mount via tools/catalog.yaml → id: safe-model-router
 
 from __future__ import annotations
 
+import asyncio
 import os
 from typing import Any
 
@@ -24,12 +25,16 @@ mcp = FastMCP("safe-model-router")
 _ENDPOINT = os.environ.get("FOUNDRY_ENDPOINT", "").rstrip("/")
 _API_KEY = os.environ.get("FOUNDRY_API_KEY", "")
 _API_VERSION = "2025-01-01-preview"
+_DEFAULT_TIMEOUT = float(os.environ.get("MODEL_ROUTER_TIMEOUT_SECONDS", "30"))
 
 # Foundry Model Router deployment name (configured in your Foundry project)
 _ROUTER_DEPLOYMENT = os.environ.get("MODEL_ROUTER_DEPLOYMENT", "model-router")
 
 # Policy names supported by Azure AI Foundry Model Router
 ROUTING_POLICIES = ("Quality", "Cost", "Balanced")
+
+_MAX_RETRIES = 3
+_RETRY_STATUSES = {429, 503}
 
 
 def _headers() -> dict[str, str]:
@@ -38,6 +43,30 @@ def _headers() -> dict[str, str]:
         "Content-Type": "application/json",
         **correlation_headers(),
     }
+
+
+def _validate_env() -> None:
+    """Raise RuntimeError if required env vars are missing."""
+    missing = [v for v in ("FOUNDRY_ENDPOINT", "FOUNDRY_API_KEY") if not os.environ.get(v)]
+    if missing:
+        raise RuntimeError(
+            f"Missing required environment variable(s): {', '.join(missing)}. "
+            "Set them before calling model-router tools."
+        )
+
+
+async def _post_with_retry(url: str, body: dict, headers: dict) -> dict:
+    """POST with retry on 429/503 using exponential backoff."""
+    async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
+        for attempt in range(_MAX_RETRIES):
+            resp = await client.post(url, json=body, headers=headers)
+            if resp.status_code not in _RETRY_STATUSES:
+                resp.raise_for_status()
+                return resp.json()
+            if attempt < _MAX_RETRIES - 1:
+                await asyncio.sleep(2 ** attempt)
+        resp.raise_for_status()
+        return resp.json()
 
 
 @mcp.tool()
@@ -60,6 +89,8 @@ async def model_router_chat(
         temperature: Sampling temperature (0.0–2.0).
         extra: Additional OpenAI-compatible parameters to pass through.
     """
+    _validate_env()
+
     if policy not in ROUTING_POLICIES:
         raise ValueError(f"policy must be one of {ROUTING_POLICIES}")
 
@@ -73,15 +104,20 @@ async def model_router_chat(
         "temperature": temperature,
         **(extra or {}),
     }
-    headers = {**_headers(), "x-model-router-policy": policy}
+    req_headers = {**_headers(), "x-model-router-policy": policy}
 
-    async with httpx.AsyncClient(timeout=120) as client:
-        resp = await client.post(url, json=body, headers=headers)
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _post_with_retry(url, body, req_headers)
+
+    choices = data.get("choices") or []
+    if not choices:
+        raise RuntimeError(
+            f"No choices in model-router response (content filtered or empty). "
+            f"Raw response: {data}"
+        )
+    content = choices[0].get("message", {}).get("content", "")
 
     return {
-        "content": data["choices"][0]["message"]["content"],
+        "content": content,
         "model_used": data.get("model"),
         "policy": policy,
         "usage": data.get("usage"),
@@ -91,22 +127,24 @@ async def model_router_chat(
 @mcp.tool()
 async def model_router_estimate_cost(
     prompt_tokens: int,
+    output_tokens: int = 0,
     policy: str = "Balanced",
 ) -> dict[str, Any]:
     """Estimate the token cost for a request under a given routing policy.
 
-    Queries the Foundry Token Metrics API to look up current per-token rates
-    for the model tier the router would select, without making an actual completion.
+    Uses indicative static rates. For live actuals, call safe-token-metrics
+    (token_metrics_get_cost). Both prompt (input) and completion (output) tokens
+    are included in the estimate.
 
     Args:
-        prompt_tokens: Estimated number of prompt tokens in the request.
+        prompt_tokens: Estimated number of prompt/input tokens.
+        output_tokens: Estimated number of completion/output tokens (default 0).
         policy: Routing policy — "Quality", "Cost", or "Balanced".
     """
     if policy not in ROUTING_POLICIES:
         raise ValueError(f"policy must be one of {ROUTING_POLICIES}")
 
     # Model tier → typical token rates (USD per 1K tokens, input/output)
-    # These are approximate defaults; token_metrics_get_cost provides live actuals.
     _TIER_RATES: dict[str, dict[str, float]] = {
         "Quality":  {"model": "gpt-4o",        "input_per_1k": 0.005, "output_per_1k": 0.015},
         "Balanced": {"model": "gpt-4o-mini",   "input_per_1k": 0.00015, "output_per_1k": 0.0006},
@@ -114,13 +152,18 @@ async def model_router_estimate_cost(
     }
 
     tier = _TIER_RATES[policy]
-    estimated_cost = (prompt_tokens / 1000) * tier["input_per_1k"]
+    input_cost = (prompt_tokens / 1000) * tier["input_per_1k"]
+    output_cost = (output_tokens / 1000) * tier["output_per_1k"]
+    total_cost = input_cost + output_cost
 
     return {
         "policy": policy,
         "likely_model": tier["model"],
         "prompt_tokens": prompt_tokens,
-        "estimated_input_cost_usd": round(estimated_cost, 6),
+        "output_tokens": output_tokens,
+        "estimated_input_cost_usd": round(input_cost, 6),
+        "estimated_output_cost_usd": round(output_cost, 6),
+        "estimated_total_cost_usd": round(total_cost, 6),
         "input_rate_per_1k_usd": tier["input_per_1k"],
         "output_rate_per_1k_usd": tier["output_per_1k"],
         "note": "Rates are indicative defaults. Use safe-token-metrics for live actuals.",

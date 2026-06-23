@@ -24,6 +24,15 @@ mcp = FastMCP("safe-durable-task")
 _BASE_URL = os.environ.get("DURABLE_TASK_ENDPOINT", "").rstrip("/")
 _KEY = os.environ.get("DURABLE_TASK_KEY", "")
 _MGMT = f"{_BASE_URL}/runtime/webhooks/durabletask"
+_DEFAULT_TIMEOUT = float(os.environ.get("DURABLE_TASK_TIMEOUT_SECONDS", "30"))
+
+
+def _validate_env() -> None:
+    missing = [v for v in ("DURABLE_TASK_ENDPOINT", "DURABLE_TASK_KEY") if not os.environ.get(v)]
+    if missing:
+        raise RuntimeError(
+            f"Missing required environment variable(s): {', '.join(missing)}."
+        )
 
 
 def _headers() -> dict[str, str]:
@@ -50,7 +59,7 @@ async def durable_start(
     url = f"{_MGMT}/orchestrators/{function_name}"
     if instance_id:
         url += f"/{instance_id}"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
         resp = await client.post(url, json=input or {}, headers=_headers())
         resp.raise_for_status()
         return resp.json()
@@ -64,7 +73,7 @@ async def durable_checkpoint(instance_id: str) -> dict[str, Any]:
         instance_id: The orchestration instance ID returned by durable_start.
     """
     url = f"{_MGMT}/instances/{instance_id}?showHistory=true&showHistoryOutput=true"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
         resp = await client.get(url, headers=_headers())
         resp.raise_for_status()
         return resp.json()
@@ -79,7 +88,7 @@ async def durable_suspend(instance_id: str, reason: str = "") -> dict[str, str]:
         reason: Human-readable reason for suspension (logged in history).
     """
     url = f"{_MGMT}/instances/{instance_id}/suspend"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
         resp = await client.post(url, json={"reason": reason}, headers=_headers())
         resp.raise_for_status()
         return {"status": "suspended", "instance_id": instance_id}
@@ -94,7 +103,7 @@ async def durable_resume(instance_id: str, reason: str = "") -> dict[str, str]:
         reason: Human-readable reason for resumption (logged in history).
     """
     url = f"{_MGMT}/instances/{instance_id}/resume"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
         resp = await client.post(url, json={"reason": reason}, headers=_headers())
         resp.raise_for_status()
         return {"status": "resumed", "instance_id": instance_id}
@@ -110,7 +119,7 @@ async def durable_get_status(instance_id: str) -> dict[str, Any]:
         instance_id: The orchestration instance ID.
     """
     url = f"{_MGMT}/instances/{instance_id}"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
         resp = await client.get(url, headers=_headers())
         resp.raise_for_status()
         data = resp.json()
