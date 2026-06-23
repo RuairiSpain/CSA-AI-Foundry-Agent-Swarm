@@ -478,7 +478,7 @@ class RouteCodeGenerator:
 
     @staticmethod
     def _generate_config(route_def: RouteDefinition) -> str:
-        config = f"""# {route_def.name} - v1.0
+        yaml_str = f"""# {route_def.name} - v1.0
 
 name: {route_def.name}
 version: v1.0
@@ -488,9 +488,9 @@ description: {route_def.description}
 agents:
 """
         for key, agent in route_def.agents.items():
-            config += f"  {key}: {agent.name}\n"
+            yaml_str += f"  {key}: {agent.name}\n"
 
-        config += f"""
+        yaml_str += f"""
 timeouts:
   total_seconds: {route_def.timeout_seconds}
   per_agent_seconds: {route_def.per_agent_timeout_seconds}
@@ -499,7 +499,7 @@ metadata:
   created_at: {route_def.created_at.isoformat()}
   created_by: {route_def.csa_email}
 """
-        return config
+        return yaml_str
 
     @staticmethod
     def _generate_test_data(route_def: RouteDefinition) -> str:
