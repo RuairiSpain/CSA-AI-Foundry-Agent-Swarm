@@ -57,6 +57,15 @@ class {{ class_name }}Route:
 
             history.append({"thought": thought, "action": action, "observation": observation})
 
+            # Done check MUST come before stuck check: if observer returns done=True
+            # for stuck_threshold consecutive iterations, stuck check would fire first
+            # without this ordering.
+            if observation.get("done"):
+                await self._validate_output(context)
+                elapsed = (datetime.now() - start_time).total_seconds()
+                logger.info("react-loop completed in %.2fs (%d iterations)", elapsed, iteration + 1)
+                return {"status": "done", "iterations": iteration + 1, "elapsed_seconds": elapsed, **context}
+
             if len(history) >= stuck_threshold:
                 tail = [h["observation"] for h in history[-stuck_threshold:]]
                 if all(t == tail[0] for t in tail[1:]):
@@ -75,12 +84,6 @@ class {{ class_name }}Route:
                         "last_context": context,
                     }
                     {% endif %}
-
-            if observation.get("done"):
-                await self._validate_output(context)
-                elapsed = (datetime.now() - start_time).total_seconds()
-                logger.info("react-loop completed in %.2fs (%d iterations)", elapsed, iteration + 1)
-                return {"status": "done", "iterations": iteration + 1, "elapsed_seconds": elapsed, **context}
 
         elapsed = (datetime.now() - start_time).total_seconds()
         logger.warning("react-loop hit max_iterations (%d)", max_iterations)

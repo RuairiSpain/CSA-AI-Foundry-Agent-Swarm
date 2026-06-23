@@ -58,7 +58,7 @@ def make_interval_loop(lc=None) -> RouteDefinition:
         agents={
             "worker": make_agent("Worker", inputs=["data"], outputs=["result"]),
         },
-        loop_config=lc or LoopConfig(max_iterations=5, timeout_seconds=300),
+        loop_config=lc or LoopConfig(max_iterations=5, tick_interval_seconds=300),
         description="An interval loop route",
     )
 

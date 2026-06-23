@@ -194,10 +194,18 @@ class TestValidateLoopConfig:
         assert any("preserve_last_n" in e.message for e in errors)
 
     def test_compaction_valid_config_no_errors(self):
-        cc = CompactionConfig(trigger_token_pct=70, preserve_last_n=2)
+        # preserve_last_n must be >= stuck_detection_threshold (default 3)
+        cc = CompactionConfig(trigger_token_pct=70, preserve_last_n=3)
         lc = LoopConfig(compaction=cc)
         errors = ContractValidator.validate_loop_config(RoutePattern.REACT_LOOP, lc)
         assert errors == []
+
+    def test_compaction_preserve_last_n_below_stuck_threshold(self):
+        # preserve_last_n=2 < stuck_detection_threshold=3 should produce an error
+        cc = CompactionConfig(trigger_token_pct=70, preserve_last_n=2)
+        lc = LoopConfig(stuck_detection_threshold=3, compaction=cc)
+        errors = ContractValidator.validate_loop_config(RoutePattern.REACT_LOOP, lc)
+        assert any("preserve_last_n" in e.message for e in errors)
 
     def test_all_three_loop_patterns_need_config(self):
         for pattern in (RoutePattern.REACT_LOOP, RoutePattern.GOAL_DRIVEN_LOOP, RoutePattern.INTERVAL_LOOP):

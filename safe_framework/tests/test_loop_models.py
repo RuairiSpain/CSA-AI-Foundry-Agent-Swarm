@@ -74,6 +74,7 @@ class TestLoopConfig:
         assert lc.termination_type == LoopTerminationType.MAX_ITERATIONS
         assert lc.goal_expression == ""
         assert lc.timeout_seconds == 3600
+        assert lc.tick_interval_seconds == 60
         assert lc.budget_usd == 0.0
         assert lc.stuck_detection_threshold == 3
         assert lc.on_stuck == "graceful_degradation"
@@ -132,5 +133,5 @@ class TestNewRoutePatterns:
         assert RoutePattern.INTERVAL_LOOP == "interval-loop"
 
     def test_total_pattern_count(self):
-        # Original 27 + 3 new loop patterns = 30
-        assert len(RoutePattern) == 30
+        # Original 30 (from main: 27 + ralph-loop + lats + planner-generator-evaluator) + 3 new loop patterns = 33
+        assert len(RoutePattern) == 33
