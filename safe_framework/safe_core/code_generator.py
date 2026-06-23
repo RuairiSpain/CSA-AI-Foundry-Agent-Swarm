@@ -269,8 +269,9 @@ class RouteCodeGenerator:
     def _generate_evaluator_optimizer(route_def: RouteDefinition) -> GeneratedRoute:
         ctx = RouteCodeGenerator._base_context(route_def, "generator", "optimizer")
         ctx.update({"generator_key": "generator", "evaluator_key": "evaluator",
-                     "optimizer_key": "optimizer", "max_iterations": 3,
-                     "quality_threshold": 0.85})
+                     "optimizer_key": "optimizer",
+                     "max_iterations": config.evaluator_optimizer_max_iterations,
+                     "quality_threshold": config.evaluator_optimizer_quality_threshold})
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.EVALUATOR_OPTIMIZER)
 
     @staticmethod
@@ -284,7 +285,8 @@ class RouteCodeGenerator:
     def _generate_reflection(route_def: RouteDefinition) -> GeneratedRoute:
         ctx = RouteCodeGenerator._base_context(route_def, "generator", "refiner")
         ctx.update({"generator_key": "generator", "critic_key": "critic",
-                     "refiner_key": "refiner", "max_reflections": 2})
+                     "refiner_key": "refiner",
+                     "max_reflections": config.reflection_max_reflections})
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.REFLECTION)
 
     @staticmethod
@@ -384,8 +386,11 @@ class RouteCodeGenerator:
         ctx.update({
             "expander_key": "expander", "executor_key": "executor",
             "evaluator_key": "evaluator", "reflector_key": "reflector",
-            "max_iterations": 20, "branching_factor": 3,
-            "exploration_constant": 1.414, "success_threshold": 0.8, "max_depth": 10,
+            "max_iterations": config.lats_max_iterations,
+            "branching_factor": config.lats_branching_factor,
+            "exploration_constant": config.lats_exploration_constant,
+            "success_threshold": config.lats_success_threshold,
+            "max_depth": config.lats_max_depth,
         })
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.LATS)
 
@@ -394,8 +399,9 @@ class RouteCodeGenerator:
         ctx = RouteCodeGenerator._base_context(route_def, "planner", "evaluator")
         ctx.update({
             "planner_key": "planner", "generator_key": "generator",
-            "evaluator_key": "evaluator", "max_sprint_iterations": 5,
-            "max_interview_turns": 10,
+            "evaluator_key": "evaluator",
+            "max_sprint_iterations": config.pge_max_sprint_iterations,
+            "max_interview_turns": config.pge_max_interview_turns,
         })
         return RouteCodeGenerator._wrap(route_def, ctx, RoutePattern.PLANNER_GENERATOR_EVALUATOR)
 
@@ -415,8 +421,8 @@ class RouteCodeGenerator:
     @staticmethod
     def _generate_react_loop(route_def: RouteDefinition) -> GeneratedRoute:
         lc = route_def.loop_config
-        max_iterations = lc.max_iterations if lc else 10
-        stuck_threshold = lc.stuck_detection_threshold if lc else 3
+        max_iterations = lc.max_iterations if lc else config.loop_default_max_iterations
+        stuck_threshold = lc.stuck_detection_threshold if lc else config.retry_loop_max_retries
         on_stuck = lc.on_stuck if lc else "graceful_degradation"
         ctx = RouteCodeGenerator._base_context(route_def, "thinker", "observer")
         ctx.update({
@@ -432,9 +438,9 @@ class RouteCodeGenerator:
     @staticmethod
     def _generate_goal_driven_loop(route_def: RouteDefinition) -> GeneratedRoute:
         lc = route_def.loop_config
-        max_iterations = lc.max_iterations if lc else 10
+        max_iterations = lc.max_iterations if lc else config.loop_default_max_iterations
         goal_expression = lc.goal_expression if lc else ""
-        stuck_threshold = lc.stuck_detection_threshold if lc else 3
+        stuck_threshold = lc.stuck_detection_threshold if lc else config.retry_loop_max_retries
         on_stuck = lc.on_stuck if lc else "graceful_degradation"
         ctx = RouteCodeGenerator._base_context(route_def, "worker", "goal_verifier")
         ctx.update({
@@ -451,7 +457,7 @@ class RouteCodeGenerator:
     @staticmethod
     def _generate_interval_loop(route_def: RouteDefinition) -> GeneratedRoute:
         lc = route_def.loop_config
-        max_iterations = lc.max_iterations if lc else 10
+        max_iterations = lc.max_iterations if lc else config.loop_default_max_iterations
         interval_seconds = lc.tick_interval_seconds if lc else 60
         ctx = RouteCodeGenerator._base_context(route_def, "worker", "worker")
         ctx.update({"max_iterations": max_iterations, "interval_seconds": interval_seconds})

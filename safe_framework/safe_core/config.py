@@ -20,6 +20,26 @@ class SafeConfig:
     # Code-generator loop controls
     retry_loop_max_retries: int = 3
     loop_spawn_budget: int = 10
+    loop_default_max_iterations: int = 10
+
+    # Pattern-specific defaults used by code generator
+    evaluator_optimizer_max_iterations: int = 3
+    evaluator_optimizer_quality_threshold: float = 0.85
+    reflection_max_reflections: int = 2
+    lats_max_iterations: int = 20
+    lats_branching_factor: int = 3
+    lats_exploration_constant: float = 1.414
+    lats_success_threshold: float = 0.8
+    lats_max_depth: int = 10
+    pge_max_sprint_iterations: int = 5
+    pge_max_interview_turns: int = 10
+
+    # Execution retry defaults
+    execution_max_retries: int = 3
+    execution_base_backoff_seconds: float = 2.0
+
+    # Governance cost defaults
+    governance_max_monthly_cost_usd: float = 10000.0
 
     # Governance approvers
     approver_finance_lead: str = "finance-lead@company.com"
@@ -47,6 +67,48 @@ class SafeConfig:
             ),
             loop_spawn_budget=int(
                 os.environ.get("SAFE_RALPH_LOOP_SPAWN_BUDGET", "10")
+            ),
+            loop_default_max_iterations=int(
+                os.environ.get("SAFE_LOOP_DEFAULT_MAX_ITERATIONS", "10")
+            ),
+            evaluator_optimizer_max_iterations=int(
+                os.environ.get("SAFE_EVALUATOR_OPTIMIZER_MAX_ITERATIONS", "3")
+            ),
+            evaluator_optimizer_quality_threshold=float(
+                os.environ.get("SAFE_EVALUATOR_OPTIMIZER_QUALITY_THRESHOLD", "0.85")
+            ),
+            reflection_max_reflections=int(
+                os.environ.get("SAFE_REFLECTION_MAX_REFLECTIONS", "2")
+            ),
+            lats_max_iterations=int(
+                os.environ.get("SAFE_LATS_MAX_ITERATIONS", "20")
+            ),
+            lats_branching_factor=int(
+                os.environ.get("SAFE_LATS_BRANCHING_FACTOR", "3")
+            ),
+            lats_exploration_constant=float(
+                os.environ.get("SAFE_LATS_EXPLORATION_CONSTANT", "1.414")
+            ),
+            lats_success_threshold=float(
+                os.environ.get("SAFE_LATS_SUCCESS_THRESHOLD", "0.8")
+            ),
+            lats_max_depth=int(
+                os.environ.get("SAFE_LATS_MAX_DEPTH", "10")
+            ),
+            pge_max_sprint_iterations=int(
+                os.environ.get("SAFE_PGE_MAX_SPRINT_ITERATIONS", "5")
+            ),
+            pge_max_interview_turns=int(
+                os.environ.get("SAFE_PGE_MAX_INTERVIEW_TURNS", "10")
+            ),
+            execution_max_retries=int(
+                os.environ.get("SAFE_EXECUTION_MAX_RETRIES", "3")
+            ),
+            execution_base_backoff_seconds=float(
+                os.environ.get("SAFE_EXECUTION_BASE_BACKOFF_SECONDS", "2.0")
+            ),
+            governance_max_monthly_cost_usd=float(
+                os.environ.get("SAFE_GOVERNANCE_MAX_MONTHLY_COST_USD", "10000.0")
             ),
             approver_finance_lead=os.environ.get(
                 "SAFE_APPROVER_FINANCE_LEAD", "finance-lead@company.com"
