@@ -1,7 +1,7 @@
 """Code generation from route definitions"""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 from jinja2 import Environment, FileSystemLoader
@@ -99,7 +99,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "supervisor_key": supervisor_key,
             "specialists": specialists,
@@ -118,7 +118,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -139,7 +139,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "processor_keys": processor_keys,
             "processor_count": len(processor_keys),
@@ -157,7 +157,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -179,7 +179,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "splitter_key": splitter_key,
             "mapper_key": mapper_key,
@@ -197,7 +197,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -217,7 +217,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "stage_keys": stage_keys,
             "stage_count": len(stage_keys),
@@ -234,7 +234,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -255,7 +255,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "dispatcher_key": dispatcher_key,
             "worker_keys": worker_keys,
@@ -273,7 +273,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -295,7 +295,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "router_key": router_key,
             "expert_keys": expert_keys,
@@ -314,7 +314,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -336,7 +336,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "coordinator_key": coordinator_key,
             "team_keys": team_keys,
@@ -355,7 +355,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -374,7 +374,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "chain_keys": chain_keys,
             "required_input_fields": json.dumps(input_required),
@@ -390,7 +390,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -411,7 +411,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "worker_key": worker_key,
             "validator_key": validator_key,
@@ -429,7 +429,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -452,7 +452,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "splitter_key": splitter_key,
             "left_key": left_key,
@@ -471,7 +471,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -493,7 +493,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "evaluator_key": evaluator_key,
             "branch_keys": branch_keys,
@@ -512,7 +512,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -533,7 +533,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "leaf_keys": leaf_keys,
             "leaf_count": len(leaf_keys),
@@ -551,7 +551,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -569,7 +569,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "required_input_fields": json.dumps(input_required),
             "required_output_fields": json.dumps(output_required),
@@ -587,7 +587,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -726,7 +726,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "max_iterations": max_iterations,
             "stuck_threshold": stuck_threshold,
@@ -743,7 +743,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
                 "max_iterations": max_iterations,
             },
@@ -768,7 +768,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "max_iterations": max_iterations,
             "goal_expression": goal_expression,
@@ -786,7 +786,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
                 "max_iterations": max_iterations,
                 "goal_expression": goal_expression,
@@ -809,7 +809,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "max_iterations": max_iterations,
             "interval_seconds": interval_seconds,
@@ -825,7 +825,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
                 "max_iterations": max_iterations,
                 "interval_seconds": interval_seconds,
@@ -844,7 +844,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "expander_key":         "expander",
             "executor_key":         "executor",
@@ -890,7 +890,7 @@ class RouteCodeGenerator:
             "description": route_def.description,
             "pattern": route_def.pattern.value,
             "agent_names": ", ".join(route_def.agents.keys()),
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
+            "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "agents": route_def.agents,
             "planner_key": planner_key,
             "implementer_key": implementer_key,
@@ -909,7 +909,7 @@ class RouteCodeGenerator:
             metadata={
                 "pattern": route_def.pattern.value,
                 "agents": list(route_def.agents.keys()),
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "version": "v1.0",
             }
         )
@@ -944,7 +944,7 @@ timeouts:
   per_agent_seconds: {route_def.per_agent_timeout_seconds}
 
 metadata:
-  created_at: {datetime.now().isoformat()}
+  created_at: {datetime.now(timezone.utc).isoformat()}
   created_by: {route_def.csa_email}
 """
         return config

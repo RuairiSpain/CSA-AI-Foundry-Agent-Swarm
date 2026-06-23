@@ -2,7 +2,7 @@
 
 import asyncio
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from .models import (
     RouteHealth,
     RouteHealthStatus,
@@ -81,7 +81,7 @@ class HealthMonitor:
         health.estimated_monthly_cost_usd += estimated_cost_usd
         
         # Update timestamp
-        health.last_check = datetime.now()
+        health.last_check = datetime.now(timezone.utc)
         
         # Update status
         health.update_status()
@@ -142,7 +142,7 @@ class HealthMonitor:
         all_routes = await self.storage.list_all_routes()
         
         dashboard = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_routes": len(all_routes),
             "routes_by_status": {},
             "recent_alerts": [],

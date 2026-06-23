@@ -1,7 +1,7 @@
 """Route lifecycle management for Agent 365 integration"""
 
 from typing import Optional, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 from ..governance.models import RouteLifecycleState
 
 class RouteLifecycleManager:
@@ -18,14 +18,14 @@ class RouteLifecycleManager:
             "name": route_name,
             "version": version,
             "state": RouteLifecycleState.DRAFT,
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
             "deployed_at": None,
             "retired_at": None,
             "state_history": [
                 {
                     "state": RouteLifecycleState.DRAFT,
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "actor": "system",
                     "reason": "Route created",
                 }
@@ -55,21 +55,21 @@ class RouteLifecycleManager:
         
         # Update state
         route["state"] = new_state
-        route["updated_at"] = datetime.now().isoformat()
+        route["updated_at"] = datetime.now(timezone.utc).isoformat()
         
         # Track state history
         route["state_history"].append({
             "state": new_state,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "actor": actor,
             "reason": reason,
         })
         
         # Update special timestamps
         if new_state == RouteLifecycleState.DEPLOYED:
-            route["deployed_at"] = datetime.now().isoformat()
+            route["deployed_at"] = datetime.now(timezone.utc).isoformat()
         elif new_state in [RouteLifecycleState.ARCHIVED, RouteLifecycleState.DISABLED]:
-            route["retired_at"] = datetime.now().isoformat()
+            route["retired_at"] = datetime.now(timezone.utc).isoformat()
         
         return True
     

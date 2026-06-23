@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 
@@ -34,5 +34,5 @@ class RouteChain:
     # Opt-in: append full input/output trace to context["_chain_history"].
     include_chain_history: bool = False
     csa_email: str = ""
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     version: str = "v1.0"

@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 class ApprovalStatus(str, Enum):
     """Approval request status"""
@@ -44,8 +44,8 @@ class GovernancePolicy:
     require_pii_handling: bool = False
     require_audit_trail: bool = True
     
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str = ""
 
 @dataclass
@@ -69,7 +69,7 @@ class ApprovalRequest:
     rejection_reason: Optional[str] = None
     
     # Metadata
-    created_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: Optional[datetime] = None
     deployed_at: Optional[datetime] = None
     
@@ -82,7 +82,7 @@ class ApprovalRequest:
         self.approvals[approver_email] = {
             "approved": approved,
             "comment": comment,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     
     @property
@@ -103,7 +103,7 @@ class ComplianceCheckResult:
     checks_failed: int
     issues: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     
     def add_issue(self, issue: str) -> None:
         """Add compliance issue"""

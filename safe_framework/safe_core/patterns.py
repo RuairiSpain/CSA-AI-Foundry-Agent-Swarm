@@ -9,7 +9,7 @@ import logging
 from typing import Dict, List, Optional
 from enum import Enum
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class PatternTemplate:
     example_workflow: Dict
 
     # Metadata
-    created_date: str = field(default_factory=lambda: datetime.now().isoformat())
+    created_date: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     author: str = "SAFE Team"
     source: str = "builtin"  # or "user" or "community"
     rating: float = 0.0

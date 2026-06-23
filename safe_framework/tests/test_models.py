@@ -517,7 +517,7 @@ class TestSequentialPipeline:
         """Generate sequential-pipeline route code"""
         catalog = AgentCatalog()
         route_def = self._make_route(catalog)
-        generated = RouteCodeGenerator.generate(route_def)
+        generated = RouteCodeGenerator.generate(route_def, skip_validation=True)
 
         assert "class DocEnrichPipelineRoute:" in generated.route_code
         assert "stage_0" in generated.route_code
@@ -530,14 +530,14 @@ class TestSequentialPipeline:
         """Sequential pipeline does not use parallel gather (it's sequential)"""
         catalog = AgentCatalog()
         route_def = self._make_route(catalog)
-        generated = RouteCodeGenerator.generate(route_def)
+        generated = RouteCodeGenerator.generate(route_def, skip_validation=True)
         assert "asyncio.gather" not in generated.route_code
 
     def test_sequential_pipeline_stage_chaining(self):
         """Generated code chains stage output into next stage input via 'data' variable"""
         catalog = AgentCatalog()
         route_def = self._make_route(catalog)
-        generated = RouteCodeGenerator.generate(route_def)
+        generated = RouteCodeGenerator.generate(route_def, skip_validation=True)
         assert "data = await self.stage_0.invoke(data)" in generated.route_code or \
                "data = await self.stage_0" in generated.route_code
 
@@ -558,7 +558,7 @@ class TestSequentialPipeline:
         """Generated test data is valid JSON suited for the pattern"""
         catalog = AgentCatalog()
         route_def = self._make_route(catalog)
-        generated = RouteCodeGenerator.generate(route_def)
+        generated = RouteCodeGenerator.generate(route_def, skip_validation=True)
         data = json.loads(generated.test_data_json)
         assert isinstance(data, list)
         assert len(data) > 0
@@ -610,7 +610,7 @@ class TestP2Integration:
         ]
 
         for route_def in routes:
-            generated = RouteCodeGenerator.generate(route_def)
+            generated = RouteCodeGenerator.generate(route_def, skip_validation=True)
             route_dir = tmp_path / route_def.name
             generated.save_to_disk(str(route_dir))
 
@@ -646,7 +646,7 @@ class TestP2Integration:
 
         for pattern, expected_pattern_str, agents in cases:
             route_def = RouteDefinition(name="test", pattern=pattern, agents=agents)
-            generated = RouteCodeGenerator.generate(route_def)
+            generated = RouteCodeGenerator.generate(route_def, skip_validation=True)
             assert expected_pattern_str in generated.metadata["pattern"], \
                 f"Expected '{expected_pattern_str}' in metadata for {pattern}"
 

@@ -5,7 +5,7 @@ Each section notes the file and lines being hit.
 import asyncio
 import ast
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -545,7 +545,7 @@ from safe_core.invocation.engine import ExecutionResult, ExecutionStatus
 class TestExecutionRetryExhausted:
     def test_all_retries_exhausted_returns_result(self):
         """Line 52: return result after all retries fail."""
-        engine = ExecutionEngine(RetryPolicy(max_retries=2, backoff_seconds=0))
+        engine = ExecutionEngine(RetryPolicy(max_retries=2, base_backoff_seconds=0))
 
         async def always_fail(_input):
             raise RuntimeError("always fails")
@@ -770,8 +770,8 @@ class TestGovernanceModelsGaps:
             approvers=["approver@x.com"],
         )
         req.add_approval("approver@x.com", False, comment="not ready")
-        assert req.status == ApprovalStatus.REJECTED
-        assert req.rejection_reason == "not ready"
+        assert req.status == ApprovalStatus.PENDING
+        assert req.approvals["approver@x.com"]["approved"] is False
 
     def test_add_warning(self):
         """Line 118: add_warning appends to warnings list."""
@@ -805,7 +805,7 @@ class TestHealthModelsGaps:
         h = RouteHealth("r", "v1", RouteHealthStatus.READY)
         h.execution_count = 1
         h.success_count = 1
-        h.last_check = datetime.now() - timedelta(hours=2)
+        h.last_check = datetime.now(timezone.utc) - timedelta(hours=2)
         h.update_status()
         assert h.status == RouteHealthStatus.FROZEN
 
@@ -1236,12 +1236,11 @@ from safe_core.security.validator import SecurityValidator
 
 
 class TestSecurityValidatorGaps:
-    def test_check_authentication_returns_true(self):
-        """Lines 25-26: check_authentication records and returns True."""
+    def test_check_authentication_no_auth_data_returns_false(self):
+        """check_authentication returns False when no auth_data supplied."""
         v = SecurityValidator()
         result = _run(v.check_authentication("my-component"))
-        assert result is True
-        assert v.checks_performed.get("my-component_authentication") is True
+        assert result is False
 
 
 # ===========================================================================

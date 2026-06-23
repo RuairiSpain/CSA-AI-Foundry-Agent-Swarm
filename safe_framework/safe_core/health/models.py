@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..config import config
 
@@ -28,7 +28,7 @@ class HealthMetric:
     name: str
     value: float
     unit: str
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     threshold: Optional[float] = None
     
     def is_threshold_exceeded(self) -> bool:
@@ -66,8 +66,8 @@ class RouteHealth:
     cost_threshold_usd: float = field(default_factory=lambda: config.health_cost_threshold_usd)
     
     # Metadata
-    last_check: datetime = field(default_factory=datetime.now)
-    created_at: datetime = field(default_factory=datetime.now)
+    last_check: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_deployed: Optional[datetime] = None
     
     @property
@@ -85,7 +85,7 @@ class RouteHealth:
             return
         
         # Check for frozen (no recent executions but was previously working)
-        if (datetime.now() - self.last_check).total_seconds() > config.health_frozen_threshold_seconds:
+        if (datetime.now(timezone.utc) - self.last_check).total_seconds() > config.health_frozen_threshold_seconds:
             self.status = RouteHealthStatus.FROZEN
             return
         
@@ -124,8 +124,8 @@ class HealthAlert:
     current_value: float
     threshold: float
     suggested_action: str
-    timestamp: datetime = field(default_factory=datetime.now)
-    alert_id: str = field(default_factory=lambda: str(datetime.now().timestamp()))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    alert_id: str = field(default_factory=lambda: str(datetime.now(timezone.utc).timestamp()))
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""

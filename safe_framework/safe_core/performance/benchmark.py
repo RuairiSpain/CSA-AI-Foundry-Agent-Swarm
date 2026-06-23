@@ -2,7 +2,7 @@
 
 from typing import Callable, Dict, Any
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import statistics
 
 @dataclass
@@ -15,12 +15,12 @@ class PerformanceBenchmark:
         self.metrics: Dict[str, list] = {}
     
     async def measure(self, name: str, func: Callable, *args, **kwargs) -> float:
-        start = datetime.now()
+        start = datetime.now(timezone.utc)
         try:
             result = func(*args, **kwargs)
         except:
             result = None
-        elapsed = (datetime.now() - start).total_seconds() * 1000
+        elapsed = (datetime.now(timezone.utc) - start).total_seconds() * 1000
         
         if name not in self.metrics:
             self.metrics[name] = []
