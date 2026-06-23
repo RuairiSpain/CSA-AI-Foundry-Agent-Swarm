@@ -145,6 +145,9 @@ class AgentContractValidator:
                 f"may have dependency conflicts"
             )
 
+        # Validate skill references
+        self._validate_skill_refs(agent_contract, errors, warnings)
+
         # Pattern-specific validations
         if pattern_id == "supervisor-manager":
             self._validate_supervisor_agent(agent_contract, placeholder_id, errors, warnings)
@@ -174,6 +177,26 @@ class AgentContractValidator:
             if "routing_decision" not in outputs:
                 errors.append(
                     "Supervisor agent must output 'routing_decision'"
+                )
+
+    def _validate_skill_refs(self, agent_contract, errors, warnings):
+        """Check that skill IDs declared in agent.yaml exist in the skills catalog."""
+        skill_refs = agent_contract.get("skills", [])
+        if not skill_refs:
+            return
+        try:
+            from skills.scaffold import known_skill_ids  # type: ignore[import]
+            catalog_ids = known_skill_ids()
+        except (ImportError, FileNotFoundError):
+            warnings.append("Skills catalog unavailable — skill reference validation skipped")
+            return
+        for ref in skill_refs:
+            sid = ref.get("id") if isinstance(ref, dict) else ref
+            if sid and sid not in catalog_ids:
+                errors.append(
+                    f"Agent references unknown skill '{sid}'. "
+                    f"Run 'safe skill list' to see available skills or "
+                    f"'safe skill create {sid} <category> <description>' to register it."
                 )
 
     def _validate_fan_out_agent(self, agent_contract, placeholder_id, errors, warnings):

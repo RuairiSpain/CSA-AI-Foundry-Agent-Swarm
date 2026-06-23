@@ -1,0 +1,357 @@
+version: '1.0'
+last_updated: 2026-06-21
+description: >
+  Reusable agent skills — atomic, composable operations invoked within agent
+  logic. Skills sit above MCP tools (infrastructure) and below full agents
+  (orchestration). They can be shared across agents and independently tested.
+
+metadata:
+  total_skills: 10
+  categories: 3
+
+# ── NLP ──────────────────────────────────────────────────────────────────────
+
+skills:
+
+  - id: extract-entities
+    display_name: Entity Extractor
+    description: >
+      Extract named entities (persons, organisations, dates, locations, amounts)
+      from free text and return structured entity objects.
+    category: NLP
+    tags: [nlp, ner, extraction, entities, persons, organisations]
+    inputs:
+      text:
+        type: string
+        description: Source text to analyse
+        required: true
+      entity_types:
+        type: array
+        items: string
+        description: "Filter to these entity types (e.g. [PERSON, ORG]). Empty = all."
+        required: false
+    outputs:
+      entities:
+        type: array
+        description: List of {text, type, confidence, start, end} entity objects
+      entity_count:
+        type: integer
+        description: Total number of entities found
+    discovery:
+      keywords: [ner, entity, extraction, person, organisation, date, location]
+      complexity: simple
+      quality_rating: 4.8
+      usage_count: 312
+      supported_languages: [en, fr, de, es, pt, nl, it]
+
+  - id: score-sentiment
+    display_name: Sentiment Scorer
+    description: >
+      Score the sentiment of a text passage as positive, negative, neutral, or
+      mixed, with a confidence score at document or sentence granularity.
+    category: NLP
+    tags: [nlp, sentiment, classification, score, opinion, tone]
+    inputs:
+      text:
+        type: string
+        description: Text to score
+        required: true
+      granularity:
+        type: string
+        enum: [document, sentence]
+        description: Analyse at document or sentence level (default document)
+        required: false
+    outputs:
+      label:
+        type: string
+        enum: [positive, negative, neutral, mixed]
+        description: Predicted sentiment label
+      score:
+        type: number
+        description: Confidence score 0.0–1.0
+      sentence_scores:
+        type: array
+        description: Per-sentence scores when granularity=sentence
+    discovery:
+      keywords: [sentiment, opinion, tone, positive, negative, neutral, score]
+      complexity: simple
+      quality_rating: 4.7
+      usage_count: 287
+
+  - id: detect-language
+    display_name: Language Detector
+    description: >
+      Detect the primary language of a text passage and return a BCP-47 language
+      tag with confidence score and alternative candidates.
+    category: NLP
+    tags: [nlp, language, detection, localisation, bcp47]
+    inputs:
+      text:
+        type: string
+        description: Text to detect language for
+        required: true
+    outputs:
+      language:
+        type: string
+        description: "BCP-47 language tag (e.g. 'en', 'fr', 'de')"
+      confidence:
+        type: number
+        description: Detection confidence 0.0–1.0
+      alternatives:
+        type: array
+        description: Alternative language candidates with scores
+    discovery:
+      keywords: [language, detect, locale, bcp47, iso, multilingual]
+      complexity: simple
+      quality_rating: 4.9
+      usage_count: 198
+
+  - id: classify-intent
+    display_name: Intent Classifier
+    description: >
+      Classify the intent of a user utterance against a provided set of intent
+      labels using zero-shot or few-shot classification.
+    category: NLP
+    tags: [nlp, intent, classification, routing, nlu, dialogue]
+    inputs:
+      text:
+        type: string
+        description: User utterance to classify
+        required: true
+      labels:
+        type: array
+        items: string
+        description: Candidate intent labels to classify against
+        required: true
+      multi_label:
+        type: boolean
+        description: Allow multiple intents (default false — single best only)
+        required: false
+    outputs:
+      intent:
+        type: string
+        description: Top predicted intent label
+      confidence:
+        type: number
+        description: Confidence score 0.0–1.0
+      all_scores:
+        type: object
+        description: Map of label to score for all candidates
+    discovery:
+      keywords: [intent, classification, routing, nlu, dialogue, zero-shot]
+      complexity: simple
+      quality_rating: 4.6
+      usage_count: 241
+
+# ── Text ─────────────────────────────────────────────────────────────────────
+
+  - id: summarize-text
+    display_name: Text Summariser
+    description: >
+      Produce an abstractive summary of a text passage at a specified length and
+      output style (bullets, prose, or tl;dr).
+    category: Text
+    tags: [text, summarisation, abstractive, condensation, tldr]
+    inputs:
+      text:
+        type: string
+        description: Source text to summarise
+        required: true
+      max_sentences:
+        type: integer
+        description: Maximum sentences in output (default 3)
+        required: false
+      style:
+        type: string
+        enum: [bullets, prose, tldr]
+        description: Output format (default prose)
+        required: false
+    outputs:
+      summary:
+        type: string
+        description: Condensed summary text
+      sentence_count:
+        type: integer
+        description: Number of sentences in the summary
+      compression_ratio:
+        type: number
+        description: Input token count divided by output token count
+    discovery:
+      keywords: [summary, condensation, abstractive, brief, tldr, condensed]
+      complexity: intermediate
+      quality_rating: 4.7
+      usage_count: 356
+
+  - id: extract-key-phrases
+    display_name: Key Phrase Extractor
+    description: >
+      Extract the most important phrases and infer high-level topic labels from
+      a text passage, ranked by relevance score.
+    category: Text
+    tags: [text, key-phrases, topics, extraction, keywords, tfidf]
+    inputs:
+      text:
+        type: string
+        description: Source text to extract phrases from
+        required: true
+      top_n:
+        type: integer
+        description: Maximum key phrases to return (default 10)
+        required: false
+    outputs:
+      phrases:
+        type: array
+        description: Ranked list of {phrase, score, frequency} objects
+      topics:
+        type: array
+        description: High-level topic labels inferred from key phrases
+    discovery:
+      keywords: [keywords, topics, phrases, extraction, tfidf, keyphrases]
+      complexity: simple
+      quality_rating: 4.6
+      usage_count: 189
+
+  - id: translate-text
+    display_name: Text Translator
+    description: >
+      Translate text from one language to another using Azure AI Translator.
+      Source language is auto-detected when not specified.
+    category: Text
+    tags: [text, translation, localisation, azure-translator, multilingual]
+    inputs:
+      text:
+        type: string
+        description: Source text to translate
+        required: true
+      target_language:
+        type: string
+        description: "BCP-47 target language tag (e.g. 'fr', 'de', 'ja')"
+        required: true
+      source_language:
+        type: string
+        description: BCP-47 source language tag — auto-detected if omitted
+        required: false
+    outputs:
+      translated_text:
+        type: string
+        description: Translated text
+      source_language:
+        type: string
+        description: Detected or specified source language tag
+      confidence:
+        type: number
+        description: Translation quality confidence 0.0–1.0
+    discovery:
+      keywords: [translate, translation, localise, multilingual, azure-translator]
+      complexity: intermediate
+      quality_rating: 4.8
+      usage_count: 143
+
+# ── Data ─────────────────────────────────────────────────────────────────────
+
+  - id: validate-json-schema
+    display_name: JSON Schema Validator
+    description: >
+      Validate a JSON object against a JSON Schema draft-07 definition and
+      return a structured list of any validation errors.
+    category: Data
+    tags: [data, validation, json-schema, contract, jsonschema, draft-07]
+    inputs:
+      data:
+        type: object
+        description: JSON object to validate
+        required: true
+      schema:
+        type: object
+        description: JSON Schema draft-07 schema definition
+        required: true
+    outputs:
+      valid:
+        type: boolean
+        description: Whether the data passes schema validation
+      errors:
+        type: array
+        description: List of {path, message} validation error objects (empty if valid)
+      error_count:
+        type: integer
+        description: Number of validation errors found
+    discovery:
+      keywords: [validation, json, schema, contract, jsonschema, draft-07]
+      complexity: simple
+      quality_rating: 4.9
+      usage_count: 278
+
+  - id: merge-results
+    display_name: Result Merger
+    description: >
+      Merge and optionally deduplicate result lists from multiple parallel agents
+      using a configurable key field, then sort the combined output.
+    category: Data
+    tags: [data, merge, deduplication, fan-in, aggregation, parallel]
+    inputs:
+      result_lists:
+        type: array
+        description: List of result arrays to merge
+        required: true
+      dedup_key:
+        type: string
+        description: "Field name to deduplicate on (e.g. 'id', 'url'). Empty = no dedup."
+        required: false
+      sort_field:
+        type: string
+        description: Field to sort merged results by
+        required: false
+      sort_order:
+        type: string
+        enum: [asc, desc]
+        description: Sort order (default asc)
+        required: false
+    outputs:
+      results:
+        type: array
+        description: Merged, deduplicated, and sorted result list
+      total_count:
+        type: integer
+        description: Total items after merge
+      duplicate_count:
+        type: integer
+        description: Number of duplicates removed
+    discovery:
+      keywords: [merge, deduplicate, combine, fan-in, aggregation, parallel]
+      complexity: intermediate
+      quality_rating: 4.6
+      usage_count: 167
+
+  - id: format-markdown
+    display_name: Markdown Formatter
+    description: >
+      Format a structured data object or list into Markdown with configurable
+      headings, table rendering, or bullet-list output.
+    category: Data
+    tags: [data, formatting, markdown, presentation, table, render]
+    inputs:
+      data:
+        type: object
+        description: Structured data to render as Markdown
+        required: true
+      title:
+        type: string
+        description: Optional top-level heading
+        required: false
+      style:
+        type: string
+        enum: [table, list, sections]
+        description: Rendering style (default sections)
+        required: false
+    outputs:
+      markdown:
+        type: string
+        description: Rendered Markdown string
+      section_count:
+        type: integer
+        description: Number of top-level sections rendered
+    discovery:
+      keywords: [markdown, format, render, presentation, table, list, sections]
+      complexity: simple
+      quality_rating: 4.7
+      usage_count: 221
