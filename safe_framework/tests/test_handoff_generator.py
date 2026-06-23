@@ -354,3 +354,45 @@ class TestSaveToDisk:
         assert (handoff_dir / "handoff.py").exists()
         assert (handoff_dir / "config.yaml").exists()
         assert (handoff_dir / "requirements.txt").exists()
+
+
+# ── GeneratedHandoff.save_to_disk ──────────────────────────────────────────────
+
+class TestGeneratedHandoffSaveToDisk:
+    """Tests for the save_to_disk method on GeneratedHandoff (handoff_models.py)."""
+
+    def _result(self):
+        h = HandoffDefinition(
+            name="model-save-test",
+            pattern=HandoffPattern.DIRECT,
+            sub_agents={"delegate": _sub("specialist", "MySpecialist")},
+        )
+        return HandoffCodeGenerator.generate(h)
+
+    def test_creates_all_three_files(self, tmp_path):
+        result = self._result()
+        dest = str(tmp_path / "output")
+        result.save_to_disk(dest)
+        assert (tmp_path / "output" / "handoff.py").exists()
+        assert (tmp_path / "output" / "requirements.txt").exists()
+        assert (tmp_path / "output" / "config.yaml").exists()
+
+    def test_creates_parent_directories(self, tmp_path):
+        result = self._result()
+        deep = str(tmp_path / "a" / "b" / "c")
+        result.save_to_disk(deep)
+        assert (tmp_path / "a" / "b" / "c" / "handoff.py").exists()
+
+    def test_handoff_py_content_matches(self, tmp_path):
+        result = self._result()
+        dest = str(tmp_path / "out")
+        result.save_to_disk(dest)
+        written = (tmp_path / "out" / "handoff.py").read_text()
+        assert written == result.handoff_code
+
+    def test_config_yaml_content_matches(self, tmp_path):
+        result = self._result()
+        dest = str(tmp_path / "out")
+        result.save_to_disk(dest)
+        written = (tmp_path / "out" / "config.yaml").read_text()
+        assert written == result.config_yaml

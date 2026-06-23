@@ -562,6 +562,186 @@ class TestHierarchicalTeamsMissingTeams:
         assert any("team_*" in e.message or "2 team_*" in e.message for e in errors)
 
 
+# ---------------------------------------------------------------------------
+# validate_agent_contracts — RALPH_LOOP
+# ---------------------------------------------------------------------------
+
+class TestRalphLoop:
+    def test_missing_planner_error(self):
+        agents = {
+            "implementer": make_agent("Impl"),
+            "verifier": make_agent("V", outputs=["passed"]),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.RALPH_LOOP, agents)
+        assert any("planner" in e.message for e in errors)
+
+    def test_missing_implementer_error(self):
+        agents = {
+            "planner": make_agent("Planner"),
+            "verifier": make_agent("V", outputs=["passed"]),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.RALPH_LOOP, agents)
+        assert any("implementer" in e.message for e in errors)
+
+    def test_missing_verifier_error(self):
+        agents = {
+            "planner": make_agent("Planner"),
+            "implementer": make_agent("Impl"),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.RALPH_LOOP, agents)
+        assert any("verifier" in e.message for e in errors)
+
+    def test_verifier_missing_passed_output_error(self):
+        agents = {
+            "planner": make_agent("Planner"),
+            "implementer": make_agent("Impl"),
+            "verifier": make_agent("V", outputs=["other"]),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.RALPH_LOOP, agents)
+        assert any("passed" in e.message for e in errors)
+
+    def test_valid_ralph_loop_no_errors(self):
+        agents = {
+            "planner": make_agent("Planner"),
+            "implementer": make_agent("Impl"),
+            "verifier": make_agent("V", outputs=["passed"]),
+        }
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.RALPH_LOOP, agents)
+        assert errors == []
+
+
+# ---------------------------------------------------------------------------
+# validate_agent_contracts — LATS
+# ---------------------------------------------------------------------------
+
+class TestLats:
+    def _valid_agents(self):
+        return {
+            "expander": make_agent("Expander", outputs=["actions"]),
+            "executor": make_agent("Executor", outputs=["next_state"]),
+            "evaluator": make_agent("Evaluator", outputs=["value", "terminal"]),
+            "reflector": make_agent("Reflector", outputs=["reflection"]),
+        }
+
+    def test_missing_expander_error(self):
+        agents = {k: v for k, v in self._valid_agents().items() if k != "expander"}
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("expander" in e.message for e in errors)
+
+    def test_missing_executor_error(self):
+        agents = {k: v for k, v in self._valid_agents().items() if k != "executor"}
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("executor" in e.message for e in errors)
+
+    def test_missing_evaluator_error(self):
+        agents = {k: v for k, v in self._valid_agents().items() if k != "evaluator"}
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("evaluator" in e.message for e in errors)
+
+    def test_missing_reflector_error(self):
+        agents = {k: v for k, v in self._valid_agents().items() if k != "reflector"}
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("reflector" in e.message for e in errors)
+
+    def test_evaluator_missing_value_field_error(self):
+        agents = self._valid_agents()
+        agents["evaluator"] = make_agent("Evaluator", outputs=["terminal"])
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("value" in e.message for e in errors)
+
+    def test_evaluator_missing_terminal_field_error(self):
+        agents = self._valid_agents()
+        agents["evaluator"] = make_agent("Evaluator", outputs=["value"])
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("terminal" in e.message for e in errors)
+
+    def test_expander_missing_actions_field_error(self):
+        agents = self._valid_agents()
+        agents["expander"] = make_agent("Expander", outputs=["other"])
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("actions" in e.message for e in errors)
+
+    def test_reflector_missing_reflection_field_error(self):
+        agents = self._valid_agents()
+        agents["reflector"] = make_agent("Reflector", outputs=["other"])
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("reflection" in e.message for e in errors)
+
+    def test_executor_missing_next_state_field_error(self):
+        agents = self._valid_agents()
+        agents["executor"] = make_agent("Executor", outputs=["other"])
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, agents)
+        assert any("next_state" in e.message for e in errors)
+
+    def test_valid_lats_no_errors(self):
+        errors = ContractValidator.validate_agent_contracts(RoutePattern.LATS, self._valid_agents())
+        assert errors == []
+
+
+# ---------------------------------------------------------------------------
+# validate_agent_contracts — PLANNER_GENERATOR_EVALUATOR
+# ---------------------------------------------------------------------------
+
+class TestPlannerGeneratorEvaluator:
+    def _valid_agents(self):
+        return {
+            "planner": make_agent("Planner", outputs=["sprints"]),
+            "generator": make_agent("Generator", outputs=["sprint_delivery"]),
+            "evaluator": make_agent("Evaluator", outputs=["approved"]),
+        }
+
+    def test_missing_planner_error(self):
+        agents = {k: v for k, v in self._valid_agents().items() if k != "planner"}
+        errors = ContractValidator.validate_agent_contracts(
+            RoutePattern.PLANNER_GENERATOR_EVALUATOR, agents
+        )
+        assert any("planner" in e.message for e in errors)
+
+    def test_missing_generator_error(self):
+        agents = {k: v for k, v in self._valid_agents().items() if k != "generator"}
+        errors = ContractValidator.validate_agent_contracts(
+            RoutePattern.PLANNER_GENERATOR_EVALUATOR, agents
+        )
+        assert any("generator" in e.message for e in errors)
+
+    def test_missing_evaluator_error(self):
+        agents = {k: v for k, v in self._valid_agents().items() if k != "evaluator"}
+        errors = ContractValidator.validate_agent_contracts(
+            RoutePattern.PLANNER_GENERATOR_EVALUATOR, agents
+        )
+        assert any("evaluator" in e.message for e in errors)
+
+    def test_evaluator_missing_approved_field_error(self):
+        agents = self._valid_agents()
+        agents["evaluator"] = make_agent("Evaluator", outputs=["other"])
+        errors = ContractValidator.validate_agent_contracts(
+            RoutePattern.PLANNER_GENERATOR_EVALUATOR, agents
+        )
+        assert any("approved" in e.message for e in errors)
+
+    def test_generator_missing_sprint_delivery_field_error(self):
+        agents = self._valid_agents()
+        agents["generator"] = make_agent("Generator", outputs=["other"])
+        errors = ContractValidator.validate_agent_contracts(
+            RoutePattern.PLANNER_GENERATOR_EVALUATOR, agents
+        )
+        assert any("sprint_delivery" in e.message for e in errors)
+
+    def test_planner_missing_sprints_field_error(self):
+        agents = self._valid_agents()
+        agents["planner"] = make_agent("Planner", outputs=["other"])
+        errors = ContractValidator.validate_agent_contracts(
+            RoutePattern.PLANNER_GENERATOR_EVALUATOR, agents
+        )
+        assert any("sprints" in e.message for e in errors)
+
+    def test_valid_planner_generator_evaluator_no_errors(self):
+        errors = ContractValidator.validate_agent_contracts(
+            RoutePattern.PLANNER_GENERATOR_EVALUATOR, self._valid_agents()
+        )
+        assert errors == []
+
+
 class TestDiamondMissingProcessorsAndMerger:
     def test_missing_left_processor_error(self):
         agents = {
