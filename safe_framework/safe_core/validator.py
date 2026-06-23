@@ -569,6 +569,174 @@ class ContractValidator:
                     suggested_solutions=["Add an agent with key 'worker'"]
                 ))
 
+        elif pattern == RoutePattern.EVALUATOR_OPTIMIZER:
+            for role in ("generator", "evaluator", "optimizer"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for evaluator-optimizer pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.HUMAN_IN_THE_LOOP:
+            for role in ("pre_validator", "human_gate", "post_processor"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for human-in-the-loop pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.REFLECTION:
+            for role in ("generator", "critic", "refiner"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for reflection pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.ORCHESTRATOR_WORKERS:
+            for role in ("orchestrator", "synthesizer"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for orchestrator-workers pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+            worker_keys = [k for k in agents if k.startswith("worker_")]
+            if not worker_keys:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="At least one worker_* agent is required for orchestrator-workers pattern",
+                    suggested_solutions=["Add agents with keys worker_0, worker_1, ..."]
+                ))
+
+        elif pattern == RoutePattern.RAG:
+            for role in ("retriever", "reranker", "generator"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for rag pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.PLANNING:
+            for role in ("planner", "executor", "reviewer"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for planning pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.GATE_GUARD:
+            for role in ("guard", "processor"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for gate-guard pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.SELF_CONSISTENCY:
+            worker_keys = [k for k in agents if k.startswith("worker_")]
+            if not worker_keys:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="At least one worker_* agent is required for self-consistency pattern",
+                    suggested_solutions=["Add agents with keys worker_0, worker_1, ..."]
+                ))
+            if "voter" not in agents:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="'voter' agent is required for self-consistency pattern",
+                    suggested_solutions=["Add an agent with key 'voter'"]
+                ))
+
+        elif pattern == RoutePattern.DEBATE:
+            for role in ("proposer", "challenger", "judge"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for debate pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.AGENT_AS_A_TOOL:
+            if "orchestrator" not in agents:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="'orchestrator' agent is required for agent-as-a-tool pattern",
+                    suggested_solutions=["Add an agent with key 'orchestrator'"]
+                ))
+            sub_agent_keys = [k for k in agents if k.startswith("sub_agent_")]
+            if not sub_agent_keys:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="At least one sub_agent_* agent is required for agent-as-a-tool pattern",
+                    suggested_solutions=["Add agents with keys sub_agent_0, sub_agent_1, ..."]
+                ))
+
+        elif pattern == RoutePattern.MEMORY_AUGMENTED:
+            for role in ("memory_reader", "processor", "memory_writer"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for memory-augmented pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.EVENT_DRIVEN:
+            for role in ("listener", "router"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for event-driven pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+            handler_keys = [k for k in agents if k.startswith("handler_")]
+            if not handler_keys:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="At least one handler_* agent is required for event-driven pattern",
+                    suggested_solutions=["Add agents with keys handler_0, handler_1, ..."]
+                ))
+
+        elif pattern == RoutePattern.CHECKPOINT_RESUME:
+            for role in ("coordinator", "worker", "checkpoint_store"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for checkpoint-resume pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.BUDGET_AWARE_ROUTING:
+            for role in ("cost_estimator", "model_router", "executor"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for budget-aware-routing pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+
+        elif pattern == RoutePattern.ADAPTIVE_ROUTING:
+            for role in ("performance_tracker", "router"):
+                if role not in agents:
+                    errors.append(ValidationError(
+                        error_type="missing_agent",
+                        message=f"'{role}' agent is required for adaptive-routing pattern",
+                        suggested_solutions=[f"Add an agent with key '{role}'"]
+                    ))
+            worker_keys = [k for k in agents if k.startswith("worker_")]
+            if not worker_keys:
+                errors.append(ValidationError(
+                    error_type="missing_agent",
+                    message="At least one worker_* agent is required for adaptive-routing pattern",
+                    suggested_solutions=["Add agents with keys worker_0, worker_1, ..."]
+                ))
+
         return errors
 
     @staticmethod
