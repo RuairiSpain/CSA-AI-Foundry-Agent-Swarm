@@ -187,7 +187,7 @@ class AgentContractValidator:
         try:
             from skills.scaffold import known_skill_ids  # type: ignore[import]
             catalog_ids = known_skill_ids()
-        except Exception:
+        except (ImportError, FileNotFoundError):
             warnings.append("Skills catalog unavailable — skill reference validation skipped")
             return
         for ref in skill_refs:

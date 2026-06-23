@@ -23,7 +23,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["safe_core*", "safe_cli*"]
+include = ["safe_core*", "safe_cli*", "skills*"]
 
 [project.scripts]
 safe = "safe_cli.main:app"

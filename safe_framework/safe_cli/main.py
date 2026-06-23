@@ -209,12 +209,11 @@ def skill_create(
         f"\n  {typer.style('✓', fg=typer.colors.GREEN, bold=True)} "
         f"Created skill: {entry['id']} ({entry['category']})"
     )
-    typer.echo(
-        f"\n  Next steps:"
-        f"\n    1. Edit skills/catalog.yaml to fill in inputs/outputs for '{entry['id']}'"
-        f"\n    2. Reference it in an agent.yaml:  skills:\n         - id: {entry['id']}"
-        f"\n    3. Commit skills/catalog.yaml\n"
-    )
+    typer.echo("\n  Next steps:")
+    typer.echo(f"    1. Edit skills/catalog.yaml to fill in inputs/outputs for '{entry['id']}'")
+    typer.echo(f"    2. Reference it in an agent.yaml:  skills:")
+    typer.echo(f"         - id: {entry['id']}")
+    typer.echo("    3. Commit skills/catalog.yaml\n")
 
 
 # ── chain sub-commands ────────────────────────────────────────────────────────
