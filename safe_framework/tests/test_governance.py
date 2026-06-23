@@ -336,6 +336,161 @@ class TestAuditLogger:
         assert "compliance_events" in report
 
 
+class TestApprovalEngineEdgeCases:
+    """Tests for approval engine branches not covered by the happy-path tests."""
+
+    @pytest.mark.asyncio
+    async def test_high_cost_route_assigns_finance_and_security_approvers(self):
+        policy = GovernancePolicy(
+            name="Test",
+            compliance_level=ComplianceLevel.STRICT,
+            require_approval=True,
+            max_monthly_cost_usd=1000.0,
+        )
+        engine = ApprovalEngine(policy)
+        # cost > 1000 * 0.5 = 500 → finance + security leads
+        request = await engine.create_approval_request(
+            route_name="expensive-route",
+            route_version="v1.0",
+            requester_email="user@example.com",
+            agents=["agent-1"],
+            estimated_cost=900.0,
+            estimated_volume=500,
+        )
+        assert len(request.approvers) == 2
+
+    @pytest.mark.asyncio
+    async def test_low_cost_route_assigns_single_team_lead(self):
+        policy = GovernancePolicy(
+            name="Test",
+            compliance_level=ComplianceLevel.STANDARD,
+            require_approval=True,
+            max_monthly_cost_usd=1000.0,
+        )
+        engine = ApprovalEngine(policy)
+        # cost <= 1000 * 0.5 = 500 → team lead only
+        request = await engine.create_approval_request(
+            route_name="cheap-route",
+            route_version="v1.0",
+            requester_email="user@example.com",
+            agents=["agent-1"],
+            estimated_cost=100.0,
+            estimated_volume=500,
+        )
+        assert len(request.approvers) == 1
+
+    @pytest.mark.asyncio
+    async def test_submit_approval_unknown_request_returns_false(self):
+        policy = GovernancePolicy(name="Test")
+        engine = ApprovalEngine(policy)
+        result = await engine.submit_approval(
+            request_id="nonexistent-id",
+            approver_email="anyone@example.com",
+            approved=True,
+        )
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_submit_approval_unauthorised_approver_returns_false(self):
+        policy = GovernancePolicy(
+            name="Test",
+            compliance_level=ComplianceLevel.STANDARD,
+            require_approval=True,
+            approval_threshold=1,
+        )
+        engine = ApprovalEngine(policy)
+        request = await engine.create_approval_request(
+            route_name="test-route",
+            route_version="v1.0",
+            requester_email="user@example.com",
+            agents=["agent-1"],
+            estimated_cost=50.0,
+            estimated_volume=100,
+        )
+        result = await engine.submit_approval(
+            request_id=request.request_id,
+            approver_email="intruder@example.com",
+            approved=True,
+        )
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_get_pending_requests_filtered_by_approver(self):
+        policy = GovernancePolicy(
+            name="Test",
+            compliance_level=ComplianceLevel.STANDARD,
+            require_approval=True,
+            max_monthly_cost_usd=1000.0,
+        )
+        engine = ApprovalEngine(policy)
+        # Create a low-cost request (team-lead approver)
+        await engine.create_approval_request(
+            route_name="route-a",
+            route_version="v1.0",
+            requester_email="user@example.com",
+            agents=["agent-1"],
+            estimated_cost=50.0,
+            estimated_volume=10,
+        )
+        # Create a high-cost request (finance + security approvers)
+        await engine.create_approval_request(
+            route_name="route-b",
+            route_version="v1.0",
+            requester_email="user@example.com",
+            agents=["agent-1"],
+            estimated_cost=900.0,
+            estimated_volume=10,
+        )
+        all_requests = await engine.get_pending_requests()
+        assert len(all_requests) == 2
+
+        import os
+        team_lead = os.environ.get("SAFE_APPROVER_TEAM_LEAD", "team-lead@company.com")
+        team_lead_requests = await engine.get_pending_requests(approver_email=team_lead)
+        assert len(team_lead_requests) == 1
+        assert team_lead_requests[0].route_name == "route-a"
+
+    @pytest.mark.asyncio
+    async def test_revoke_pending_approval(self):
+        policy = GovernancePolicy(name="Test", require_approval=True)
+        engine = ApprovalEngine(policy)
+        request = await engine.create_approval_request(
+            route_name="route-x",
+            route_version="v1.0",
+            requester_email="user@example.com",
+            agents=["agent-1"],
+            estimated_cost=50.0,
+            estimated_volume=10,
+        )
+        result = await engine.revoke_approval(request.request_id, reason="Policy violation")
+        assert result is True
+        assert request.status == ApprovalStatus.REVOKED
+
+    @pytest.mark.asyncio
+    async def test_revoke_nonexistent_request_returns_false(self):
+        policy = GovernancePolicy(name="Test")
+        engine = ApprovalEngine(policy)
+        result = await engine.revoke_approval("does-not-exist", reason="test")
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_compliance_disallowed_data_source_adds_warning(self):
+        policy = GovernancePolicy(
+            name="Test",
+            max_monthly_cost_usd=10000.0,
+            allowed_data_sources=["approved-db"],
+        )
+        engine = ApprovalEngine(policy)
+        result = await engine.check_compliance(
+            route_name="test-route",
+            agents=["agent-1"],
+            estimated_cost=100.0,
+            data_sources=["unapproved-source"],
+        )
+        assert result.passed is True
+        assert len(result.warnings) > 0
+
+
 class TestPhase6Integration:
     """Integration tests for Phase 6"""
 
