@@ -1,13 +1,12 @@
 """Route invocation engine"""
 
-import os
 import uuid
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
 from enum import Enum
 from datetime import datetime
 
-_DEFAULT_EXECUTION_TIMEOUT_SECONDS = int(os.environ.get("SAFE_EXECUTION_DEFAULT_TIMEOUT_SECONDS", "300"))
+from ..config import config
 
 class ExecutionStatus(str, Enum):
     PENDING = "pending"
@@ -24,7 +23,7 @@ class ExecutionRequest:
     input_data: Dict[str, Any]
     request_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=datetime.now)
-    timeout_seconds: int = field(default_factory=lambda: _DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+    timeout_seconds: int = field(default_factory=lambda: config.execution_timeout_seconds)
 
 @dataclass
 class ExecutionResult:
@@ -50,13 +49,13 @@ class RouteInvocationEngine:
     
     async def create_execution_request(
         self, route_name: str, route_version: str,
-        input_data: Dict[str, Any], timeout_seconds: int = _DEFAULT_EXECUTION_TIMEOUT_SECONDS,
+        input_data: Dict[str, Any], timeout_seconds: int = -1,
     ) -> ExecutionRequest:
         request = ExecutionRequest(
             route_name=route_name,
             route_version=route_version,
             input_data=input_data,
-            timeout_seconds=timeout_seconds,
+            timeout_seconds=timeout_seconds if timeout_seconds >= 0 else config.execution_timeout_seconds,
         )
         self.pending_requests[request.request_id] = request
         self.execution_queue.append(request)

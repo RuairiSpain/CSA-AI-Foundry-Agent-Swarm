@@ -1,6 +1,5 @@
 """Approval workflow engine for Agent 365 integration"""
 
-import os
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from .models import (
@@ -9,11 +8,7 @@ from .models import (
     GovernancePolicy,
     ComplianceCheckResult,
 )
-
-_APPROVER_FINANCE_LEAD = os.environ.get("SAFE_APPROVER_FINANCE_LEAD", "finance-lead@company.com")
-_APPROVER_SECURITY_LEAD = os.environ.get("SAFE_APPROVER_SECURITY_LEAD", "security-lead@company.com")
-_APPROVER_TEAM_LEAD = os.environ.get("SAFE_APPROVER_TEAM_LEAD", "team-lead@company.com")
-_HIGH_COST_APPROVER_THRESHOLD_FACTOR = float(os.environ.get("SAFE_HIGH_COST_APPROVER_THRESHOLD_FACTOR", "0.5"))
+from ..config import config
 
 class ApprovalEngine:
     """Manages approval workflows for route deployment"""
@@ -60,10 +55,10 @@ class ApprovalEngine:
         approvers = []
         
         # High-cost routes require more approvers
-        if cost > self.policy.max_monthly_cost_usd * _HIGH_COST_APPROVER_THRESHOLD_FACTOR:
-            approvers.extend([_APPROVER_FINANCE_LEAD, _APPROVER_SECURITY_LEAD])
+        if cost > self.policy.max_monthly_cost_usd * config.high_cost_approver_threshold_factor:
+            approvers.extend([config.approver_finance_lead, config.approver_security_lead])
         else:
-            approvers.extend([_APPROVER_TEAM_LEAD])
+            approvers.extend([config.approver_team_lead])
         
         return approvers
     

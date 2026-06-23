@@ -1,15 +1,11 @@
 """Health monitoring data models"""
 
-import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from enum import Enum
 from datetime import datetime
 
-_HEALTH_FAILURE_THRESHOLD = int(os.environ.get("SAFE_HEALTH_FAILURE_THRESHOLD", "2"))
-_HEALTH_SLOW_THRESHOLD_MS = float(os.environ.get("SAFE_HEALTH_SLOW_THRESHOLD_MS", "5000.0"))
-_HEALTH_COST_THRESHOLD_USD = float(os.environ.get("SAFE_HEALTH_COST_THRESHOLD_USD", "1000.0"))
-_HEALTH_FROZEN_THRESHOLD_SECONDS = float(os.environ.get("SAFE_HEALTH_FROZEN_THRESHOLD_SECONDS", "3600"))
+from ..config import config
 
 class RouteHealthStatus(str, Enum):
     """Route health status flags"""
@@ -65,9 +61,9 @@ class RouteHealth:
     consecutive_slow_executions: int = 0
     
     # Thresholds (override via SAFE_HEALTH_FAILURE_THRESHOLD, SAFE_HEALTH_SLOW_THRESHOLD_MS, SAFE_HEALTH_COST_THRESHOLD_USD)
-    failure_threshold: int = field(default_factory=lambda: _HEALTH_FAILURE_THRESHOLD)
-    slow_execution_threshold_ms: float = field(default_factory=lambda: _HEALTH_SLOW_THRESHOLD_MS)
-    cost_threshold_usd: float = field(default_factory=lambda: _HEALTH_COST_THRESHOLD_USD)
+    failure_threshold: int = field(default_factory=lambda: config.health_failure_threshold)
+    slow_execution_threshold_ms: float = field(default_factory=lambda: config.health_slow_threshold_ms)
+    cost_threshold_usd: float = field(default_factory=lambda: config.health_cost_threshold_usd)
     
     # Metadata
     last_check: datetime = field(default_factory=datetime.now)
@@ -89,7 +85,7 @@ class RouteHealth:
             return
         
         # Check for frozen (no recent executions but was previously working)
-        if (datetime.now() - self.last_check).total_seconds() > _HEALTH_FROZEN_THRESHOLD_SECONDS:
+        if (datetime.now() - self.last_check).total_seconds() > config.health_frozen_threshold_seconds:
             self.status = RouteHealthStatus.FROZEN
             return
         
