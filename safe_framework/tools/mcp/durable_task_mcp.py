@@ -17,6 +17,7 @@ from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from safe_core.tracing import correlation_headers
 
 mcp = FastMCP("safe-durable-task")
 
@@ -26,7 +27,11 @@ _MGMT = f"{_BASE_URL}/runtime/webhooks/durabletask"
 
 
 def _headers() -> dict[str, str]:
-    return {"x-functions-key": _KEY, "Content-Type": "application/json"}
+    return {
+        "x-functions-key": _KEY,
+        "Content-Type": "application/json",
+        **correlation_headers(),
+    }
 
 
 @mcp.tool()

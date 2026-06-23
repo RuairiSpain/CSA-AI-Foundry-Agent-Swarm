@@ -32,14 +32,15 @@ class AuditEvent:
     resource: str  # Route name or resource affected
     resource_id: str
     timestamp: datetime
+    correlation_id: str = ""
     details: Dict[str, Any] = field(default_factory=dict)
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
-    
+
     # For compliance
     severity: str = "info"  # info, warning, critical
     compliance_relevant: bool = False
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -49,6 +50,7 @@ class AuditEvent:
             "resource": self.resource,
             "resource_id": self.resource_id,
             "timestamp": self.timestamp.isoformat(),
+            "correlation_id": self.correlation_id,
             "details": self.details,
             "ip_address": self.ip_address,
             "user_agent": self.user_agent,
@@ -69,15 +71,16 @@ class AuditLogger:
         resource: str,
         resource_id: str,
         details: Dict[str, Any],
+        correlation_id: str = "",
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
         severity: str = "info",
         compliance_relevant: bool = False,
     ) -> str:
         """Log an audit event"""
-        
+
         event_id = f"evt-{resource}-{len(self.events)}"
-        
+
         event = AuditEvent(
             event_id=event_id,
             event_type=event_type,
@@ -85,6 +88,7 @@ class AuditLogger:
             resource=resource,
             resource_id=resource_id,
             timestamp=datetime.now(),
+            correlation_id=correlation_id,
             details=details,
             ip_address=ip_address,
             user_agent=user_agent,

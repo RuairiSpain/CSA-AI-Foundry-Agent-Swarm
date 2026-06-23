@@ -17,6 +17,7 @@ from typing import Any
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from safe_core.tracing import correlation_headers
 
 mcp = FastMCP("safe-model-router")
 
@@ -32,7 +33,11 @@ ROUTING_POLICIES = ("Quality", "Cost", "Balanced")
 
 
 def _headers() -> dict[str, str]:
-    return {"api-key": _API_KEY, "Content-Type": "application/json"}
+    return {
+        "api-key": _API_KEY,
+        "Content-Type": "application/json",
+        **correlation_headers(),
+    }
 
 
 @mcp.tool()
